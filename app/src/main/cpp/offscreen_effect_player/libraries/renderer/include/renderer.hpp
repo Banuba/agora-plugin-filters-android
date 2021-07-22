@@ -24,7 +24,7 @@ namespace bnb::render
         bool draw();
 
     private:
-        program m_program;
+        oep::program m_program;
         frame_surface_handler m_frame_surface;
 
         int m_width;

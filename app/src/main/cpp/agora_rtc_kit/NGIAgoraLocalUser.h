@@ -10,9 +10,7 @@
 #include <cstring>
 
 #include "AgoraBase.h"
-#include "IAgoraService.h"
-#include "NGIAgoraAudioTrack.h"
-#include "NGIAgoraVideoTrack.h"
+#include "AgoraOptional.h"
 
 namespace agora {
 namespace media {
@@ -25,9 +23,22 @@ class IAudioEngineWrapper;
 class ILocalUserObserver;
 class ILocalVideoTrack;
 class IRemoteVideoTrack;
+class IVideoFrameObserver2;
 
+class IMediaControlPacketSender;
+class IMediaControlPacketReceiver;
+struct AudioEncoderConfiguration;
+struct VideoEncoderConfiguration;
+
+class ILocalAudioTrack;
+struct RemoteAudioTrackStats;
+class IRemoteAudioTrack;
+struct LocalVideoTrackStats;
+struct RemoteVideoTrackStats;
+class IMediaPacketReceiver;
+class IVideoSinkBase;
 /**
- * The ILocalUser class defines the behavior and state of the local user.
+ * The ILocalUser class defines the behavior and state of a local user.
  *
  * Each RTC connection has its own local user. Apps can get the local
  * user object by calling \ref agora::rtc::IRtcConnection::getLocalUser
@@ -53,7 +64,7 @@ class ILocalUser {
     /**
      * Whether to subscribe to encoded video data only:
      * - `true`: Subscribe to encoded video data only.
-     * - `false`: (Default) Do not subscribe to encoded video data only.
+     * - `false`: (Default) Subscribe to decoded video data.
      */
     bool encodedFrameOnly;
 
@@ -62,7 +73,7 @@ class ILocalUser {
   };
 
   /**
-   * Statistics related to audio network adaptation (ANA).
+   * The statistics related to audio network adaptation (ANA).
    */
   struct ANAStats {
     /**
@@ -112,7 +123,7 @@ class ILocalUser {
   };
 
   /**
-   * Statistics related to audio processing.
+   * The statistics related to audio processing.
    */
   struct AudioProcessingStats {
     /**
@@ -181,23 +192,23 @@ class ILocalUser {
    */
   struct LocalAudioDetailedStats {
     /**
-     * The synchronization source of the local audio.
+     * The synchronization source (SSRC) to identify the stream of RTP packets from the local audio.
      */
     uint32_t local_ssrc;
     /**
-     * The number of audio bytes sent.
+     * The number of sent audio bytes.
      */
     int64_t bytes_sent;
     /**
-     * The number of audio packets sent.
+     * The number of sent audio packets.
      */
     int32_t packets_sent;
     /**
-     * The number of audio packets lost.
+     * The number of lost audio packets.
      */
     int32_t packets_lost;
     /**
-     * The lost fraction.
+     * The fraction packet loss reported for this SSRC.
      */
     float fraction_lost;
     /**
@@ -205,7 +216,7 @@ class ILocalUser {
      */
     char codec_name[media::base::kMaxCodecNameLength];
     /**
-     * The type of the codec payload.
+     * The payload type as used in RTP encoding or decoding.
      */
     agora::Optional<int> codec_payload_type;
     /**
@@ -221,15 +232,15 @@ class ILocalUser {
      */
     int64_t rtt_ms;
     /**
-     * The audio level.
+     * The audio level (dBov) of the media source.
      */
     int32_t audio_level;
     /**
-     * The total input energy.
+     * The audio energy of the media source.
      */
     double total_input_energy;
     /**
-     * The total input duration.
+     * The audio duration of the media source.
      */
     double total_input_duration;
     /**
@@ -239,12 +250,17 @@ class ILocalUser {
      */
     bool typing_noise_detected;
 
+    /**
+     * The audio process time from record done to encode done
+     */
+    int32_t uplink_process_time_ms;
+
     ANAStats ana_statistics;
     AudioProcessingStats apm_statistics;
 
     LocalAudioDetailedStats() : local_ssrc(0), bytes_sent(0), packets_sent(0), packets_lost(-1), fraction_lost(-1.0f),
                                 ext_seqnum(-1), jitter_ms(-1), rtt_ms(-1), audio_level(-1),
-                                total_input_energy(0.0), total_input_duration(0.0), typing_noise_detected(false) {
+                                total_input_energy(0.0), total_input_duration(0.0), typing_noise_detected(false), uplink_process_time_ms(0) {
       memset(codec_name, 0, sizeof(codec_name));
     }
   };
@@ -264,18 +280,16 @@ class ILocalUser {
    * callbacks indicate the result of this method call.
    *
    * @note
-   * If the token provided in the \ref IRtcConnection::connect "connect" method does not include the
-   * role's privilege, the connection fails with the \ref IRtcConnectionObserver::onConnectionFailure
-   * "onConnectionFailure" callback.
-   * @param role Role of the user: #CLIENT_ROLE_TYPE.
+   * If the token in the \ref IRtcConnection::connect "connect" method does not have the same role
+   * as `role`, the connection fails with the \ref IRtcConnectionObserver::onConnectionFailure "onConnectionFailure" callback.
+   * @param role The role of the user. See \ref rtc::CLIENT_ROLE_TYPE "CLIENT_ROLE_TYPE".
    */
   virtual void setUserRole(rtc::CLIENT_ROLE_TYPE role) = 0;
 
   /**
    * Gets the role of the user.
    *
-   * @return
-   * - The role of the user, if the method call succeeds.
+   * @return The role of the user: Success.
    */
   virtual CLIENT_ROLE_TYPE getUserRole() = 0;
 
@@ -290,6 +304,17 @@ class ILocalUser {
    * - < 0: Failure.
    */
   virtual int setAudioEncoderConfiguration(const rtc::AudioEncoderConfiguration& config) = 0;
+
+  /**
+   * Sets the audio parameters and application scenarios.
+   *
+   * @param scenario Sets the audio application scenarios: #AUDIO_SCENARIO_TYPE.
+   *
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+  virtual int setAudioScenario(AUDIO_SCENARIO_TYPE scenario) = 0;
 
   /**
    * Gets the detailed statistics of the local audio.
@@ -310,7 +335,7 @@ class ILocalUser {
    * @return
    * - 0: Success.
    * - < 0: Failure.
-   *   - ERR_REFUSED, if the role of the local user is not broadcaster.
+   *   - -5(ERR_REFUSED), if the role of the local user is not broadcaster.
    */
   virtual int publishAudio(agora_refptr<ILocalAudioTrack> audioTrack) = 0;
 
@@ -332,7 +357,6 @@ class ILocalUser {
    * - 0: Success.
    * - < 0: Failure.
    */
-  // TODO(Bob)
   virtual int publishVideo(agora_refptr<ILocalVideoTrack> videoTrack) = 0;
 
   /**
@@ -346,13 +370,13 @@ class ILocalUser {
   virtual int unpublishVideo(agora_refptr<ILocalVideoTrack> videoTrack) = 0;
 
   /**
-   * Subscribes to the audio of a specified remote user in channl.
+   * Subscribes to the audio of a specified remote user in channel.
    *
-   * @param userId ID of the remote user whose audio you want to subscribe to.
+   * @param userId The ID of the remote user whose audio you want to subscribe to.
    * @return
    * - 0: Success.
    * - < 0: Failure.
-   *   - ERR_INVALID_ARGUMENT, if no such user exists or `userId` is invalid.
+   *   - -2(ERR_INVALID_ARGUMENT), if no such user exists or `userId` is invalid.
    */
   virtual int subscribeAudio(user_id_t userId) = 0;
 
@@ -370,11 +394,11 @@ class ILocalUser {
   /**
    * Stops subscribing to the audio of a specified remote user in the channel.
    *
-   * @param userId ID of the user whose audio you want to stop subscribing to.
+   * @param userId The ID of the user whose audio you want to stop subscribing to.
    * @return
    * - 0: Success.
    * - < 0: Failure.
-   *   - ERR_INVALID_ARGUMENT, if no such user exists or `userId` is invalid.
+   *   - -2(ERR_INVALID_ARGUMENT), if no such user exists or `userId` is invalid.
    */
   virtual int unsubscribeAudio(user_id_t userId) = 0;
 
@@ -437,17 +461,53 @@ class ILocalUser {
    * - < 0: Failure.
    */
   virtual int getUserPlaybackSignalVolume(uid_t uid, int* volume) = 0;
+  
+  /** Enables/Disables stereo panning for remote users.
+
+   Ensure that you call this method before joinChannel to enable stereo panning for remote users so that the local user can track the position of a remote user by calling \ref agora::rtc::IRtcEngine::setRemoteVoicePosition "setRemoteVoicePosition".
+
+   @param enabled Sets whether or not to enable stereo panning for remote users:
+   - true: enables stereo panning.
+   - false: disables stereo panning.
+
+   @return
+   - 0: Success.
+   - < 0: Failure.
+   */
+  virtual int enableSoundPositionIndication(bool enabled) = 0;
+  
+  /** Sets the sound position and gain of a remote user.
+
+   When the local user calls this method to set the sound position of a remote user, the sound difference between the left and right channels allows the local user to track the real-time position of the remote user, creating a real sense of space. This method applies to massively multiplayer online games, such as Battle Royale games.
+
+   @note
+   - For this method to work, enable stereo panning for remote users by calling the \ref agora::rtc::IRtcEngine::enableSoundPositionIndication "enableSoundPositionIndication" method before joining a channel.
+   - This method requires hardware support. For the best sound positioning, we recommend using a wired headset.
+   - Ensure that you call this method after joining a channel.
+
+   @param uid The ID of the remote user.
+   @param pan The sound position of the remote user. The value ranges from -1.0 to 1.0:
+   - 0.0: the remote sound comes from the front.
+   - -1.0: the remote sound comes from the left.
+   - 1.0: the remote sound comes from the right.
+   @param gain Gain of the remote user. The value ranges from 0.0 to 100.0. The default value is 100.0 (the original gain of the remote user). The smaller the value, the less the gain.
+   
+   @return
+   - 0: Success.
+   - < 0: Failure.
+   */
+  virtual int setRemoteVoicePosition(uid_t uid, double pan, double gain) = 0;
 
   /**
-   * Pulls mixed PCM audio data from the channel.
+   * Pulls the mixed PCM audio data from the channel.
    *
    * @note
-   * To pull mixed PCM audio data using this method, you must clear `enableAudioRecordingOrPlayout`
-   * in \ref agora::rtc::RtcConnectionConfiguration when creating the `IRtcConnection`.
+   * To pull the mixed PCM audio data using this method, you must clear `enableAudioRecordingOrPlayout`
+   * in \ref agora::rtc::RtcConnectionConfiguration "RtcConnectionConfiguration" when creating the `IRtcConnection`.
    * Otherwise, this method returns `false` and `payload_data` contains no valid data.
    *
    * @param[out] payload_data The pointer to the mixed PCM audio data.
-   * @param[out] audioFrameInfo The reference to the information of the PCM audio data: \ref agora::rtc::AudioPcmDataInfo `AudioPcmDataInfo`.
+   * @param[out] audioFrameInfo The reference to the information of the PCM audio data: \ref agora::rtc::AudioPcmDataInfo "AudioPcmDataInfo".
    * @return
    * - `true`: Success.
    * - `false`: Failure.
@@ -467,7 +527,9 @@ class ILocalUser {
    * - 0: Success.
    * - < 0: Failure.
    */
-  virtual int setPlaybackAudioFrameParameters(size_t numberOfChannels, uint32_t sampleRateHz) = 0;
+  virtual int setPlaybackAudioFrameParameters(size_t numberOfChannels,
+                                              uint32_t sampleRateHz,
+                                              int samplesPerCall = 0) = 0;
   /**
    * Sets the audio frame parameters for the \ref agora::media::IAudioFrameObserver::onRecordAudioFrame
    * "onRecordAudioFrame" callback.
@@ -482,7 +544,10 @@ class ILocalUser {
    * - 0: Success.
    * - < 0: Failure.
    */
-  virtual int setRecordingAudioFrameParameters(size_t numberOfChannels, uint32_t sampleRateHz) = 0;
+  virtual int setRecordingAudioFrameParameters(size_t numberOfChannels,
+                                               uint32_t sampleRateHz,
+                                               RAW_AUDIO_FRAME_OP_MODE_TYPE mode = RAW_AUDIO_FRAME_OP_MODE_READ_ONLY,
+                                               int samplesPerCall = 0) = 0;
   /**
    * Sets the audio frame parameters for the \ref agora::media::IAudioFrameObserver::onMixedAudioFrame
    * "onMixedAudioFrame" callback.
@@ -497,7 +562,9 @@ class ILocalUser {
    * - 0: Success.
    * - < 0: Failure.
    */
-  virtual int setMixedAudioFrameParameters(size_t numberOfChannels, uint32_t sampleRateHz) = 0;
+  virtual int setMixedAudioFrameParameters(size_t numberOfChannels,
+                                           uint32_t sampleRateHz,
+                                           int samplesPerCall = 0) = 0;
 
   /**
    * Sets the audio frame parameters for the \ref agora::media::IAudioFrameObserver::onPlaybackAudioFrameBeforeMixing
@@ -544,16 +611,106 @@ class ILocalUser {
   virtual int unregisterAudioFrameObserver(agora::media::IAudioFrameObserver * observer) = 0;
 
   /**
-   * Subscribes to the video of a specified remote user in the channel.
+   * Enable the audio spectrum monitor.
    *
-   * @param userId ID of the user whose video you want to subscribe to.
-   * @param subscriptionOptions The reference to the video subscription options. For example, subscribing to encoded video data only or
-   * subscribing to low-stream video.
+   * @param intervalInMS Sets the time interval(ms) between two consecutive audio spectrum callback.
+   * The default value is 100. This param should be larger than 10.
    *
    * @return
    * - 0: Success.
    * - < 0: Failure.
-   *   - ERR_INVALID_ARGUMENT, if `userId` is invalid.
+   */
+  virtual int enableAudioSpectrumMonitor(int intervalInMS = 100) = 0;
+  /**
+   * Disalbe the audio spectrum monitor.
+   *
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+  virtual int disableAudioSpectrumMonitor() = 0;
+
+  /**
+   * Registers an audio spectrum observer.
+   *
+   * You need to implement the `IAudioSpectrumObserver` class in this method, and register the following callbacks
+   * according to your scenario:
+   * - \ref agora::media::IAudioSpectrumObserver::onAudioSpectrumComputed "onAudioSpectrumComputed": Occurs when
+   * the SDK receives the audio data and at set intervals.
+   *
+   * @param observer A pointer to the audio spectrum observer: \ref agora::media::IAudioSpectrumObserver
+   * "IAudioSpectrumObserver".
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+  virtual int registerAudioSpectrumObserver(agora::media::IAudioSpectrumObserver * observer, void (*safeDeleter)(agora::media::IAudioSpectrumObserver*)) = 0;
+  /**
+   * Releases the audio spectrum observer.
+   *
+   * @param observer The pointer to the audio spectrum observer: \ref agora::media::IAudioSpectrumObserver
+   * "IAudioSpectrumObserver".
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+  virtual int unregisterAudioSpectrumObserver(agora::media::IAudioSpectrumObserver * observer) = 0;
+
+  /**
+   * Registers an \ref agora::media::IVideoEncodedFrameObserver "IVideoEncodedFrameObserver" object.
+   *
+   * You need to implement the `IVideoEncodedFrameObserver` class in this method. Once you successfully register
+   * the encoded frame observer, the SDK triggers the \ref agora::media::IVideoEncodedFrameObserver::OnEncodedVideoFrame
+   * "OnEncodedVideoFrame" callback when it receives the encoded video image.
+   *
+   * @param observer The pointer to the `IVideoEncodedFrameObserver` object.
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+  virtual int registerVideoEncodedFrameObserver(agora::media::IVideoEncodedFrameObserver* observer) = 0;
+  /**
+   * Releases the \ref agora::media::IVideoEncodedFrameObserver "IVideoEncodedFrameObserver" object.
+   * @param observer The pointer to the `IVideoEncodedFrameObserver` object.
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+  virtual int unregisterVideoEncodedFrameObserver(agora::media::IVideoEncodedFrameObserver* observer) = 0;
+
+  /**
+   * Registers an \ref agora::rtc::IVideoFrameObserver2 "IVideoFrameObserver2" object.
+   *
+   * You need to implement the `IVideoFrameObserver2` class in this method. Once you successfully register
+   * the video frame observer, the SDK triggers the \ref agora::media::IVideoFrameObserver2::onFrame
+   * "onFrame" callback when it receives the video image.
+   *
+   * @param observer The pointer to the `IVideoFrameObserver2` object.
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+  virtual int registerVideoFrameObserver(IVideoFrameObserver2* observer) = 0;
+  /**
+   * Releases the \ref agora::rtc::IVideoFrameObserver2 "IVideoFrameObserver2" object.
+   * @param observer The pointer to the `IVideoFrameObserver2` object.
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+  virtual int unregisterVideoFrameObserver(IVideoFrameObserver2* observer) = 0;
+
+  /**
+   * Subscribes to the video of a specified remote user in the channel.
+   *
+   * @param userId The ID of the user whose video you want to subscribe to.
+   * @param subscriptionOptions The reference to the video subscription options: \ref agora::rtc::ILocalUser::VideoSubscriptionOptions "VideoSubscriptionOptions".
+   * For example, subscribing to encoded video data only or subscribing to low-stream video.
+   *
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   *   - -2(ERR_INVALID_ARGUMENT), if `userId` is invalid.
    */
   virtual int subscribeVideo(user_id_t userId,
                              const VideoSubscriptionOptions &subscriptionOptions) = 0;
@@ -563,8 +720,7 @@ class ILocalUser {
    *
    * This method also automatically subscribes to the video of any subsequent remote user.
    *
-   * @param subscriptionOptions The reference to the video subscription options: \ref agora::rtc::ILocalUser::VideoSubscriptionOptions "VideoSubscriptionOptions". You can decide whether
-   * to subscribe to encoded video data only.
+   * @param subscriptionOptions The reference to the video subscription options: \ref agora::rtc::ILocalUser::VideoSubscriptionOptions "VideoSubscriptionOptions".
    * @return
    * - 0: Success.
    * - < 0: Failure.
@@ -574,11 +730,11 @@ class ILocalUser {
   /**
    * Stops subscribing to the video of a specified remote user in the channel.
    *
-   * @param userId ID of the user whose video you want to stop subscribing to.
+   * @param userId The ID of the user whose video you want to stop subscribing to.
    * @return
    * - 0: Success.
    * - < 0: Failure.
-   *   - ERR_INVALID_ARGUMENT, if `userId` is invalid.
+   *   - -2(ERR_INVALID_ARGUMENT), if `userId` is invalid.
    */
   virtual int unsubscribeVideo(user_id_t userId) = 0;
 
@@ -606,12 +762,12 @@ class ILocalUser {
    * - > 10: The time interval (ms) between two consecutive callbacks.
    *
    * @param smooth The smoothing factor that sets the sensitivity of the audio volume indicator.
-   * The value range is [0, 10]. The greater the value, the more sensitive the indicator.The default value is 3.
+   * The value range is [0,10]. The greater the value, the more sensitive the indicator.The default value is 3.
    *
    * @return
    * - 0: Success.
    * - < 0: Failure.
-   *   - ERR_INVALID_ARGUMENT, if `intervalInMS` or `smooth` is out of range.
+   *   - -2(ERR_INVALID_ARGUMENT), if `intervalInMS` or `smooth` is out of range.
    */
   virtual int setAudioVolumeIndicationParameters(int intervalInMS, int smooth) = 0;
 
@@ -626,10 +782,12 @@ class ILocalUser {
    * - 0: Success.
    * - < 0: Failure.
    */
-  virtual int registerLocalUserObserver(ILocalUserObserver* observer) = 0;
+  virtual int registerLocalUserObserver(
+      ILocalUserObserver* observer,
+      void(*safeDeleter)(ILocalUserObserver*) = NULL) = 0;
 
   /**
-   * Releases the \ref agora::rtc::ILocalUserObserver "ILocalUserObserver" object previously registered using \ref agora::rtc::ILocalUser::registerLocalUserObserver "registerLocalUserObserver".
+   * Releases the \ref agora::rtc::ILocalUserObserver "ILocalUserObserver" object.
    *
    * @param observer The pointer to the `ILocalUserObserver` object that you want to release.
    * @return
@@ -642,8 +800,8 @@ class ILocalUser {
    * Gets the media control packet sender.
    *
    * @return
-   * - The pointer to the media control packet sender: IMediaControlPacketSender, if the method call succeeds.
-   * - A null pointer, if the method call fails.
+   * - The pointer to the media control packet sender IMediaControlPacketSender: Success.
+   * - A null pointer: Failure.
    */
   virtual IMediaControlPacketSender* getMediaControlPacketSender() = 0;
 
@@ -671,13 +829,16 @@ class ILocalUser {
   virtual int unregisterMediaControlPacketReceiver(IMediaControlPacketReceiver* ctrlPacketReceiver) = 0;
 
   /**
-   * Sends intra request to the broadcaster with a specified uid.
-   * @param uid The uid of the target broadcaster .
+   * Sends intra-frame request to the broadcaster with a specified uid.
+   *
+   * The local user receives the `onIntraRequestReceived` callback when the broadcaster receives the request.
+   *
+   * @param userId The user ID of the target broadcaster .
    * @return
    * - 0: Success.
    * - < 0: Failure.
    */
-  virtual int sendIntraRequest(uid_t uid) = 0;
+  virtual int sendIntraRequest(user_id_t userId) = 0;
 };
 
 /**
@@ -696,7 +857,7 @@ class ILocalUserObserver {
   virtual void onAudioTrackPublishSuccess(agora_refptr<ILocalAudioTrack> audioTrack) = 0;
 
   /**
-   * Occurs when the local audio track fails to be published.
+   * Occurs when a local audio track fails to be published.
    *
    * @param audioTrack The pointer to `ILocalAudioTrack`.
    * @param error The error information: #ERROR_CODE_TYPE.
@@ -705,23 +866,23 @@ class ILocalUserObserver {
                                               ERROR_CODE_TYPE error) = 0;
 
   /**
-   * Occurs when the state of the local audio track changes.
+   * Occurs when the state of a local audio track changes.
    *
    * @param audioTrack The pointer to `ILocalAudioTrack`.
    * @param state The state of the local audio track.
-   * @param errorCode The error information for a state failure: \ref enum agora::rtc::LOCAL_AUDIO_STREAM_ERROR "LOCAL_AUDIO_STREAM_ERROR".
+   * @param errorCode The error information for a state failure: \ref agora::rtc::LOCAL_AUDIO_STREAM_ERROR "LOCAL_AUDIO_STREAM_ERROR".
    */
   virtual void onLocalAudioTrackStateChanged(agora_refptr<rtc::ILocalAudioTrack> audioTrack,
                                              LOCAL_AUDIO_STREAM_STATE state,
                                              LOCAL_AUDIO_STREAM_ERROR errorCode) = 0;
   /**
-   * Reports the statistics of the local audio track.
+   * Reports the statistics of a local audio track.
    *
    * @param stats The reference to the statistics of the local audio track.
    */
   virtual void onLocalAudioTrackStatistics(const LocalAudioStats& stats) = 0;
   /**
-   * Reports the statistics of the remote audio track.
+   * Reports the statistics of a remote audio track.
    *
    * @param audioTrack The pointer to `IRemoteAudioTrack`.
    * @param stats The statistics of the remote audio track.
@@ -733,7 +894,7 @@ class ILocalUserObserver {
    * This callback indicates that the local user has subscribed to a specified remote audio track, and the first
    * frame of this audio track has been received.
    *
-   * @param userId ID of the remote user whose audio frame is received.
+   * @param userId The ID of the remote user whose audio frame is received.
    * @param audioTrack The pointer to `IRemoteAudioTrack`.
    */
   virtual void onUserAudioTrackSubscribed(user_id_t userId,
@@ -742,10 +903,11 @@ class ILocalUserObserver {
   /**
    * Occurs when the state of a remote audio track changes.
    *
-   * @param userId ID of the remote user whose audio track state has changed.
+   * @param userId The ID of the remote user whose audio track state has changed.
    * @param audioTrack The pointer to `IRemoteAudioTrack`.
    * @param state The current state of the audio track.
    * @param reason The reason for the state change.
+   * @param elapsed The time (ms) since the user connects to an Agora channel.
    */
   virtual void onUserAudioTrackStateChanged(user_id_t userId,
                                             agora_refptr<rtc::IRemoteAudioTrack> audioTrack,
@@ -754,14 +916,14 @@ class ILocalUserObserver {
                                             int elapsed) = 0;
 
   /**
-   * Occurs when the first packet of the local video track is sent, indicating that the local video track
+   * Occurs when the first packet of a local video track is sent, indicating that the local video track
    * is successfully published.
    * @param videoTrack The pointer to `ILocalVideoTrack`.
    */
   virtual void onVideoTrackPublishSuccess(agora_refptr<ILocalVideoTrack> videoTrack) = 0;
 
   /**
-   * Occurs when the local video track fails to be published.
+   * Occurs when a local video track fails to be published.
    *
    * @param videoTrack The pointer to `ILocalVideoTrack`.
    * @param error The error information: #ERROR_CODE_TYPE.
@@ -770,7 +932,7 @@ class ILocalUserObserver {
                                               ERROR_CODE_TYPE error) = 0;
 
   /**
-   * Occurs when the state of the local video track changes.
+   * Occurs when the state of a local video track changes.
    * @note
    * When you receive error from this callback, the corresponding track is in error state.
    * To make the track recover from error state, we highly recommend that you disable the track and
@@ -778,14 +940,14 @@ class ILocalUserObserver {
    *
    * @param videoTrack The pointer to `ILocalVideoTrack`.
    * @param state The state of the local video track.
-   * @param errorCode The error information for a state failure.
+   * @param errorCode The error information.
    */
   virtual void onLocalVideoTrackStateChanged(agora_refptr<rtc::ILocalVideoTrack> videoTrack,
                                              LOCAL_VIDEO_STREAM_STATE state,
                                              LOCAL_VIDEO_STREAM_ERROR errorCode) = 0;
 
   /**
-   * Reports the statistics of the local video track.
+   * Reports the statistics of a local video track.
    *
    * @param videoTrack The pointer to `ILocalVideoTrack`.
    * @param stats The statistics of the local video track.
@@ -799,7 +961,7 @@ class ILocalUserObserver {
    * This callback indicates that the local user has subscribed to a specified remote video track, and
    * the first frame of this video track has been received.
    *
-   * @param userId ID of the remote user whose video frame is received.
+   * @param userId The ID of the remote user whose video frame is received.
    * @param trackInfo The information of the remote video track.
    * @param videoTrack The pointer to `IRemoteVideoTrack`.
    */
@@ -809,10 +971,11 @@ class ILocalUserObserver {
   /**
    * Occurs when the state of a remote video track changes.
    *
-   * @param userId ID of the remote user whose video track state has changed.
+   * @param userId the ID of the remote user whose video track state has changed.
    * @param videoTrack The pointer to `IRemoteVideoTrack`.
    * @param state The current state of the video track.
    * @param reason The reason for the state change.
+   * @param elapsed The time (ms) since the user connects to an Agora channel.
    */
   virtual void onUserVideoTrackStateChanged(user_id_t userId,
                                             agora_refptr<rtc::IRemoteVideoTrack> videoTrack,
@@ -821,14 +984,13 @@ class ILocalUserObserver {
                                             int elapsed) = 0;
 
   /**
-   * Reports the statistics of the remote video track.
+   * Reports the statistics of a remote video track.
    *
    * @param videoTrack The pointer to `IRemoteVideoTrack`.
    * @param stats The statistics of the remote video track.
    */
   virtual void onRemoteVideoTrackStatistics(agora_refptr<rtc::IRemoteVideoTrack> videoTrack,
                                             const RemoteVideoTrackStats& stats) = 0;
-
 
   /**
    * Reports which users are speaking, the speakers' volumes, and whether the local user is speaking.
@@ -843,11 +1005,6 @@ class ILocalUserObserver {
    *
    * @note
    * - To detect whether the local user is speaking, set `report_vad` in `enableAudioVolumeIndication` to `true`.
-   * - Calling `muteLocalAudioStream` affects the SDK's behavior in the following ways:
-   *   - If the local user calls `muteLocalAudioStream`, the SDK stops triggering the `onAudioVolumeIndication` callback corresponding to the local user.
-   *   - 20 seconds after a remote speaker calls `muteLocalAudioStream`, the `onAudioVolumeIndication` callback corresponding to the remote
-   * speakers does not include information on this remote user; 20 seconds after all remote users call `muteLocalAudioStream`, the SDK stops
-   * triggering the callback for the remote speakers.
    *
    * @param speakers The pointer to \ref agora::rtc::AudioVolumeInfo "AudioVolumeInfo", which is an array containing the user ID and volume information for each speaker.
    * - In the local user's callback, this array contains the following members:
@@ -859,8 +1016,8 @@ class ILocalUserObserver {
    *   - `volume`, which reports the sum of the voice volume and the audio-mixing volume of each remote speaker.
    *   - `vad`, which is always `0`
    * An empty `speakers` array in the callback indicates that no remote user is speaking at the moment.
-   * @param speakerNumber Total number of the speakers.
-   * @param totalVolume Total volume after audio mixing. The value ranges between 0 (lowest volume) and 255 (highest volume).
+   * @param speakerNumber The total number of the speakers.
+   * @param totalVolume The total volume after audio mixing. The value ranges between 0 (lowest volume) and 255 (highest volume).
    * - In the local user's callback, `totalVolume` is the sum of the voice volume and the audio-mixing volume of the local user.
    * - In the remote speakers' callback, `totalVolume` is the sum of the voice volume and the audio-mixing volume of all remote speakers.
    */
@@ -868,7 +1025,49 @@ class ILocalUserObserver {
                                        int totalVolume) = 0;
 
   /**
-   * Media information of a specified user.
+   * Occurs when the audio subscribe state changed.
+   *
+   * @param channel The channel name of user joined.
+   * @param uid The remote user ID that is subscribed to.
+   * @param oldState The old state of the audio stream subscribe : #STREAM_SUBSCRIBE_STATE.
+   * @param newState The new state of the audio stream subscribe : #STREAM_SUBSCRIBE_STATE.
+   * @param elapseSinceLastState The time elapsed (ms) from the old state to the new state.
+   */
+  virtual void onAudioSubscribeStateChanged(const char* channel, uid_t uid, STREAM_SUBSCRIBE_STATE oldState, STREAM_SUBSCRIBE_STATE newState, int elapseSinceLastState) = 0;
+
+  /**
+   * Occurs when the video subscribe state changed.
+   *
+   * @param channel The channel name of user joined.
+   * @param uid The remote user ID that is subscribed to.
+   * @param oldState The old state of the video stream subscribe : #STREAM_SUBSCRIBE_STATE.
+   * @param newState The new state of the video stream subscribe : #STREAM_SUBSCRIBE_STATE.
+   * @param elapseSinceLastState The time elapsed (ms) from the old state to the new state.
+   */
+  virtual void onVideoSubscribeStateChanged(const char* channel, uid_t uid, STREAM_SUBSCRIBE_STATE oldState, STREAM_SUBSCRIBE_STATE newState, int elapseSinceLastState) = 0;
+
+  /**
+   * Occurs when the audio publish state changed.
+   *
+   * @param channel The channel name of user joined.
+   * @param oldState The old state of the audio stream publish : #STREAM_PUBLISH_STATE.
+   * @param newState The new state of the audio stream publish : #STREAM_PUBLISH_STATE.
+   * @param elapseSinceLastState The time elapsed (ms) from the old state to the new state.
+   */
+  virtual void onAudioPublishStateChanged(const char* channel, STREAM_PUBLISH_STATE oldState, STREAM_PUBLISH_STATE newState, int elapseSinceLastState) = 0;
+
+  /**
+   * Occurs when the video publish state changed.
+   *
+   * @param channel The channel name of user joined.
+   * @param oldState The old state of the video stream publish : #STREAM_PUBLISH_STATE.
+   * @param newState The new state of the video stream publish : #STREAM_PUBLISH_STATE.
+   * @param elapseSinceLastState The time elapsed (ms) from the old state to the new state.
+   */
+  virtual void onVideoPublishStateChanged(const char* channel, STREAM_PUBLISH_STATE oldState, STREAM_PUBLISH_STATE newState, int elapseSinceLastState) = 0;
+
+  /**
+   * The media information of a specified user.
    */
   enum USER_MEDIA_INFO {
     /**
@@ -890,13 +1089,12 @@ class ILocalUserObserver {
   };
 
   /**
-   * Occurs when the user information is updated.
+   * Occurs when the user media information is updated.
    *
-   * Use the method to handle the network message from PeerManager::updatePeerState.
    *
-   * @param userId ID of the user.
-   * @param msg The media information of the user.
-   * @param val Whether
+   * @param userId The ID of the user.
+   * @param msg The media information of the user. See #USER_MEDIA_INFO.
+   * @param val Whether the user is muted.
    */
   virtual void onUserInfoUpdated(user_id_t userId, USER_MEDIA_INFO msg, bool val) {
     (void)userId;
@@ -911,6 +1109,26 @@ class ILocalUserObserver {
    *
    */
   virtual void onIntraRequestReceived() {}
+  
+  /**
+   * datastream from this connection.
+   */
+  virtual void onStreamMessage(user_id_t userId, int streamId, const char* data,
+                       size_t length) {}
+};
+
+class IVideoFrameObserver2 {
+ public:
+  /**
+   * Occurs each time the player receives a video frame.
+   *
+   * After registering the video frame observer,
+   * the callback occurs each time receives a video frame to report the detailed information of the video frame.
+   * @param frame The detailed information of the video frame. See {@link VideoFrame}.
+   */
+  virtual void onFrame(user_id_t uid, rtc::conn_id_t connectionId, const media::base::VideoFrame* frame) = 0;
+
+  virtual ~IVideoFrameObserver2() {}
 };
 
 }  // namespace rtc

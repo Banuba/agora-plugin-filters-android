@@ -11,15 +11,25 @@
 #include <limits>
 #include <stddef.h>
 
-namespace agora {
+#ifndef OPTIONAL_ENUM_SIZE_T
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
+#define OPTIONAL_ENUM_SIZE_T enum : size_t
+#else
+#define OPTIONAL_ENUM_SIZE_T enum
+#endif
+#endif
 
+namespace agora {
 namespace rtc {
+
 typedef unsigned int uid_t;
 typedef unsigned int track_id_t;
 typedef unsigned int conn_id_t;
 
 static const unsigned int DEFAULT_CONNECTION_ID = 0;
 static const unsigned int DUMMY_CONNECTION_ID = (std::numeric_limits<unsigned int>::max)();
+
+struct EncodedVideoFrameInfo;
 
 /**
  * Audio routes.
@@ -77,6 +87,20 @@ struct AudioParameters {
         frames_per_buffer(0) {}
 };
 
+enum RAW_AUDIO_FRAME_OP_MODE_TYPE {
+  /** 0: Read-only mode: Users only read the
+     agora::media::IAudioFrameObserver::AudioFrame data without modifying
+     anything. For example, when users acquire data with the Agora SDK then push
+     the RTMP streams. */
+  RAW_AUDIO_FRAME_OP_MODE_READ_ONLY = 0,
+
+  /** 2: Read and write mode: Users read the data from AudioFrame, modify it,
+     and then play it. For example, when users have their own sound-effect
+     processing module and do some voice pre-processing such as a voice change.
+   */
+  RAW_AUDIO_FRAME_OP_MODE_READ_WRITE = 2,
+};
+
 }  // namespace rtc
 
 namespace media {
@@ -89,6 +113,13 @@ typedef const char* user_id_t;
 static const uint8_t kMaxCodecNameLength = 50;
 
 /**
+  * The maximum metadata size.
+  */
+enum MAX_METADATA_SIZE_TYPE {
+  MAX_METADATA_SIZE_IN_BYTE = 1024
+};
+
+/**
  * The definition of the PacketOptions struct, which contains infomation of the packet
  * in the RTP (Real-time Transport Protocal) header.
  */
@@ -99,31 +130,69 @@ struct PacketOptions {
   uint32_t timestamp;
   // Audio level indication.
   uint8_t audioLevelIndication;
-
   PacketOptions()
       : timestamp(0),
         audioLevelIndication(127) {}
 };
 
 /**
- * The struct of AudioPcmFrame.
+ * The detailed information of the incoming audio frame in the PCM format.
  */
 struct AudioPcmFrame {
   /**
    * The buffer size of the PCM audio frame.
    */
-  enum : size_t {
+  OPTIONAL_ENUM_SIZE_T {
     // Stereo, 32 kHz, 60 ms (2 * 32 * 60)
+    /**
+     * The max number of the samples of the data.
+     *
+     * When the number of audio channel is two, the sample rate is 32 kHZ,
+     * the buffer length of the data is 60 ms, the number of the samples of the data is 3840 (2 x 32 x 60).
+     */
     kMaxDataSizeSamples = 3840,
+    /** The max number of the bytes of the data. */
     kMaxDataSizeBytes = kMaxDataSizeSamples * sizeof(int16_t),
   };
 
+  /** The timestamp (ms) of the audio frame.
+   */
   uint32_t capture_timestamp;
+  /** The number of samples per channel.
+   */
   size_t samples_per_channel_;
+  /** The sample rate (Hz) of the audio data.
+   */
   int sample_rate_hz_;
+  /** The channel number.
+   */
   size_t num_channels_;
+  /** The number of bytes per sample.
+   */
   rtc::BYTES_PER_SAMPLE bytes_per_sample;
+  /** The audio frame data. */
   int16_t data_[kMaxDataSizeSamples];
+
+  AudioPcmFrame& operator=(const AudioPcmFrame& src) {
+    if(this == &src) {
+      return *this;
+    }
+
+    this->capture_timestamp = src.capture_timestamp;
+    this->samples_per_channel_ = src.samples_per_channel_;
+    this->sample_rate_hz_ = src.sample_rate_hz_;
+    this->bytes_per_sample = src.bytes_per_sample;
+    this->num_channels_ = src.num_channels_;
+
+    size_t length = src.samples_per_channel_ * src.num_channels_;
+    if ( length > kMaxDataSizeSamples) {
+      length = kMaxDataSizeSamples;
+    }
+
+    memcpy(this->data_, src.data_, length * sizeof(int16_t));
+
+    return *this;
+  }
 
   AudioPcmFrame() :
     capture_timestamp(0),
@@ -137,6 +206,14 @@ struct AudioPcmFrame {
 
 class IAudioFrameObserver {
  public:
+  /**
+   * Occurs when each time the player receives an audio frame.
+   *
+   * After registering the audio frame observer,
+   * the callback occurs when each time the player receives an audio frame,
+   * reporting the detailed information of the audio frame.
+   * @param frame The detailed information of the audio frame. See {@link AudioPcmFrame}.
+   */
   virtual void onFrame(const AudioPcmFrame* frame) = 0;
   virtual ~IAudioFrameObserver() {}
 };
@@ -209,6 +286,24 @@ enum RENDER_MODE_TYPE {
  * The definition of the ExternalVideoFrame struct.
  */
 struct ExternalVideoFrame {
+  ExternalVideoFrame()
+      : type(VIDEO_BUFFER_RAW_DATA),
+        format(VIDEO_PIXEL_UNKNOWN),
+        buffer(NULL),
+        stride(0),
+        height(0),
+        cropLeft(0),
+        cropTop(0),
+        cropRight(0),
+        cropBottom(0),
+        rotation(0),
+        timestamp(0),
+        eglContext(NULL),
+        eglType(EGL_CONTEXT10),
+        textureId(0),
+        metadata_buffer(NULL),
+        metadata_size(0){}
+
    /**
    * The EGL context type.
    */
@@ -306,25 +401,44 @@ struct ExternalVideoFrame {
    * [Texture related parameter] Incoming 4 &times; 4 transformational matrix. The typical value is a unit matrix.
    */
   int textureId;
-
-  ExternalVideoFrame() : type(VIDEO_BUFFER_RAW_DATA),
-                         format(VIDEO_PIXEL_I420),
-                         buffer(NULL), stride(0), height(0),
-                         cropLeft(0), cropTop(0), cropRight(0), cropBottom(0),
-                         rotation(0), timestamp(0), eglContext(NULL), eglType(EGL_CONTEXT10),
-                         textureId(0) {}
+  /**
+   * [Texture related parameter] The MetaData buffer.
+   *  The default value is NULL
+   */
+  uint8_t* metadata_buffer;
+  /**
+   * [Texture related parameter] The MetaData size.
+   *  The default value is 0
+   */
+  int metadata_size;
 };
 
 /**
  * The definition of the VideoFrame struct.
  */
 struct VideoFrame {
+  VideoFrame():
+  type(VIDEO_PIXEL_UNKNOWN),
+  width(0),
+  height(0),
+  yStride(0),
+  uStride(0),
+  vStride(0),
+  yBuffer(NULL),
+  uBuffer(NULL),
+  vBuffer(NULL),
+  rotation(0),
+  renderTimeMs(0),
+  avsync_type(0),
+  metadata_buffer(NULL),
+  metadata_size(0){}
+
   /**
    * The video pixel format: #VIDEO_PIXEL_FORMAT.
    */
   VIDEO_PIXEL_FORMAT type;
   /**
-   * The width of the Video frame.
+   * The width of the video frame.
    */
   int width;
   /**
@@ -370,42 +484,61 @@ struct VideoFrame {
    * The type of audio-video synchronization.
    */
   int avsync_type;
-
-  VideoFrame() : type(VIDEO_PIXEL_UNKNOWN),
-                 width(0), height(0),
-                 yStride(0), uStride(0), vStride(0),
-                 yBuffer(NULL), uBuffer(NULL), vBuffer(NULL),
-                 rotation(0), renderTimeMs(0), avsync_type(0) {}
+  /**
+   * [Texture related parameter] The MetaData buffer.
+   *  The default value is NULL
+   */
+  uint8_t* metadata_buffer;
+  /**
+   * [Texture related parameter] The MetaData size.
+   *  The default value is 0
+   */
+  int metadata_size;
 };
 
 class IVideoFrameObserver {
  public:
+  /**
+   * Occurs each time the player receives a video frame.
+   *
+   * After registering the video frame observer,
+   * the callback occurs each time the player receives a video frame to report the detailed information of the video frame.
+   * @param frame The detailed information of the video frame. See {@link VideoFrame}.
+   */
   virtual void onFrame(const VideoFrame* frame) = 0;
   virtual ~IVideoFrameObserver() {}
   virtual bool isExternal() { return true; }
 };
 
 enum MEDIA_PLAYER_SOURCE_TYPE {
-  /*
+  /**
    * The real type of media player when use MEDIA_PLAYER_SOURCE_DEFAULT is decided by the
    * type of SDK package. It is full feature media player in full-featured SDK, or simple
    * media player in others.
    */
   MEDIA_PLAYER_SOURCE_DEFAULT,
-  /*
+  /**
    * Full featured media player is designed to support more codecs and media format, which
    * requires more package size than simple player. If you need this player enabled, you
    * might need to download a full-featured SDK.
    */
   MEDIA_PLAYER_SOURCE_FULL_FEATURED,
-  /*
+  /**
    * Simple media player with limit codec supported, which requires minimal package size
    * requirement and is enabled by default
    */
   MEDIA_PLAYER_SOURCE_SIMPLE,
 };
 
+enum VIDEO_MODULE_POSITION {
+  POSITION_POST_CAPTURER = 1 << 0,
+  POSITION_PRE_RENDERER = 1 << 1,
+  POSITION_PRE_ENCODER = 1 << 2,
+  POSITION_POST_FILTERS = 1 << 3,
+};
+
 }  // namespace base
+
 /**
  * The IAudioFrameObserver class.
  */
@@ -505,19 +638,105 @@ class IAudioFrameObserver {
    */
   virtual bool onPlaybackAudioFrameBeforeMixing(unsigned int uid, AudioFrame& audioFrame) = 0;
 };
+
+struct AudioSpectrumData {
+  /**
+   * The audio spectrum data of audio.
+   */
+  const float *audioSpectrumData;
+  /**
+   * The data length of audio spectrum data.
+   */
+  int dataLength;
+
+  AudioSpectrumData() : audioSpectrumData(NULL), dataLength(0) {}
+  AudioSpectrumData(const float *data, int length) :
+    audioSpectrumData(data), dataLength(length) {}
+};
+
+struct UserAudioSpectrumInfo  {
+  /**
+   * User ID of the speaker.
+   */
+  agora::rtc::uid_t uid;
+  /**
+   * The audio spectrum data of audio.
+   */
+  struct AudioSpectrumData spectrumData;
+
+  UserAudioSpectrumInfo () : uid(0), spectrumData() {}
+  UserAudioSpectrumInfo(agora::rtc::uid_t _uid, const float *data, int length) :
+    uid(_uid) { spectrumData.audioSpectrumData = data; spectrumData.dataLength = length; }
+};
+
+/**
+ * The IAudioSpectrumObserver class.
+ */
+class IAudioSpectrumObserver {
+public:
+  virtual ~IAudioSpectrumObserver() {}
+
+  /**
+   * Reports the audio spectrum of local audio.
+   *
+   * This callback reports the audio spectrum data of the local audio at the moment
+   * in the channel.
+   *
+   * You can set the time interval of this callback using \ref ILocalUser::enableAudioSpectrumMonitor "enableAudioSpectrumMonitor".
+   *
+   * @param data The audio spectrum data of local audio.
+   * - true: Processed.
+   * - false: Not processed.
+   */
+  virtual bool onLocalAudioSpectrum(const AudioSpectrumData& data) = 0;
+
+  /**
+   * Reports the audio spectrum of remote user.
+   *
+   * This callback reports the IDs and audio spectrum data of the loudest speakers at the moment
+   * in the channel.
+   *
+   * You can set the time interval of this callback using \ref ILocalUser::enableAudioSpectrumMonitor "enableAudioSpectrumMonitor".
+   *
+   * @param spectrums The pointer to \ref agora::media::UserAudioSpectrumInfo "UserAudioSpectrumInfo", which is an array containing
+   * the user ID and audio spectrum data for each speaker.
+   * - This array contains the following members:
+   *   - `uid`, which is the UID of each remote speaker
+   *   - `spectrumData`, which reports the audio spectrum of each remote speaker.
+   * @param spectrumNumber The array length of the spectrums.
+   * - true: Processed.
+   * - false: Not processed.
+   */
+  virtual bool onRemoteAudioSpectrum(const UserAudioSpectrumInfo * spectrums, unsigned int spectrumNumber) = 0;
+};
+
+/**
+ * The IVideoEncodedFrameObserver class.
+ */
+class IVideoEncodedFrameObserver {
+ public:
+  /**
+   * Occurs each time the SDK receives an encoded video image.
+   * @param uid The user id of remote user.
+   * @param imageBuffer The pointer to the video image buffer.
+   * @param length The data length of the video image.
+   * @param videoEncodedFrameInfo The information of the encoded video frame: EncodedVideoFrameInfo.
+   * @return Determines whether to accept encoded video image.
+   * - true: Accept.
+   * - false: Do not accept.
+   */
+  virtual bool OnEncodedVideoFrame(rtc::uid_t uid, const uint8_t* imageBuffer, size_t length,
+                                   const rtc::EncodedVideoFrameInfo& videoEncodedFrameInfo) = 0;
+
+  virtual ~IVideoEncodedFrameObserver() {}
+};
+
 /**
  * The IVideoFrameObserver class.
  */
 class IVideoFrameObserver {
  public:
   typedef media::base::VideoFrame VideoFrame;
-
-  enum VIDEO_OBSERVER_POSITION {
-    POSITION_POST_CAPTURER = 1 << 0,
-    POSITION_PRE_RENDERER = 1 << 1,
-    POSITION_PRE_ENCODER = 1 << 2,
-    POSITION_POST_FILTERS = 1 << 3,
-  };
 
   enum VIDEO_FRAME_PROCESS_MODE {
     PROCESS_MODE_READ_ONLY, // Observer works as a pure renderer and will not modify the original frame.
@@ -543,7 +762,7 @@ class IVideoFrameObserver {
    * - false: Ignore, in which case this method does not sent the current video frame to the SDK.
   */
   virtual bool onCaptureVideoFrame(VideoFrame& videoFrame) = 0;
-  
+
   virtual bool onSecondaryCameraCaptureVideoFrame(VideoFrame& videoFrame) = 0;
 
   /**
@@ -562,7 +781,6 @@ class IVideoFrameObserver {
    * - false: Ignore, in which case this method does not sent the current video frame to the SDK.
    */
   virtual bool onScreenCaptureVideoFrame(VideoFrame& videoFrame) = 0;
-
   /**
    * Occurs each time the SDK receives a video frame decoded by the MediaPlayer.
    *
@@ -645,6 +863,6 @@ class IVideoFrameObserver {
    */
   virtual bool isExternal() { return true; }
 };
-}  // namespace media
 
+}  // namespace media
 }  // namespace agora

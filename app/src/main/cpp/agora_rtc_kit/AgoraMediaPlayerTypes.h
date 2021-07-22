@@ -7,7 +7,9 @@
 #pragma once  // NOLINT(build/header_guard)
 
 #include <cstring>
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
 #include <cstdint>
+#endif
 
 /**
  * set analyze duration for real time stream
@@ -33,6 +35,12 @@
  */
 #define KEY_PLAYER_ENABLE_SEARCH_METADATA         "enable_search_metadata"
 
+/**
+ * set the player sei filter type
+ * @example  "setPlayerOption(KEY_PLAYER_SEI_FILTER_TYPE,"5")"
+ */
+#define KEY_PLAYER_SEI_FILTER_TYPE         "set_sei_filter_type"
+
 namespace agora {
 
 namespace media {
@@ -40,34 +48,34 @@ namespace media {
 namespace base {
 static const uint8_t kMaxCharBufferLength = 50;
 /**
- * @brief Player state
+ * @brief The playback state.
  *
  */
 enum MEDIA_PLAYER_STATE {
-  /** Player idle
+  /** Default state.
    */
   PLAYER_STATE_IDLE = 0,
-  /** Opening media file
+  /** Opening the media file.
    */
   PLAYER_STATE_OPENING,
-  /** Media file opened successfully
+  /** The media file is opened successfully.
    */
   PLAYER_STATE_OPEN_COMPLETED,
-  /** Player playing
+  /** Playing the media file.
    */
   PLAYER_STATE_PLAYING,
-  /** Player paused
+  /** The playback is paused.
    */
   PLAYER_STATE_PAUSED,
-  /** Player playback one loop completed
+  /** The playback is completed.
    */
   PLAYER_STATE_PLAYBACK_COMPLETED,
-  /** Player playback all loops completed
+  /** All loops are completed.
    */
   PLAYER_STATE_PLAYBACK_ALL_LOOPS_COMPLETED,
-  /** Player stopped
+  /** The playback is stopped.
    */
-  PLAYER_STATE_STOPPED = PLAYER_STATE_IDLE,
+  PLAYER_STATE_STOPPED,
   /** Player pausing (internal)
    */
   PLAYER_STATE_PAUSING_INTERNAL = 50,
@@ -86,7 +94,7 @@ enum MEDIA_PLAYER_STATE {
   /** Do nothing state for state machine (internal)
    */
   PLAYER_STATE_DO_NOTHING_INTERNAL,
-  /** Player failed
+  /** The playback fails.
    */
   PLAYER_STATE_FAILED = 100,
 };
@@ -95,184 +103,200 @@ enum MEDIA_PLAYER_STATE {
  *
  */
 enum MEDIA_PLAYER_ERROR {
-  /** No error
+  /** No error.
    */
   PLAYER_ERROR_NONE = 0,
-  /** The parameter is incorrect
+  /** The parameter is invalid.
    */
   PLAYER_ERROR_INVALID_ARGUMENTS = -1,
-  /** Internel error
+  /** Internel error.
    */
   PLAYER_ERROR_INTERNAL = -2,
-  /** No resource error
+  /** No resource.
    */
   PLAYER_ERROR_NO_RESOURCE = -3,
-  /** Media source is invalid
+  /** Invalid media source.
    */
   PLAYER_ERROR_INVALID_MEDIA_SOURCE = -4,
-  /** Unknown stream type
+  /** The type of the media stream is unknown.
    */
   PLAYER_ERROR_UNKNOWN_STREAM_TYPE = -5,
-  /** Object is not initialized
+  /** The object is not initialized.
    */
   PLAYER_ERROR_OBJ_NOT_INITIALIZED = -6,
-  /** Decoder codec not supported
+  /** The codec is not supported.
    */
   PLAYER_ERROR_CODEC_NOT_SUPPORTED = -7,
-  /** Video renderer is invalid
+  /** Invalid renderer.
    */
   PLAYER_ERROR_VIDEO_RENDER_FAILED = -8,
-  /** Internal state error
+  /** An error occurs in the internal state of the player.
    */
   PLAYER_ERROR_INVALID_STATE = -9,
-  /** Url not found
+  /** The URL of the media file cannot be found.
    */
   PLAYER_ERROR_URL_NOT_FOUND = -10,
-  /** Invalid connection state
+  /** Invalid connection between the player and the Agora server.
    */
   PLAYER_ERROR_INVALID_CONNECTION_STATE = -11,
-  /** Insufficient buffer data
+  /** The playback buffer is insufficient.
    */
   PLAYER_ERROR_SRC_BUFFER_UNDERFLOW = -12,
+  /** The audio mixing file playback is interrupted.
+   */
+  PLAYER_ERROR_INTERRUPTED = -13,
 };
 
 /**
- * @brief Playback speed type
+ * @brief The playback speed.
  *
  */
 enum MEDIA_PLAYER_PLAYBACK_SPEED {
-  /** original playback speed
+  /** The original playback speed.
    */
   PLAYBACK_SPEED_ORIGINAL = 100,
-  /** playback speed slow down to 0.5
+  /** 0.5 times the original playback speed.
  */
   PLAYBACK_SPEED_50_PERCENT = 50,
-  /** playback speed slow down to 0.75
+  /** 0.75 times the original playback speed.
    */
   PLAYBACK_SPEED_75_PERCENT = 75,
-  /** playback speed speed up to 1.25
+  /** 1.25 times the original playback speed.
    */
   PLAYBACK_SPEED_125_PERCENT = 125,
-  /** playback speed speed up to 1.5
+  /** 1.5 times the original playback speed.
    */
   PLAYBACK_SPEED_150_PERCENT = 150,
-    /** playback speed speed up to 2.0
+  /** 2.0 times the original playback.
    */
   PLAYBACK_SPEED_200_PERCENT = 200,
 };
 
 /**
- * @brief Media stream type
+ * @brief The type of the media stream.
  *
  */
 enum MEDIA_STREAM_TYPE {
-  /** Unknown stream type
+  /** The type is unknown.
    */
   STREAM_TYPE_UNKNOWN = 0,
-  /** Video stream
+  /** The video stream.
    */
   STREAM_TYPE_VIDEO = 1,
-  /** Audio stream
+  /** The audio stream.
    */
   STREAM_TYPE_AUDIO = 2,
-  /** Subtitle stream
+  /** The subtitle stream.
    */
   STREAM_TYPE_SUBTITLE = 3,
 };
 
 /**
- * @brief Player event
+ * @brief The playback event.
  *
  */
 enum MEDIA_PLAYER_EVENT {
-  /** player seek begin
+  /** The player begins to seek to the new playback position.
    */
   PLAYER_EVENT_SEEK_BEGIN = 0,
-  /** player seek complete
+  /** The seek operation completes.
    */
   PLAYER_EVENT_SEEK_COMPLETE = 1,
-  /** player seek error
+  /** An error occurs during the seek operation.
    */
   PLAYER_EVENT_SEEK_ERROR = 2,
-  /** player video published
+  /** The player publishes a video track.
    */
   PLAYER_EVENT_VIDEO_PUBLISHED = 3,
-  /** player audio published
+  /** The player publishes an audio track.
    */
   PLAYER_EVENT_AUDIO_PUBLISHED = 4,
-  /** player audio track changed
+  /** The player changes the audio track for playback.
    */
   PLAYER_EVENT_AUDIO_TRACK_CHANGED = 5,
+  /** player buffer low
+   */
+  PLAYER_EVENT_BUFFER_LOW = 6,
+    /** player buffer recover
+   */
+  PLAYER_EVENT_BUFFER_RECOVER = 7,
+  /** The video or audio is interrupted
+   */
+  PLAYER_EVENT_FREEZE_START = 8,
+  /** Interrupt at the end of the video or audio
+   */
+  PLAYER_EVENT_FREEZE_STOP = 9,
 };
 
 /**
- * @brief Media stream object
+ * @brief The information of the media stream object.
  *
  */
-struct MediaStreamInfo { /* the index of the stream in the media file */
+struct PlayerStreamInfo {
+  /** The index of the media stream. */
   int streamIndex;
 
-  /* stream type */
+  /** The type of the media stream. See {@link MEDIA_STREAM_TYPE}. */
   MEDIA_STREAM_TYPE streamType;
 
-  /* stream encoding name */
+  /** The codec of the media stream. */
   char codecName[kMaxCharBufferLength];
 
-  /* streaming language */
+  /** The language of the media stream. */
   char language[kMaxCharBufferLength];
 
-  /* If it is a video stream, video frames rate */
+  /** The frame rate (fps) if the stream is video. */
   int videoFrameRate;
 
-  /* If it is a video stream, video bit rate */
+  /** The video bitrate (bps) if the stream is video. */
   int videoBitRate;
 
-  /* If it is a video stream, video width */
+  /** The video width (pixel) if the stream is video. */
   int videoWidth;
 
-  /* If it is a video stream, video height */
+  /** The video height (pixel) if the stream is video. */
   int videoHeight;
 
-  /* If it is a video stream, video rotation */
+  /** The rotation angle if the steam is video. */
   int videoRotation;
 
-  /* If it is an audio stream, audio bit rate */
+  /** The sample rate if the stream is audio. */
   int audioSampleRate;
 
-  /* If it is an audio stream, the number of audio channels */
+  /** The number of audio channels if the stream is audio. */
   int audioChannels;
 
-  /* If it is an audio stream, bits per sample */
+  /** The number of bits per sample if the stream is audio. */
   int audioBitsPerSample;
 
-  /* stream duration in second */
+  /** The total duration (second) of the media stream. */
   int64_t duration;
 
-  MediaStreamInfo() : streamIndex(0),
-                      streamType(STREAM_TYPE_UNKNOWN),
-                      videoFrameRate(0),
-                      videoBitRate(0),
-                      videoWidth(0),
-                      videoHeight(0),
-                      videoRotation(0),
-                      audioSampleRate(0),
-                      audioChannels(0),
-                      audioBitsPerSample(0),
-                      duration(0) {
+  PlayerStreamInfo() : streamIndex(0),
+                       streamType(STREAM_TYPE_UNKNOWN),
+                       videoFrameRate(0),
+                       videoBitRate(0),
+                       videoWidth(0),
+                       videoHeight(0),
+                       videoRotation(0),
+                       audioSampleRate(0),
+                       audioChannels(0),
+                       audioBitsPerSample(0),
+                       duration(0) {
     memset(codecName, 0, sizeof(codecName));
     memset(language, 0, sizeof(language));
   }
 };
 
 /**
- * @brief Player Metadata type
+ * @brief The type of the media metadata.
  *
  */
 enum MEDIA_PLAYER_METADATA_TYPE {
-  /** data type unknown
+  /** The type is unknown.
    */
   PLAYER_METADATA_TYPE_UNKNOWN = 0,
-  /** sei data
+  /** The type is SEI.
    */
   PLAYER_METADATA_TYPE_SEI = 1,
 };

@@ -5,18 +5,11 @@ import androidx.annotation.Keep
 @Keep
 object ExtensionManager {
 
-    const val VENDOR_NAME_VIDEO = "BanubaFilter"
+    const val EXTENSION_NAME = "plugin-lib"
+    const val VENDOR_NAME = "Banuba"
+    const val VIDEO_FILTER_NAME = "BanubaFilter"
+
     const val KEY_LOAD_EFFECT = "load_effect"
-
-    init {
-        System.loadLibrary("native-lib")
-    }
-
-    external fun nativeGetExtensionProvider(
-        vendor: String,
-        resourcesPath: String,
-        token: String,
-        width: Int,
-        height: Int
-    ): Long
+    const val KEY_SET_RESOURCES_PATH = "set_resources_path"
+    const val KEY_SET_TOKEN = "set_token"
 }

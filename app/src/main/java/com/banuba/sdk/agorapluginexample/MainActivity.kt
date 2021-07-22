@@ -44,20 +44,14 @@ class MainActivity : AppCompatActivity() {
         val config = RtcEngineConfig().apply {
             mContext = this@MainActivity
             mAppId = AGORA_APP_ID
-            val videoProvider = ExtensionManager.nativeGetExtensionProvider(
-                ExtensionManager.VENDOR_NAME_VIDEO,
-                banubaResourceManager.resourcesPath,
-                BANUBA_CLIENT_TOKEN,
-                videoEncoderConfiguration.dimensions.width,
-                videoEncoderConfiguration.dimensions.height
-            )
-            addExtension(ExtensionManager.VENDOR_NAME_VIDEO, videoProvider)
+            System.loadLibrary("banuba")
+            addExtension(ExtensionManager.EXTENSION_NAME)
             mEventHandler = agoraEventHandler
             mExtensionObserver = agoraExtensionObserver
         }
         RtcEngine.create(config)
     }
-    private val agoraExtensionObserver = IMediaExtensionObserver { vendor, key, value ->
+    private val agoraExtensionObserver = IMediaExtensionObserver { vendor, ext, key, value ->
         Log.d(vendor, "$key - $value")
     }
     private val agoraEventHandler = object : IRtcEngineEventHandler() {
@@ -121,6 +115,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initAgoraEngine() {
+        agoraRtc.enableExtension(
+            ExtensionManager.VENDOR_NAME,
+            ExtensionManager.VIDEO_FILTER_NAME,
+            true
+        )
         val localSurfaceView = setupLocalVideo()
         localVideoContainer.addView(localSurfaceView)
         agoraRtc.setChannelProfile(Constants.CHANNEL_PROFILE_LIVE_BROADCASTING)
@@ -129,6 +128,7 @@ class MainActivity : AppCompatActivity() {
         agoraRtc.enableVideo()
         agoraRtc.enableAudio()
         agoraRtc.joinChannel(AGORA_CLIENT_TOKEN, AGORA_CHANNEL_ID, null, 0)
+        initBanubaPlugin()
     }
 
     private fun setupLocalVideo(): SurfaceView {
@@ -150,10 +150,25 @@ class MainActivity : AppCompatActivity() {
         return surfaceView
     }
 
+    private fun initBanubaPlugin() {
+        agoraRtc.setExtensionProperty(
+            ExtensionManager.VENDOR_NAME,
+            ExtensionManager.VIDEO_FILTER_NAME,
+            ExtensionManager.KEY_SET_RESOURCES_PATH,
+            banubaResourceManager.resourcesPath
+        )
+        agoraRtc.setExtensionProperty(
+            ExtensionManager.VENDOR_NAME,
+            ExtensionManager.VIDEO_FILTER_NAME,
+            ExtensionManager.KEY_SET_TOKEN,
+            BANUBA_CLIENT_TOKEN
+        )
+    }
+
     private fun sendEffectToFilter(effect: String) {
         agoraRtc.setExtensionProperty(
-            Constants.MediaSourceType.VIDEO_SOURCE_CAMERA_PRIMARY,
-            ExtensionManager.VENDOR_NAME_VIDEO,
+            ExtensionManager.VENDOR_NAME,
+            ExtensionManager.VIDEO_FILTER_NAME,
             ExtensionManager.KEY_LOAD_EFFECT,
             effect
         )

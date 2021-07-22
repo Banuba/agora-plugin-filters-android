@@ -5,7 +5,10 @@
 //  Copyright (c) 2018 Agora IO. All rights reserved.
 //
 #pragma once
+
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
 #include <cstdint>
+#endif
 
 namespace agora {
 
@@ -111,12 +114,98 @@ enum CHANNEL_MESSAGE_STATE {
 /**
  * The join channel error.
  */
-enum JOIN_CHANNEL_ERROR {
+enum JOIN_CHANNEL_ERR {
   /**
-   * 1: The user fails to join the channel.
-   */
-  JOIN_CHANNEL_ERROR_FAILURE = 1,
+   0: The method call succeeds, or the user joins the channel successfully.
+  */
+  JOIN_CHANNEL_ERR_OK = 0,
+
+  /**
+   1: Common failure. The user fails to join the channel.
+  */
+  JOIN_CHANNEL_ERR_FAILURE = 1,
+
+  /**
+   2: **RESERVED FOR FUTURE USE**
+  */
+  JOIN_CHANNEL_ERR_REJECTED = 2, // Usually occurs when the user is already in the channel
+
+  /**
+   3: The user fails to join the channel because the argument is invalid.
+  */
+  JOIN_CHANNEL_ERR_INVALID_ARGUMENT = 3,
+
+  /**
+   4: A timeout occurs when joining the channel. The current timeout is set as five seconds. Possible reasons: The user is in the \ref agora::rtm::CONNECTION_STATE_ABORTED "CONNECTION_STATE_ABORTED" state.
+  */
+  JOIN_CHANNEL_TIMEOUT = 4,
+
+  /**
+   5: The number of the RTM channels you are in exceeds the limit of 20.
+  */
+  JOIN_CHANNEL_ERR_EXCEED_LIMIT = 5,
+
+  /**
+   6: The user is joining or has joined the channel.
+  */
+  JOIN_CHANNEL_ERR_ALREADY_JOINED = 6,
+
+  /**
+   7: The method call frequency exceeds 50 queries every three seconds.
+  */
+  JOIN_CHANNEL_ERR_TOO_OFTEN = 7,
+
+  /**
+   8: The frequency of joining the same channel exceeds two times every five seconds.
+  */
+  JOIN_CHANNEL_ERR_JOIN_SAME_CHANNEL_TOO_OFTEN = 8,
+
+  /**
+   101: \ref agora::rtm::IRtmService "IRtmService" is not initialized.
+  */
+  JOIN_CHANNEL_ERR_NOT_INITIALIZED = 101,
+
+  /**
+   102: The user does not call the \ref agora::rtm::IRtmService::login "login" method, or the method call of \ref agora::rtm::IRtmService::login "login" does not succeed before joining the channel.
+  */
+  JOIN_CHANNEL_ERR_USER_NOT_LOGGED_IN = 102,
 };
+/**
+ @brief Error codes related to leaving a channel.
+  */
+enum LEAVE_CHANNEL_ERR {
+
+  /**
+   0: The method call succeeds, or the user leaves the channel successfully.
+    */
+  LEAVE_CHANNEL_ERR_OK = 0,
+
+  /**
+   1: Common failure. The user fails to leave the channel.
+    */
+  LEAVE_CHANNEL_ERR_FAILURE = 1,
+
+  /**
+   2: **RESERVED FOR FUTURE USE**
+    */
+  LEAVE_CHANNEL_ERR_REJECTED = 2,
+
+  /**
+   3: The user is not in the channel.
+    */
+  LEAVE_CHANNEL_ERR_NOT_IN_CHANNEL = 3,
+
+  /**
+   101: \ref agora::rtm::IRtmService "IRtmService" is not initialized.
+    */
+  LEAVE_CHANNEL_ERR_NOT_INITIALIZED = 101,
+
+  /**
+   102: The user does not call the \ref agora::rtm::IRtmService::login "login" method, or the method call of \ref agora::rtm::IRtmService::login "login" does not succeed before calling the \ref agora::rtm::IChannel::leave "leave" method.
+    */
+  LEAVE_CHANNEL_ERR_USER_NOT_LOGGED_IN = 102,
+};
+
 /**
  * The reason for a user to leave the channel.
  */
@@ -130,6 +219,47 @@ enum LEAVE_CHANNEL_REASON {
    */
   LEAVE_CHANNEL_REASON_KICKED = 2,
 };
+/**
+ @brief Error codes related to sending a channel message.
+  */
+enum CHANNEL_MESSAGE_ERR_CODE {
+
+  /**
+   0: The method call succeeds, or the server receives the channel message.
+    */
+  CHANNEL_MESSAGE_ERR_OK = 0,
+
+  /**
+   1: Common failure. The user fails to send the channel message.
+    */
+  CHANNEL_MESSAGE_ERR_FAILURE = 1,
+
+  /**
+   2: The SDK does not receive a response from the server in 10 seconds. The current timeout is set as 10 seconds. Possible reasons: The user is in the \ref agora::rtm::CONNECTION_STATE_ABORTED "CONNECTION_STATE_ABORTED" state.
+    */
+  CHANNEL_MESSAGE_ERR_SENT_TIMEOUT = 2,
+
+  /**
+   3: The method call frequency exceeds the limit of (RTM SDK for Windows C++) 180 calls every three seconds or (RTM SDK for Linux C++) 1500 calls every three seconds, with channel and peer messages taken together..
+    */
+  CHANNEL_MESSAGE_ERR_TOO_OFTEN = 3,
+
+  /**
+   4: The message is null or exceeds 32 KB in length.
+    */
+  CHANNEL_MESSAGE_ERR_INVALID_MESSAGE = 4,
+
+  /**
+   101: \ref agora::rtm::IRtmService "IRtmService" is not initialized.
+    */
+  CHANNEL_MESSAGE_ERR_NOT_INITIALIZED = 101,
+
+  /**
+   102: The user does not call the \ref agora::rtm::IRtmService::login "login" method, or the method call of \ref agora::rtm::IRtmService::login "login" does not succeed before sending out a channel message.
+    */
+  CHANNEL_MESSAGE_ERR_USER_NOT_LOGGED_IN = 102,
+};
+
 /**
  * The response code.
  */
@@ -201,6 +331,26 @@ class IMessage {
    * - The content of the text message or the text description of the raw message.
    */
   virtual const char *getText() const = 0;
+  /**
+   * Get pointer of custom raw message
+   * @return
+   * - The content of binary raw message
+   */
+  virtual const unsigned char *getRawMessageData() const = 0;
+  /**
+   * Get length of custom raw message
+   * @return
+   * - The length of binary raw message in bytes
+   */
+  virtual int getRawMessageLength() const = 0;
+  /**
+   * Set message type
+   */
+  virtual void setMessageType(int32_t type) = 0;
+  /**
+   * Set raw binary message
+   */
+  virtual void setRawMessage(const uint8_t* data, int length) = 0;
   /**
    * Releases the IMessage instance.
    */
@@ -297,25 +447,32 @@ class IChannelEventHandler {
   virtual void onJoinSuccess() {}
   /**
    * Occurs when the local user fails to join a channel.
-   * @param errorCode The error code: #JOIN_CHANNEL_ERROR.
+   * @param errorCode The error code: #JOIN_CHANNEL_ERR.
    */
-  virtual void onJoinFailure(JOIN_CHANNEL_ERROR errorCode) {}
+  virtual void onJoinFailure(JOIN_CHANNEL_ERR errorCode) {}
   /**
    * Occurs when the local user leaves a channel.
-   * @param reason The reason for the local user leaving the channel: #LEAVE_CHANNEL_REASON.
+   * @param errorCode The error code. See #LEAVE_CHANNEL_ERR.
    */
-  virtual void onLeave(LEAVE_CHANNEL_REASON reason) {}
+  virtual void onLeave(LEAVE_CHANNEL_ERR errorCode) {}
   /**
    * Occurs when the local user receives a channel message.
    * @param message The pointer to the messsage: IMessage.
    */
-  virtual void onMessageReceived(const IMessage *message) {}
+  virtual void onMessageReceived(const char *userId, const IMessage *message) {}
   /**
    * Reports the state of the message sent by the local user.
    * @param messageId ID of the message.
    * @param state The state of the message: #CHANNEL_MESSAGE_STATE.
    */
-  virtual void onSendMessageState(long long messageId, CHANNEL_MESSAGE_STATE state) {}
+  virtual void onSendMessageState(int64_t messageId, CHANNEL_MESSAGE_STATE state) {}
+  /**
+   Returns the result of the \ref agora::rtm::IChannel::sendMessage "sendMessage" method call.
+
+    @param messageId The ID of the sent channel message.
+    @param state The error codes. See #CHANNEL_MESSAGE_ERR_CODE.
+    */
+  virtual void onSendMessageResult(long long messageId, CHANNEL_MESSAGE_ERR_CODE state) {}
   /**
    * Occurs when another member joins the channel.
    * @param member The pointer to the member who joins the channel: IChannelMember.
@@ -421,7 +578,7 @@ class IChannel {
    * Gets the current request ID.
    * @return
    * - The pointer to the request ID, if the method call succeeds.
-   * - The empty pointer NULL, if the method call fails.
+   * - An empty pointer NULL, if the method call fails.
    */
   virtual const char *getId() const = 0;
 
@@ -551,7 +708,7 @@ class IRtmService {
    * @param eventHandler The pointer to IChannelEventHandler.
    * @return
    * - The pointer to an IChannel instance, if the method call succeeds.
-   * - The empty pointer NULL, if the method call fails.
+   * - An empty pointer NULL, if the method call fails.
    */
   virtual IChannel *createChannel(const char *channelId, IChannelEventHandler *eventHandler) = 0;
 };

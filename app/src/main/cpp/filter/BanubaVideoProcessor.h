@@ -14,25 +14,16 @@ namespace agora::extension {
 
     public:
 
-        BanubaVideoProcessor(std::vector<std::string> path_to_resources,
-                             std::string client_token,
-                             int32_t width,
-                             int32_t height);
+        BanubaVideoProcessor();
 
-        void process_frame(const agora::media::base::VideoFrame &capturedFrame);
+        void process_frame(const agora_refptr<rtc::IVideoFrame> &in);
 
         void set_parameter(const std::string &key, const std::string &parameter);
 
-        int set_extension_control(agora::rtc::IExtensionControl *control) {
+        int set_extension_control(
+                agora::agora_refptr<rtc::IExtensionVideoFilter::Control> control
+        ) {
             m_control = control;
-            return 0;
-        };
-
-        int set_extension_vendor(const char *id) {
-            int len = std::string(id).length() + 1;
-            m_id = static_cast<char *>(malloc(len));
-            memset(m_id, 0, len);
-            strcpy(m_id, id);
             return 0;
         };
 
@@ -42,17 +33,18 @@ namespace agora::extension {
     private:
         void send_event(const char *key, const char *data);
 
-        const std::vector<std::string> m_path_to_resources;
-        const std::string m_client_token;
+        void initialize();
+        void create_ep(int32_t width, int32_t height);
 
-        agora::rtc::IExtensionControl *m_control;
-        char *m_id;
+        std::string m_path_to_resources;
+        std::string m_client_token;
+        bool m_is_initialized = false;
 
+        agora::agora_refptr<rtc::IExtensionVideoFilter::Control> m_control;
         ioep_sptr m_oep;
 
-        bnb::image_format image_format;
-        std::vector<std::uint8_t> y_plane;
-        std::vector<std::uint8_t> uv_plane;
-        bnb::interfaces::orient_format target_orient{bnb::camera_orientation::deg_0, false};
+        rtc::VideoFrameData m_captured_frame;
+        bnb::image_format m_image_format;
+        bnb::interfaces::orient_format m_target_orient{bnb::camera_orientation::deg_0, false};
     };
 }

@@ -4,53 +4,50 @@
 
 namespace agora::extension {
 
-    BanubaExtensionProvider *BanubaExtensionProvider::s_instance = nullptr;
-
-    BanubaExtensionProvider::BanubaExtensionProvider(
-            const std::vector<std::string> &path_to_resources,
-            const std::string &client_token,
-            int32_t width,
-            int32_t height) {
-        m_video_processor = new agora::RefCountedObject<BanubaVideoProcessor>(
-                path_to_resources,
-                client_token,
-                width,
-                height
-        );
+    BanubaExtensionProvider::BanubaExtensionProvider() {
+        m_video_processor = new agora::RefCountedObject<BanubaVideoProcessor>();
     }
 
-    void BanubaExtensionProvider::release() {
-        if (s_instance) {
-            delete s_instance;
-            s_instance = nullptr;
-        }
+    BanubaExtensionProvider::~BanubaExtensionProvider() {
+        m_video_processor.reset();
     }
 
-    agora_refptr<agora::rtc::IVideoFilter> BanubaExtensionProvider::createVideoFilter() {
+    agora_refptr<agora::rtc::IExtensionVideoFilter> BanubaExtensionProvider::createVideoFilter(
+            const char *name
+    ) {
         auto videoFilter = new agora::RefCountedObject<agora::extension::BanubaVideoFilter>(
                 m_video_processor
         );
         return videoFilter;
     }
 
-    agora_refptr<agora::rtc::IAudioFilter> BanubaExtensionProvider::createAudioFilter() {
+    agora_refptr<agora::rtc::IAudioFilter> BanubaExtensionProvider::createAudioFilter(
+            const char *name
+    ) {
         return nullptr;
     }
 
-    agora_refptr<agora::rtc::IVideoSinkBase> BanubaExtensionProvider::createVideoSink() {
+    agora_refptr<agora::rtc::IVideoSinkBase> BanubaExtensionProvider::createVideoSink(
+            const char *name
+    ) {
         return nullptr;
-    }
-
-    BanubaExtensionProvider::PROVIDER_TYPE BanubaExtensionProvider::getProviderType() {
-        return agora::rtc::IExtensionProvider::LOCAL_VIDEO_FILTER;
     }
 
     void BanubaExtensionProvider::setExtensionControl(rtc::IExtensionControl *control) {
-        m_video_processor->set_extension_control(control);
     }
 
-    int BanubaExtensionProvider::setExtensionVendor(const std::string &vendor) {
-        m_video_processor->set_extension_vendor(vendor.c_str());
-        return 0;
+    void BanubaExtensionProvider::enumerateExtensions(
+            rtc::IExtensionProvider::ExtensionMetaInfo *extension_list,
+            int &extension_count
+    ) {
+        extension_count = 1;
+        extension_list[0] = ExtensionMetaInfo{
+                .type = EXTENSION_TYPE::VIDEO_PRE_PROCESSING_FILTER,
+                .extension_name = "BanubaFilter"
+        };
+        extension_list[1] = ExtensionMetaInfo{
+                .type = EXTENSION_TYPE::AUDIO_FILTER,
+                .extension_name = "FFFFFF"
+        };
     }
 }

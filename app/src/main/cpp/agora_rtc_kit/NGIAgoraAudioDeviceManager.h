@@ -12,13 +12,20 @@
 #include "AgoraRefPtr.h"
 
 namespace agora {
+namespace media {
+namespace base {
+class IAudioFrameObserver;
+} // namespace base
+} // namespace media
+
 namespace rtc {
 
 static const int kAdmMaxDeviceNameSize = 128;
 static const int kAdmMaxGuidSize = 128;
 static const int kIntervalInMillseconds = 200;
 
-#if defined(_WIN32) || ((!defined(TARGET_OS_IPHONE) || !TARGET_OS_IPHONE) && (defined(TARGET_OS_MAC) && TARGET_OS_MAC))
+
+#if defined(_WIN32) || (TARGET_OS_MAC && !TARGET_OS_IPHONE)
 /**
  * The struct of AudioDeviceInfo.
  *
@@ -53,7 +60,7 @@ struct AudioDeviceInfo {
     memset(deviceId, 0, sizeof(deviceId));
   }
 };
-#endif  // _WIN32 || !TARGET_OS_IPHONE && TARGET_OS_MAC
+#endif  // _WIN32 || (TARGET_OS_MAC && !TARGET_OS_IPHONE)
 
 /**
  * The IAudioDeviceManagerObserver class.
@@ -66,16 +73,64 @@ public:
   /**
    * Occurs when the device state changes, for example, when a device is added or removed.
    *
-   * To get the current information of the connected audio devices, call getNumberOfPlayoutDevices() or
-   * getNumberOfPlayoutDevices().
+   * To get the current information of the connected audio devices, call \ref agora::rtc::INGAudioDeviceManager::getNumberOfPlayoutDevices "getNumberOfPlayoutDevices".
    */
   virtual void onDeviceStateChanged() = 0;
   /**
    * Occurs when the audio route changes.
    *
-   * @param route The current audio route: AudioRoute.
+   * @param route The current audio route. See #AudioRoute.
    */
   virtual void onRoutingChanged(AudioRoute route) = 0;
+};
+
+class IRecordingDeviceSource : public RefCountInterface {
+  public:
+  /**
+   * Initialize the recording device source.
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+    virtual int initRecording() = 0;
+
+  /**
+   * Start the recording device.
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+    virtual int startRecording() = 0;
+
+  /**
+   * Stop the recording device.
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+    virtual int stopRecording() = 0;
+
+  /**
+   * Registers an audio frame observer.
+   *
+   * @param observer The pointer to the IAudioFrameObserver object.
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+    virtual int registerAudioFrameObserver(media::base::IAudioFrameObserver* observer) = 0;
+
+  /**
+   * Releases the registered IAudioFrameObserver object.
+   *
+   * @param observer The pointer to the IAudioFrameObserver object created by the `registerAudioPcmDataCallback` method.
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+    virtual int unregisterAudioFrameObserver(media::base::IAudioFrameObserver* observer) = 0;
+
+    virtual ~IRecordingDeviceSource() {}
 };
 
 /**
@@ -86,6 +141,16 @@ public:
  */
 class INGAudioDeviceManager : public RefCountInterface {
 public:
+  /**
+   * Creates a audio device source object and returns the pointer.
+   *
+   * @return
+   * - The pointer to \ref rtc::IRecordingDeviceSource "IRecordingDeviceSource", if the method call
+   * succeeds.
+   * - An empty pointer NULL: Failure.
+   */
+  virtual agora_refptr<IRecordingDeviceSource> createRecordingDeviceSource(char deviceId[kAdmMaxDeviceNameSize]) = 0;
+
   /**
    * Sets the volume of the microphone.
    * @param volume The volume of the microphone. The value range is [0, 255].
@@ -184,7 +249,7 @@ public:
    * @note
    * This method applies to Android and iOS only.
    *
-   * @param route The default audio route: AudioRoute.
+   * @param route The default audio route. See #AudioRoute.
    * @return
    * - 0: Success.
    * - < 0: Failure.
@@ -196,7 +261,7 @@ public:
    * @note
    * This method applies to Android and iOS only.
    *
-   * @param route The audio route that you want to change to: AudioRoute.
+   * @param route The audio route that you want to change to. See #AudioRoute.
    * @return
    * - 0: Success.
    * - < 0: Failure.
@@ -214,9 +279,9 @@ public:
    * - < 0: Failure.
    */
   virtual int getCurrentRouting(AudioRoute& route) = 0;
-#endif
+#endif  // __ANDROID__ || TARGET_OS_IPHONE
 
-#if defined(_WIN32) || ((!defined(TARGET_OS_IPHONE) || !TARGET_OS_IPHONE) && (defined(TARGET_OS_MAC) && TARGET_OS_MAC))
+#if defined(_WIN32) || (TARGET_OS_MAC && !TARGET_OS_IPHONE)
   /**
    * Gets the index numbers of all audio playout devices.
    *
@@ -224,8 +289,8 @@ public:
    * This method applies to Windows or macOS only.
    *
    * @return
-   * - The index numbers of the audio playout devices, if the method call succeeds.
-   * - < 0, if the method call fails.
+   * - The index numbers of the audio playout devices: Success.
+   * - < 0: Failure.
    */
   virtual int getNumberOfPlayoutDevices() = 0;
 
@@ -236,8 +301,8 @@ public:
    * This method applies to Windows or macOS only.
    *
    * @return
-   * - The index numbers of the audio recording devices, if the method call succeeds.
-   * - < 0, if the method call fails.
+   * - The index numbers of the audio recording devices: Success.
+   * - < 0: Failure.
    */
   virtual int getNumberOfRecordingDevices() = 0;
   /**
@@ -248,7 +313,7 @@ public:
    *
    * @param index The index number of the current audio playout device.
    * @return
-   * The information of the audio playout device: AudioDeviceInfo.
+   * The information of the audio playout device. See \ref agora::rtc::AudioDeviceInfo "AudioDeviceInfo".
    */
   virtual AudioDeviceInfo getPlayoutDeviceInfo(int index) = 0;
   /**
@@ -259,7 +324,7 @@ public:
    *
    * @param index The index number of the current recording device.
    * @return
-   * The information of the recording device: AudioDeviceInfo.
+   * The information of the recording device. See \ref agora::rtc::AudioDeviceInfo "AudioDeviceInfo".
    */
   virtual AudioDeviceInfo getRecordingDeviceInfo(int index) = 0;
   /**
@@ -268,7 +333,7 @@ public:
    * @note
    * This method applies to Windows or macOS only.
    *
-   * @param index The index number of the audio playout device that you want to set.
+   * @param index The index number of the audio playout device.
    * @return
    * - 0: Success.
    * - < 0: Failure.
@@ -280,13 +345,13 @@ public:
    * @note
    * This method applies to Windows or macOS only.
    *
-   * @param index The index number of the recording device that you want to set.
+   * @param index The index number of the recording device.
    * @return
    * - 0: Success.
    * - < 0: Failure.
    */
   virtual int setRecordingDevice(int index) = 0;
-#endif
+#endif  // _WIN32 || (TARGET_OS_MAC && !TARGET_OS_IPHONE)
 
 #if defined(_WIN32)
   /**
@@ -295,7 +360,7 @@ public:
    * @note
    * This method applies to Windows only.
    *
-   * @param volume The volume of the app that you want to set. The value range is [0, 255].
+   * @param volume The volume of the app. The value range is [0, 255].
    * @return
    * - 0: Success.
    * - < 0: Failure.
@@ -339,7 +404,7 @@ public:
    * - < 0: Failure.
    */
   virtual int getApplicationMuteState(bool& mute) = 0;
-#endif
+#endif  // _WIN32
 
   /**
    * Registers an IAudioDeviceManagerObserver object.
@@ -352,10 +417,10 @@ public:
    * - 0: Success.
    * - < 0: Failure.
    */
-  virtual int registerObserver(IAudioDeviceManagerObserver* observer) = 0;
+  virtual int registerObserver(IAudioDeviceManagerObserver* observer, void(*safeDeleter)(IAudioDeviceManagerObserver*) = NULL) = 0;
   /**
    * Releases the IAudioDeviceManagerObserver object.
-   * @param observer The pointer to the IAudioDeviceManagerObserver class registered using registerObserver().
+   * @param observer The pointer to the IAudioDeviceManagerObserver class registered using #registerObserver.
    * @return
    * - 0: Success.
    * - < 0: Failure.

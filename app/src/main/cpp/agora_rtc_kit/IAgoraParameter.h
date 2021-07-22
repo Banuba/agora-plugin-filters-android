@@ -28,6 +28,12 @@
  */
 #define KEY_RTC_UDP_PORT_LIST                        "rtc.udp_port_list"
 
+/**
+ * get the fd of sending socket available for connection
+ * note: set method is not supported.
+ */
+#define KEY_RTC_UDP_SEND_FD                          "rtc.udp_send_fd"
+
  /**
   * set the video encoder mode (hardware or software)
   */
@@ -63,6 +69,8 @@
 */
 #define KEY_RTC_AUDIO_ENABLE_AGORA_AEC               "rtc.audio.aec.enable"
 
+#define KEY_RTC_AUDIO_MAX_TARGET_DELAY               "rtc.audio.max_target_delay"
+
 /**
   * enable/disable agora agc logic, enabled by default
 */
@@ -77,6 +85,16 @@
   * enable/disable agora md logic, enabled by default
 */
 #define KEY_RTC_AUDIO_ENABLE_AGORA_MD                "rtc.audio.md.enable"
+
+/**
+  * set the OpenSL mode for Android audio
+*/
+#define KEY_RTC_AUDIO_OPENSL_MODE                    "rtc.audio.opensl.mode"
+
+/**
+  * set the adm input sample rate
+*/
+#define KEY_RTC_AUDIO_INPUT_SAMPLE_RATE              "rtc.audio.input_sample_rate"
 
 /**
   * set the bitrate ratio for video
@@ -102,6 +120,26 @@
   * set the degradation fps up step
 */
 #define KEY_RTC_VIDEO_DEGRADATION_FPS_UP_STEP        "rtc.video.degradation_fps_up_step"
+
+/**
+  * set the duration ms for connection lost callback
+*/
+#define KEY_RTC_CONNECTION_LOST_PERIOD               "rtc.connection_lost_period"
+
+/**
+  * set the local ip
+*/
+#define KEY_RTC_LOCAL_IP                             "rtc.local.ip"
+
+/**
+  * set the network interface
+*/
+#define KEY_RTC_NETWORK_INTERFACE                    "rtc.network.interface"
+
+/**
+ * set the video codec type, such as "H264", "JPEG"
+ */
+#define KEY_RTC_VIDEO_CODEC_TYPE                      "engine.video.codec_type"
 
 /**
   * only use average QP for quality scaling

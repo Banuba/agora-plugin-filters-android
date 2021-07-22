@@ -42,8 +42,8 @@ public:
   /**
    * Occurs when the state of the RTMP streaming changes.
    *
-   * The SDK triggers this callback to report the result of the local user calling the
-   * addPublishStreamUrl() or removePublishStreamUrl().
+   * The SDK triggers this callback to report the result of the local user calling
+   * `addPublishStreamUrl` or `removePublishStreamUrl`.
    *
    * This callback also reports the streaming URL and its current streaming state. When exceptions
    * occur, you can troubleshoot issues by referring to the detailed error description in the `errCode`
@@ -60,7 +60,7 @@ public:
     (void)errCode;
   }
   /**
-   * Reports the result of calling the addPublishStreamUrl() method.
+   * Reports the result of the `addPublishStreamUrl` method.
    *
    * This callback reports whether you have successfully added an RTMP stream to the CDN.
    *
@@ -72,7 +72,7 @@ public:
     (void)error;
   }
   /**
-   * Reports the result of calling the removePublishStreamUrl() method.
+   * Reports the result of calling the `removePublishStreamUrl` method.
    *
    * This callback reports whether you have successfully removed an RTMP stream from the CDN.
    *
@@ -82,11 +82,11 @@ public:
   /**
    * Occurs when the publisher's transcoding settings are updated.
    *
-   * When the `LiveTranscoding` class in the setLiveTransocding() method updates, the SDK triggers this callback
+   * When the `LiveTranscoding` class in the `setLiveTransocding` method updates, the SDK triggers this callback
    * to report the update information.
    *
    * @note
-   * If you call the setLiveTranscoding() method to set the `LiveTranscoding` class for the first time, the SDK
+   * If you call the `setLiveTranscoding` method to set the `LiveTranscoding` class for the first time, the SDK
    * does not trigger this callback.
    */
   virtual void onTranscodingUpdated() {}
@@ -99,7 +99,7 @@ class IRtmpStreamingService : public RefCountInterface {
   /**
    * Publishes the local stream to the CDN.
    *
-   * This method triggers the onRtmpStreamingStateChanged() callback on the local client to report the state of
+   * This method triggers the `onRtmpStreamingStateChanged` callback on the local client to report the state of
    * adding a local stream to the CDN.
    *
    * @note
@@ -111,7 +111,7 @@ class IRtmpStreamingService : public RefCountInterface {
    * @param url The CDN streaming URL in the RTMP format. The maximum length of this parameter is 1024 bytes.
    * The URL address must not contain special character, such as Chinese language characters.
    * @param transcodingEnabled Sets whether transcoding is enabled/disabled. If you set this parameter as `true`,
-   * ensure that you call the setLiveTranscoding() method before this method.
+   * ensure that you call the `setLiveTranscoding` method before this method.
    * - true: Enable transcoding.
    * - false: Disable transcoding.
    *
@@ -123,7 +123,7 @@ class IRtmpStreamingService : public RefCountInterface {
   /**
    * Removes an RTMP stream from the CDN.
    *
-   * This method removes the RTMP URL address added by addPublishStreamUrl() from a CDN live stream. The SDK triggers the onRtmpStreamingStated() callback
+   * This method removes the RTMP URL address added by `addPublishStreamUrl` from a CDN live stream. The SDK triggers the `onRtmpStreamingStated` callback
    * on the local client to report the state of removing an RTMP stream from the CDN.
    *
    * @note
@@ -142,7 +142,7 @@ class IRtmpStreamingService : public RefCountInterface {
   /**
    * Sets the video layout and audio settings for CDN live.
    *
-   * The SDK triggers the onTranscodingUpdated() callback when the `LiveTranscoding` class is updated using this method.
+   * The SDK triggers the `onTranscodingUpdated` callback when the `LiveTranscoding` class is updated using this method.
    * If you call this method to set `LiveTrancoding` for the first time, the SDK does not trigger this callback.
    *
    * @note
@@ -154,7 +154,7 @@ class IRtmpStreamingService : public RefCountInterface {
 
   /**
    * Registers an RTMP streaming observer.
-   * @param observer The pointer to an RTMP streaming observer: IRtmpStreamingObserver.
+   * @param observer The pointer to an RTMP streaming observer. See \ref agora::rtc::IRtmpStreamingObserver "IRtmpStreamingObserver".
    * @return
    * - 0: Success.
    * - < 0: Failure.
@@ -162,7 +162,7 @@ class IRtmpStreamingService : public RefCountInterface {
   virtual int registerObserver(IRtmpStreamingObserver* observer) = 0;
   /**
    * Releases the RTMP streaming observer created by registerObserver().
-   * @param observer The pointer to the RTMP streaming observer that you want to release: IRtmpStreamingObserver.
+   * @param observer The pointer to the RTMP streaming observer that you want to release. See \ref agora::rtc::IRtmpStreamingObserver "IRtmpStreamingObserver".
    * @return
    * - 0: Success.
    * - < 0: Failure.

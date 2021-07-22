@@ -5,32 +5,28 @@
 #include <utility>
 
 namespace bnb {
-    ioep_sptr interfaces::offscreen_effect_player::create(
-            const std::vector<std::string> &path_to_resources, const std::string &client_token,
-            int32_t width, int32_t height, const iort_sptr& ort) {
+    ioep_sptr interfaces::offscreen_effect_player::create(int32_t width, int32_t height,
+                                                          const iort_sptr &ort) {
         if (ort == nullptr) {
             return nullptr;
         }
 
         // we use "new" instead of "make_shared" because the constructor in "offscreen_effect_player" is private
-        return oep_sptr(new bnb::offscreen_effect_player(
-                path_to_resources, client_token, width, height, ort));
+        return oep_sptr(new bnb::offscreen_effect_player(width, height, ort));
     }
 
     offscreen_effect_player::offscreen_effect_player(
-            const std::vector<std::string> &path_to_resources,
-            const std::string &client_token,
             int32_t width, int32_t height,
             iort_sptr offscreen_render_target
     ) : m_ort(std::move(offscreen_render_target)),
-        m_scheduler(1) {
-        bnb::interfaces::utility_manager::initialize(path_to_resources, client_token);
-        bnb::interfaces::effect_player_configuration conf{
-                width, height,
-                bnb::interfaces::nn_mode::automatically,
-                bnb::interfaces::face_search_mode::good,
-                false, false};
-        m_ep = bnb::interfaces::effect_player::create(conf);
+        m_scheduler(1),
+        m_ep(bnb::interfaces::effect_player::create(
+                {
+                        width, height,
+                        bnb::interfaces::nn_mode::automatically,
+                        bnb::interfaces::face_search_mode::good,
+                        false, false}
+        )) {
         auto task = [this, width, height]() {
             render_thread_id = std::this_thread::get_id();
             m_ort->init();

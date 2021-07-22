@@ -62,7 +62,7 @@ public:
    */
   virtual int removeVideoTrack(const char* id, agora_refptr<IVideoTrack> track) = 0;
   /**
-   * Configure the layout of video frames comming from a specific track (indicated by uid)
+   * Configures the layout of video frames comming from a specific track (indicated by uid)
    * on the mixer canvas.
    * @param id The unique id of the stream.
    * @param config The layout configuration

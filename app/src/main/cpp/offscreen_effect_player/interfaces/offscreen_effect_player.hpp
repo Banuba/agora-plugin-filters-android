@@ -16,9 +16,8 @@ namespace interfaces
     class offscreen_effect_player
     {
     public:
-        static std::shared_ptr<offscreen_effect_player> create(
-            const std::vector<std::string>& path_to_resources, const std::string& client_token,
-            int32_t width, int32_t height, const iort_sptr& ort);
+        static std::shared_ptr<offscreen_effect_player> create(int32_t width, int32_t height,
+                                                               const iort_sptr& ort);
 
         virtual ~offscreen_effect_player() = default;
 

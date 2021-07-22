@@ -225,7 +225,7 @@ namespace bnb {
             GL_CALL(glGenFramebuffers(1, &m_framebuffer));
             GL_CALL(glGenFramebuffers(1, &m_post_processing_framebuffer));
 
-            m_program = std::make_unique<program>("OrientationChange", vs_default_base,
+            m_program = std::make_unique<oep::program>("OrientationChange", vs_default_base,
                                                   ps_default_base);
             m_frame_surface_handler = std::make_unique<ort_frame_surface_handler>(
                     bnb::camera_orientation::deg_0, false);

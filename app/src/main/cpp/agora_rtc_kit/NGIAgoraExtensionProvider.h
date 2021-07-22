@@ -9,7 +9,7 @@ class IExtensionControl;
 
 /**
  * Interfaces for Extension Provider
- * User can implement these effect_player.interfaces for providing their own media node implementations to SDK.
+ * User can implement these interfaces for providing their own media node implementations to SDK.
  * Please refer to \ref agora::RefCountedObject to wrap your implementation so that it can be
  * held by agora::agora_refptr.
  * For example:
@@ -24,41 +24,46 @@ class IExtensionControl;
  * 
  * You can instantiate your AudioFilter/VideoFilter/VideoSink in the same way.
  */
+
 class IExtensionProvider : public RefCountInterface {
  public:
-  enum PROVIDER_TYPE {
-    LOCAL_AUDIO_FILTER,
-    REMOTE_AUDIO_FILTER,
-    LOCAL_VIDEO_FILTER,
-    REMOTE_VIDEO_FILTER,
-    LOCAL_VIDEO_SINK,
-    REMOTE_VIDEO_SINK,
+  enum EXTENSION_TYPE {
+    AUDIO_FILTER,
+    VIDEO_PRE_PROCESSING_FILTER,
+    VIDEO_POST_PROCESSING_FILTER,
+    AUDIO_SINK,
+    VIDEO_SINK,
     UNKNOWN,
   };
 
-  virtual PROVIDER_TYPE getProviderType() {
-    return UNKNOWN;
+  struct ExtensionMetaInfo {
+    EXTENSION_TYPE type;
+    const char* extension_name;
+  };
+
+  virtual void setExtensionControl(IExtensionControl* control) {}
+
+  virtual void enumerateExtensions(ExtensionMetaInfo* extension_list,
+                                   int& extension_count) {
+    (void) extension_list;
+    extension_count = 0;
   }
 
-  virtual void setExtensionControl(IExtensionControl* control) {
-    (void)control;
-  }
-
-  virtual agora_refptr<IAudioFilter> createAudioFilter() {
+  virtual agora_refptr<IAudioFilter> createAudioFilter(const char* name) {
     return NULL;
   }
 
-  virtual agora_refptr<IVideoFilter> createVideoFilter() {
+  virtual agora_refptr<IExtensionVideoFilter> createVideoFilter(const char* name) {
     return NULL;
   }
 
-  virtual agora_refptr<IVideoSinkBase> createVideoSink() {
+  virtual agora_refptr<IVideoSinkBase> createVideoSink(const char* name) {
     return NULL;
   }
 
  protected:
-  ~IExtensionProvider() {}
+  virtual ~IExtensionProvider() {}
 };
 
-}
-}
+}  // namespace rtc
+}  // namespace agora

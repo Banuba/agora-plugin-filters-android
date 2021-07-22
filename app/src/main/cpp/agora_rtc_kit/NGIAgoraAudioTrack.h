@@ -8,30 +8,33 @@
 
 #pragma once  // NOLINT(build/header_guard)
 
-#include "AgoraRefPtr.h"
-#include "IAgoraService.h"
-#include "NGIAgoraMediaNodeFactory.h"
+#include "AgoraBase.h"
 
 // FIXME(Ender): use this class instead of AudioSendStream as local track
 namespace agora {
 namespace rtc {
 class IAudioTrackStateObserver;
-
+class IAudioFilter;
+class IAudioSinkBase;
+class IMediaPacketReceiver;
 /**
- * This struct notifies the source of the properties of audio frames to be sent to a sink.
+ * Properties of audio frames expected by a sink.
+ *
+ * @note The source determines the audio frame to be sent to the sink based on a variety of factors,
+ * such as other sinks or the capability of the source.
+ *
  */
 struct AudioSinkWants {
-
-    AudioSinkWants(int sampleRate, size_t chs) : samplesPerSec(sampleRate), channels(chs) {}
-    AudioSinkWants() : samplesPerSec(0), channels(0) {}
-    AudioSinkWants(const AudioSinkWants& o) : samplesPerSec(o.samplesPerSec), channels(o.channels) {};
-    ~AudioSinkWants() = default;
-
   /** The sample rate of the audio frame to be sent to the sink. */
   int samplesPerSec;
 
   /** The number of audio channels of the audio frame to be sent to the sink. */
   size_t channels;
+
+  AudioSinkWants() : samplesPerSec(0),
+                     channels(0) {}
+  AudioSinkWants(int sampleRate, size_t chs) : samplesPerSec(sampleRate),
+                                               channels(chs) {}
 };
 
 /**
@@ -40,7 +43,7 @@ struct AudioSinkWants {
 class IAudioTrack : public RefCountInterface {
 public:
   /**
-   * The position of the audio filter.
+   * The position of the audio filter in audio frame.
    */
   enum AudioFilterPosition {
     /**
@@ -80,8 +83,8 @@ public:
    * Adds an audio filter.
    *
    * By adding an audio filter, you can apply various audio effects to the audio, for example, voice change.
-   * @param filter A pointer to the audio filter: IAudioFilter.
-   * @param position The position of the audio filter: #AudioFilterPosition.
+   * @param filter A pointer to the audio filter. See \ref agora::rtc::IAudioFilter "IAudioFilter".
+   * @param position The position of the audio filter. See \ref agora::rtc::IAudioTrack::AudioFilterPosition "AudioFilterPosition".
    * @return
    * - `true`: Success.
    * - `false`: Failure.
@@ -90,8 +93,8 @@ public:
   /**
    * Removes the audio filter added by callling `addAudioFilter`.
    *
-   * @param filter The pointer to the audio filter that you want to remove: IAudioFilter.
-   * @param position The position of the audio filter: #AudioFilterPosition.
+   * @param filter The pointer to the audio filter that you want to remove. See \ref agora::rtc::IAudioFilter "IAudioFilter".
+   * @param position The position of the audio filter. See #AudioFilterPosition.
    * @return
    * - `true`: Success.
    * - `false`: Failure.
@@ -132,17 +135,18 @@ public:
    * Gets the audio filter by its name.
    *
    * @param name The name of the audio filter.
+   * @param position The position of the audio filter. See #AudioFilterPosition.
    * @return
-   * - The pointer to the audio filter, if the method call succeeds.
-   * - A null pointer, if the method call fails.
+   * - The pointer to the audio filter: Success.
+   * - A null pointer: Failure.
    */
-  virtual agora_refptr<IAudioFilter> getAudioFilter(const char *name) const = 0;
+  virtual agora_refptr<IAudioFilter> getAudioFilter(const char *name, AudioFilterPosition position) const = 0;
 
   /**
    * Adds an audio sink to get PCM data from the audio track.
    *
-   * @param sink The pointer to the audio sink: IAudioSinkBase.
-   * @param wants The properties an audio frame should have when it is delivered to the sink. See AudioSinkWants.
+   * @param sink The pointer to the audio sink. See \ref agora::rtc::IAudioSinkBase "IAudioSinkBase".
+   * @param wants The properties an audio frame should have when it is delivered to the sink. See \ref agora::rtc::AudioSinkWants "AudioSinkWants".
    * @return
    * - `true`: Success.
    * - `false`: Failure.
@@ -152,7 +156,7 @@ public:
   /**
    * Removes an audio sink.
    *
-   * @param sink The pointer to the audio sink to be removed: IAudioSinkBase.
+   * @param sink The pointer to the audio sink to be removed. See \ref agora::rtc::IAudioSinkBase "IAudioSinkBase".
    * @return
    * - `true`: Success.
    * - `false`: Failure.
@@ -184,11 +188,44 @@ class ILocalAudioTrack : public IAudioTrack {
      * The source ID of the local audio track.
      */
     uint32_t source_id;
+    /**
+     * The number of audio frames in the buffer.
+     *
+     * When sending PCM data, the PCM data is first stored in a buffer area.
+     * Then a thread gets audio frames from the buffer and sends PCM data.
+     */
     uint32_t buffered_pcm_data_list_size;
+    /**
+     * The number of audio frames missed by the thread that gets PCM data from the buffer.
+     */
     uint32_t missed_audio_frames;
+    /**
+     * The number of audio frames sent by the thread that gets PCM data from the buffer.
+     */
     uint32_t sent_audio_frames;
+    /**
+     * The number of audio frames sent by the user.
+     */
     uint32_t pushed_audio_frames;
+    /**
+     * The number of dropped audio frames caused by insufficient buffer size.
+     */
     uint32_t dropped_audio_frames;
+    /**
+     * The number of playout audio frames.
+     */
+    uint32_t playout_audio_frames;
+    /**
+     * The type of audio effect.
+     */
+    uint32_t effect_type;
+    /**
+     * Whether the hardware ear monitor is enabled.
+     */
+    uint32_t hw_ear_monitor;
+    /**
+     * Whether the local audio track is enabled.
+     */
     bool enabled;
 
     LocalAudioTrackStats() : source_id(0),
@@ -197,6 +234,9 @@ class ILocalAudioTrack : public IAudioTrack {
                              sent_audio_frames(0),
                              pushed_audio_frames(0),
                              dropped_audio_frames(0),
+                             playout_audio_frames(0),
+                             effect_type(0),
+                             hw_ear_monitor(0),
                              enabled(false) {}
   };
 
@@ -216,19 +256,19 @@ class ILocalAudioTrack : public IAudioTrack {
    * Gets whether the local audio track is enabled.
    * @return Whether the local audio track is enabled:
    * - `true`: The local track is enabled.
-   * - `false`: The local track is not enabled.
+   * - `false`: The local track is disabled.
    */
   virtual bool isEnabled() const = 0;
 
   /**
    * Gets the state of the local audio.
-   * @return The state of the local audio: #LOCAL_AUDIO_STREAM_STATE, if the method call succeeds.
+   * @return The state of the local audio: #LOCAL_AUDIO_STREAM_STATE: Success.
    */
   virtual LOCAL_AUDIO_STREAM_STATE getState() = 0;
 
   /**
    * Gets the statistics of the local audio track: LocalAudioTrackStats.
-   * @return The statistics of the local audio: LocalAudioTrackStats, if the method call succeeds.
+   * @return The statistics of the local audio: LocalAudioTrackStats: Success.
    */
   virtual LocalAudioTrackStats GetStats() = 0;
 
@@ -275,11 +315,11 @@ class ILocalAudioTrack : public IAudioTrack {
   virtual int enableEarMonitor(bool enable, int includeAudioFilters) = 0;
 
  protected:
-  ~ILocalAudioTrack() {}
+   ~ILocalAudioTrack() {}
 };
 
 /**
- * Statistics of a remote audio track.
+ * The statistics of a remote audio track.
  */
 struct RemoteAudioTrackStats {
   /**
@@ -329,7 +369,7 @@ struct RemoteAudioTrackStats {
    */
   int64_t received_bytes;
   /**
-   * The average packet waiting time in the jitter buffer (ms)
+   * The average packet waiting time (ms) in the jitter buffer.
    */
   int mean_waiting_time;
   /**
@@ -341,21 +381,25 @@ struct RemoteAudioTrackStats {
    */
   size_t expanded_noise_samples;
   /**
-   * The timestamps of since last report.
+   * The timestamps since last report.
    */
   uint32_t timestamps_since_last_report;
   /**
-   * The min sequence number.
+   * The minimum sequence number.
    */
   uint16_t min_sequence_number;
   /**
-   * The max sequence number.
+   * The maximum sequence number.
    */
   uint16_t max_sequence_number;
   /**
    * The audio energy.
    */
   int32_t audio_level;
+  /**
+   * audio downlink average process time
+   */
+  uint32_t downlink_process_time_ms;
   /**
    *  The count of 80 ms frozen in 2 seconds
    */
@@ -372,6 +416,14 @@ struct RemoteAudioTrackStats {
    *  The time of 200 ms frozen in 2 seconds
    */
   uint16_t frozen_time_200_ms;
+  /**
+   *  The estimate delay
+   */
+  uint32_t delay_estimate_ms;
+  /**
+   *  The MOS value
+   */
+  uint32_t mos_value;
 
   RemoteAudioTrackStats() :
     uid(0),
@@ -391,11 +443,14 @@ struct RemoteAudioTrackStats {
     timestamps_since_last_report(0),
     min_sequence_number(0xFFFF),
     max_sequence_number(0),
+    audio_level(0),
+    downlink_process_time_ms(0),
     frozen_count_80_ms(0),
     frozen_time_80_ms(0),
     frozen_count_200_ms(0),
     frozen_time_200_ms(0),
-    audio_level(0) { }
+    delay_estimate_ms(0),
+    mos_value(0) { }
 };
 
 /**
@@ -414,7 +469,7 @@ class IRemoteAudioTrack : public IAudioTrack {
 
   /**
    * Gets the state of the remote audio.
-   * @return The state of the remote audio: #REMOTE_AUDIO_STATE, if the method call succeeds.
+   * @return The state of the remote audio: #REMOTE_AUDIO_STATE.
    */
   virtual REMOTE_AUDIO_STATE getState() = 0;
 
@@ -440,6 +495,20 @@ class IRemoteAudioTrack : public IAudioTrack {
    * - < 0: Failure.
    */
   virtual int unregisterMediaPacketReceiver(IMediaPacketReceiver* packetReceiver) = 0;
+  
+  /** Sets the sound position and gain
+   
+   @param pan The sound position of the remote user. The value ranges from -1.0 to 1.0:
+   - 0.0: the remote sound comes from the front.
+   - -1.0: the remote sound comes from the left.
+   - 1.0: the remote sound comes from the right.
+   @param gain Gain of the remote user. The value ranges from 0.0 to 100.0. The default value is 100.0 (the original gain of the remote user). The smaller the value, the less the gain.
+   
+   @return
+   - 0: Success.
+   - < 0: Failure.
+   */
+  virtual int setRemoteVoicePosition(float pan, float gain) = 0;
 };
 
 }  // namespace rtc

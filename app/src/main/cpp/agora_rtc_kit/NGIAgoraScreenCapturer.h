@@ -30,13 +30,10 @@ class IScreenCapturer : public RefCountInterface {
    * @param regionRect The reference to the relative location of the region to the screen: Rectangle.
    * - If the specified region overruns the screen, only the region within the screen will be captured.
    * - If you set `width` or `height` as 0, the whole screen will be captured.
-   * Note that the coordinate of rectangle is relative to the window and follow system specification
+   * Note that the coordinates of rectangle are relative to the window and follows system specifications.
    * @return
    * - 0: Success.
    * - < 0: Failure.
-   *   - ERR_INVALID_STATE, probably because there is already an active screen sharing, call stopScreenCapture()
-   *     first.
-   *   - ERR_INVALID_ARGUMENT, if all the coordinates of `regionRect` are out of the specified display.
    */
   virtual int initWithDisplayId(view_t displayId, const Rectangle& regionRect) = 0;
 #elif defined(_WIN32)
@@ -49,20 +46,18 @@ class IScreenCapturer : public RefCountInterface {
    * This method shares a whole or part of a screen specified by the screen Rect.
    * @param screenRect The reference to the Rect of the screen to be shared. This parameter specifies which screen you want
    * to share.
-   * @param regionRect The reference to the relative location of the region to the screen: regionRect.
+   * @param regionRect The reference to the relative location of the region to the screen. See \ref agora::rtc::Rectangle &regionRect "regionRect".
    * - If the specified region overruns the screen, only the region within the screen will be captured.
    * - If you set `width` or `height` as 0, the whole screen will be captured.
-   * Note that the coordinate of rectangle is relative to the window and follow system specification
+   * Note that the coordinates of rectangle are relative to the window and follows system specifications.
    * @return
    * - 0: Success.
    * - < 0: Failure.
-   *   - ERR_INVALID_STATE, probably because there is already an active screen sharing, call stopScreenCapture()
-   *     first.
-   *   - ERR_INVALID_ARGUMENT, if all the coordinates of `regionRect` are out of the specified screen.
    */
   virtual int initWithScreenRect(const Rectangle& screenRect,
                                  const Rectangle& regionRect) = 0;
-#endif
+#endif  // TARGET_OS_MAC && !TARGET_OS_IPHONE
+
   /**
    * Initializes the screen capturer by specifying a window ID.
    *
@@ -72,16 +67,13 @@ class IScreenCapturer : public RefCountInterface {
    * This method applies to Windows and macOS only.
    * @param windowId The ID of the window to be shared. This parameter specifies which window you want
    * to share.
-   * @param regionRect The reference to the relative location of the region to the window: regionRect.
+   * @param regionRect The reference to the relative location of the region to the window. See \ref agora::rtc::Rectangle &regionRect "regionRect".
    * - If the specified region overruns the window, only the region within the screen will be captured.
    * - If you set `width` or `height` as 0, the whole window will be captured.
-   * Note that the coordinate of rectangle is relative to the window and follow system specification
+   * Note that the coordinates of rectangle are relative to the window and follows system specifications.
    * @return
    * - 0: Success.
    * - < 0: Failure.
-   *   - ERR_INVALID_STATE, probably because there is already an active screen sharing, call stopScreenCapture()
-   *     first.
-   *   - ERR_INVALID_ARGUMENT if all the coordinates of `regionRect` are out of the specified window.
    */
   virtual int initWithWindowId(view_t windowId, const Rectangle& regionRect) = 0;
 
@@ -89,7 +81,7 @@ class IScreenCapturer : public RefCountInterface {
    * Sets the content hint for screen sharing.
    *
    * A content hint suggests the type of the content being shared, so that the SDK applies different
-   * optimization algorithm to different types of content.
+   * optimization algorithms to different types of content.
    * @param contentHint The content hint for screen capture: \ref rtc::VIDEO_CONTENT_HINT "VIDEO_CONTENT_HINT".
    * @return
    * - 0: Success.
@@ -100,7 +92,7 @@ class IScreenCapturer : public RefCountInterface {
 
   /**
    * Updates the screen capture region.
-   * @param regionRect The reference to the relative location of the region to the screen or window: Rectangle.
+   * @param regionRect The reference to the relative location of the region to the screen or window. See \ref agora::rtc::Rectangle "Rectangle".
    * - If the specified region overruns the screen or window, the screen capturer captures only the region within it.
    * - If you set `width` or `height` as 0, the SDK shares the whole screen or window.
    * @return
@@ -112,15 +104,14 @@ class IScreenCapturer : public RefCountInterface {
 
 #if defined(__ANDROID__)
   /**
-   * Initializes the screen capturer by specifying a result data which obtained from a succesful screen
-   * capture request.
+   * Initializes the screen capturer by specifying the Intent data obtained from MediaProjection.
    *
    * This method shares the whole screen.
    *
    * @note
    * This method applies to Android only.
-   * @param data The resulting data from {@link android.app.Activity#onActivityResult(int, int, 
-   * android.content.Intent)}.
+   * @param data The Intent data from `onActivityResult (int requestCode, int resultCode, Intent data)` after you create
+   * an Intent from `MediaProjection` and sends the Intent to `startActivityForResult`.
    * @param dimensions The reference to the captured screen's resolution in terms of width &times; height.
    * - If you set `width` or `height` as 0, the dimensions will be the screen's width &times; height.
    * @return
@@ -130,7 +121,7 @@ class IScreenCapturer : public RefCountInterface {
    */
   virtual int initWithMediaProjectionPermissionResultData(void* data,
                                                           const VideoDimensions& dimensions) = 0;
-#endif
+#endif  // __ANDROID__
 
  protected:
   ~IScreenCapturer() {}

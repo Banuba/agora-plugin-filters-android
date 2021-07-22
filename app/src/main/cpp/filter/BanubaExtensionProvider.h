@@ -1,7 +1,6 @@
 #pragma once
 
 #include <NGIAgoraExtensionProvider.h>
-#include <AgoraRefCountedObject.h>
 #include "BanubaVideoProcessor.h"
 
 namespace agora::extension {
@@ -9,45 +8,17 @@ namespace agora::extension {
     class BanubaExtensionProvider : public agora::rtc::IExtensionProvider {
 
     public:
-        static void create(const std::vector<std::string> &path_to_resources,
-                           const std::string &client_token,
-                           int32_t width,
-                           int32_t height) {
-            if (s_instance == nullptr) {
-                s_instance = new agora::RefCountedObject<BanubaExtensionProvider>(
-                        path_to_resources,
-                        client_token,
-                        width,
-                        height);
-            }
-        }
+        BanubaExtensionProvider();
+        ~BanubaExtensionProvider();
 
-        static BanubaExtensionProvider *getInstance() {
-            return s_instance;
-        };
+        void enumerateExtensions(ExtensionMetaInfo *extension_list, int &extension_count) override;
+        void setExtensionControl(rtc::IExtensionControl *control) override;
 
-        static void release();
-
-        BanubaExtensionProvider(const std::vector<std::string> &path_to_resources,
-                                const std::string &client_token,
-                                int32_t width,
-                                int32_t height);
-
-        PROVIDER_TYPE getProviderType() override;
-
-        virtual void setExtensionControl(rtc::IExtensionControl *control) override;
-
-        virtual agora_refptr<rtc::IAudioFilter> createAudioFilter() override;
-
-        virtual agora_refptr<rtc::IVideoFilter> createVideoFilter() override;
-
-        virtual agora_refptr<rtc::IVideoSinkBase> createVideoSink() override;
-
-        int setExtensionVendor(const std::string &vendor);
+        agora_refptr<rtc::IExtensionVideoFilter> createVideoFilter(const char* name) override;
+        agora_refptr<rtc::IAudioFilter> createAudioFilter(const char *name) override;
+        agora_refptr<rtc::IVideoSinkBase> createVideoSink(const char *name) override;
 
     private:
-        static BanubaExtensionProvider *s_instance;
         agora_refptr<BanubaVideoProcessor> m_video_processor;
-
     };
 }

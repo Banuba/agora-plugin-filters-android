@@ -7,25 +7,32 @@
 
 namespace agora::extension {
 
-    class BanubaVideoFilter : public agora::rtc::IVideoFilter {
+    class BanubaVideoFilter : public agora::rtc::IExtensionVideoFilter {
 
     public:
         BanubaVideoFilter(agora_refptr<BanubaVideoProcessor> videoProcessor);
-
         ~BanubaVideoFilter();
 
-        bool adaptVideoFrame(
-                const agora::media::base::VideoFrame &capturedFrame,
-                agora::media::base::VideoFrame &adaptedFrame
+        int start(agora::agora_refptr<Control> control) override;
+        int stop() override;
+
+        void getVideoFormatWanted(
+                rtc::VideoFrameData::Type &type,
+                rtc::RawPixelBuffer::Format &format
+        ) override;
+
+        void getProcessMode(ProcessMode &mode, bool &independent_thread) override;
+
+        ProcessResult adaptVideoFrame(
+                agora_refptr<rtc::IVideoFrame> in,
+                agora_refptr<rtc::IVideoFrame> &out
         ) override;
 
         void setEnabled(bool enable) override;
-
         bool isEnabled() override;
 
-        size_t setProperty(const char *key, const void *buf, size_t buf_size) override;
-
-        size_t getProperty(const char *key, void *buf, size_t buf_size) override;
+        int setProperty(const char *key, const void *buf, size_t buf_size) override;
+        int getProperty(const char *key, void *buf, size_t buf_size) override;
 
     private:
         agora_refptr<BanubaVideoProcessor> m_video_processor;

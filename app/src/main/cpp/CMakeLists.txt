@@ -20,26 +20,30 @@ add_library(yuv SHARED IMPORTED)
 set_target_properties(yuv PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libyuv_static.a)
 include_directories(lib_yuv)
 
+set(agora-lib ${PROJECT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libagora-rtc-sdk-jni.so)
+link_libraries(${agora-lib})
+
 include_directories(${CMAKE_CURRENT_LIST_DIR}/agora_rtc_kit)
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/offscreen_effect_player)
 
 add_library(
-        native-lib
+        plugin-lib
 
         SHARED
 
         filter/BanubaExtensionProvider.cpp
         filter/BanubaVideoFilter.cpp
         filter/BanubaVideoProcessor.cpp
-        native.cpp
+        plugin_lib.cpp
 )
-target_include_directories(native-lib PRIVATE ${PROJECT_SOURCE_DIR})
+target_include_directories(plugin-lib PRIVATE ${PROJECT_SOURCE_DIR})
 target_link_libraries(
-        native-lib
+        plugin-lib
         android
         log
         offscreen_ep
         renderer
         yuv
+        ${agora-lib}
 )

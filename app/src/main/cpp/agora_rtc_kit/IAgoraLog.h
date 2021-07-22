@@ -3,20 +3,36 @@
 //
 //  Copyright (c) 2015 Agora IO. All rights reserved.
 //
-
 #pragma once
 
-#include <stdint.h>
+#include <cstdlib>
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
+#include <cstdint>
+#endif
+
+#ifndef OPTIONAL_ENUM_CLASS
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
+#define OPTIONAL_ENUM_CLASS enum class
+#else
+#define OPTIONAL_ENUM_CLASS enum
+#endif
+#endif
+
+#ifndef OPTIONAL_LOG_LEVEL_SPECIFIER
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
+#define OPTIONAL_LOG_LEVEL_SPECIFIER LOG_LEVEL::
+#else
+#define OPTIONAL_LOG_LEVEL_SPECIFIER
+#endif
+#endif
 
 namespace agora {
 namespace commons {
-const uint32_t DEFAULT_LOG_SIZE = 1 * 1024 * 1024;  // default is 1 MB
-const uint32_t MAX_LOG_SIZE = 20 * 1024 * 1024;
-const uint32_t MIN_LOG_SIZE = 128 * 1024;
+
 /**
  * Supported logging severities of SDK
  */
-enum class LOG_LEVEL {
+OPTIONAL_ENUM_CLASS LOG_LEVEL {
   LOG_LEVEL_NONE = 0x0000,
   LOG_LEVEL_INFO = 0x0001,
   LOG_LEVEL_WARN = 0x0002,
@@ -42,6 +58,7 @@ class ILogWriter {
    - <0: failure
   */
   virtual int32_t writeLog(LOG_LEVEL level, const char* message, uint16_t length) = 0;
+
   virtual ~ILogWriter() {}
 };
 
@@ -55,6 +72,12 @@ enum LOG_FILTER_TYPE {
   LOG_FILTER_MASK = 0x80f,
 };
 
+const uint32_t MAX_LOG_SIZE = 20 * 1024 * 1024;  // 20MB
+const uint32_t MIN_LOG_SIZE = 128 * 1024;        // 128KB
+/** The default log size in kb
+ */
+const uint32_t DEFAULT_LOG_SIZE_IN_KB = 1024;
+
 /** Definition of LogConfiguration
  */
 struct LogConfig
@@ -62,14 +85,16 @@ struct LogConfig
   /**The log file path, default is NULL for default log path
    */
   const char* filePath;
-  /** The log file size, 1024KB will be set for default log size
-   * if this value is less than or equal to 0.
+  /** The log file size, KB , set 1024KB to use default log size
    */
-  int fileSizeInKB;
+  uint32_t fileSizeInKB;
   /** The log level, set LOG_LEVEL_INFO to use default log level
    */
   LOG_LEVEL level;
-  LogConfig() : filePath(nullptr), fileSizeInKB(0), level(LOG_LEVEL::LOG_LEVEL_INFO) {}
+
+  LogConfig() : filePath(NULL), fileSizeInKB(DEFAULT_LOG_SIZE_IN_KB), level(OPTIONAL_LOG_LEVEL_SPECIFIER LOG_LEVEL_INFO) {}
 };
 } //namespace commons
 } //namespace agora
+
+#undef OPTIONAL_LOG_LEVEL_SPECIFIER

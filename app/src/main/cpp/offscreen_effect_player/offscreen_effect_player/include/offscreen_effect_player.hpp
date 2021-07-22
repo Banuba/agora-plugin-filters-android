@@ -14,10 +14,7 @@ namespace bnb {
     class offscreen_effect_player : public interfaces::offscreen_effect_player,
                                     public std::enable_shared_from_this<offscreen_effect_player> {
     private:
-        offscreen_effect_player(const std::vector<std::string> &path_to_resources,
-                                const std::string &client_token,
-                                int32_t width, int32_t height,
-                                iort_sptr ort);
+        offscreen_effect_player(int32_t width, int32_t height, iort_sptr ort);
 
     public:
         ~offscreen_effect_player();

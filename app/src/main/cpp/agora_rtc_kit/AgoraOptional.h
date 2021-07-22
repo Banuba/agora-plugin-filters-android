@@ -6,16 +6,26 @@
 // of Agora.io.
 #pragma once
 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
 #include <type_traits>
+#endif
 #include <utility>
 
 #ifndef CONSTEXPR
-#if __cplusplus <= 199711L
-#define CONSTEXPR
-#else
+#if __cplusplus >= 201103L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201103L)
 #define CONSTEXPR constexpr
-#endif  // __cplusplus <= 199711L
+#else
+#define CONSTEXPR
+#endif
 #endif  // !CONSTEXPR
+
+#ifndef NOEXCEPT
+#if __cplusplus >= 201103L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201103L)
+#define NOEXCEPT(Expr) noexcept(Expr)
+#else
+#define NOEXCEPT(Expr)
+#endif
+#endif  // !NOEXCEPT
 
 namespace agora {
 
@@ -49,10 +59,14 @@ struct OptionalStorageBase {
   // to avoid errors in g++ 4.8.
   CONSTEXPR OptionalStorageBase() : is_populated_(false), empty_('\0') {}
 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   template <class... Args>
   CONSTEXPR explicit OptionalStorageBase(in_place_t, Args&&... args)
       : is_populated_(true), value_(std::forward<Args>(args)...) {}
-
+#else
+  CONSTEXPR explicit OptionalStorageBase(in_place_t, const T& _value)
+      : is_populated_(true), value_(_value) {}
+#endif
   // When T is not trivially destructible we must call its
   // destructor before deallocating its memory.
   // Note that this hides the (implicitly declared) move constructor, which
@@ -69,11 +83,18 @@ struct OptionalStorageBase {
       value_.~T();
   }
 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   template <class... Args>
   void Init(Args&&... args) {
     ::new (&value_) T(std::forward<Args>(args)...);
     is_populated_ = true;
   }
+#else
+  void Init(const T& _value) {
+    ::new (&value_) T(_value);
+    is_populated_ = true;
+  }
+#endif
 
   bool is_populated_;
 
@@ -107,9 +128,14 @@ struct OptionalStorage : OptionalStorageBase<T> {
   // Inherit constructors (specifically, the in_place constructor).
   //using OptionalStorageBase<T>::OptionalStorageBase;
 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   template <class... Args>
   CONSTEXPR explicit OptionalStorage(in_place_t in_place, Args&&... args)
       : OptionalStorageBase<T>(in_place, std::forward<Args>(args)...) {}
+#else
+  CONSTEXPR explicit OptionalStorage(in_place_t in_place, const T& _value)
+      : OptionalStorageBase<T>(in_place, _value) {}
+#endif
 
   // User defined constructor deletes the default constructor.
   // Define it explicitly.
@@ -120,11 +146,12 @@ struct OptionalStorage : OptionalStorageBase<T> {
       Init(other.value_);
   }
 
-  OptionalStorage(OptionalStorage&& other) noexcept(
-      std::is_nothrow_move_constructible<T>::value) {
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
+  OptionalStorage(OptionalStorage&& other) NOEXCEPT(std::is_nothrow_move_constructible<T>::value) {
     if (other.is_populated_)
       Init(std::move(other.value_));
   }
+#endif
 };
 
 // Base class to support conditionally usable copy-/move- constructors
@@ -137,11 +164,16 @@ class OptionalBase {
  protected:
   CONSTEXPR OptionalBase() {}
   CONSTEXPR OptionalBase(const OptionalBase& other) : storage_(other.storage_) {}
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   CONSTEXPR OptionalBase(OptionalBase&& other) : storage_(std::move(other.storage_)) {}
 
   template <class... Args>
   CONSTEXPR explicit OptionalBase(in_place_t, Args&&... args)
       : storage_(in_place, std::forward<Args>(args)...) {}
+#else
+  CONSTEXPR explicit OptionalBase(in_place_t, const T& _value)
+      : storage_(in_place, _value) {}
+#endif
 
   // Implementation of converting constructors.
   template <typename U>
@@ -150,11 +182,13 @@ class OptionalBase {
       storage_.Init(other.storage_.value_);
   }
 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   template <typename U>
   explicit OptionalBase(OptionalBase<U>&& other) {
     if (other.storage_.is_populated_)
       storage_.Init(std::move(other.storage_.value_));
   }
+#endif
 
   ~OptionalBase() {}
 
@@ -163,12 +197,14 @@ class OptionalBase {
     return *this;
   }
 
-  OptionalBase& operator=(OptionalBase&& other) noexcept(
-      std::is_nothrow_move_assignable<T>::value&&
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
+  OptionalBase& operator=(OptionalBase&& other) NOEXCEPT(
+      std::is_nothrow_move_assignable<T>::value &&
           std::is_nothrow_move_constructible<T>::value) {
     MoveAssign(std::move(other));
     return *this;
   }
+#endif
 
   template <typename U>
   void CopyAssign(const OptionalBase<U>& other) {
@@ -178,6 +214,7 @@ class OptionalBase {
       FreeIfNeeded();
   }
 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   template <typename U>
   void MoveAssign(OptionalBase<U>&& other) {
     if (other.storage_.is_populated_)
@@ -185,14 +222,25 @@ class OptionalBase {
     else
       FreeIfNeeded();
   }
+#endif
 
   template <typename U>
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   void InitOrAssign(U&& value) {
     if (storage_.is_populated_)
       storage_.value_ = std::forward<U>(value);
     else
       storage_.Init(std::forward<U>(value));
   }
+#else
+  void InitOrAssign(const U& value) {
+    if (storage_.is_populated_)
+      storage_.value_ = value;
+    else
+      storage_.Init(value);
+  }
+#endif
+
 
   void FreeIfNeeded() {
     if (!storage_.is_populated_)
@@ -219,10 +267,11 @@ struct CopyConstructible {};
 template <>
 struct CopyConstructible<false> {
   CONSTEXPR CopyConstructible() {}
-  CONSTEXPR CopyConstructible(CopyConstructible&&) {}
   CopyConstructible& operator=(const CopyConstructible&) { return *this; }
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
+  CONSTEXPR CopyConstructible(CopyConstructible&&) {}
   CopyConstructible& operator=(CopyConstructible&&) { return *this; }
-
+#endif
  private:
   CONSTEXPR CopyConstructible(const CopyConstructible&);
 };
@@ -235,10 +284,11 @@ struct MoveConstructible<false> {
   CONSTEXPR MoveConstructible() {}
   CONSTEXPR MoveConstructible(const MoveConstructible&) {}
   MoveConstructible& operator=(const MoveConstructible&) { return *this; }
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   MoveConstructible& operator=(MoveConstructible&&) { return *this; }
-
  private:
   CONSTEXPR MoveConstructible(MoveConstructible&&);
+#endif
 };
 
 template <bool is_copy_assignable>
@@ -248,9 +298,10 @@ template <>
 struct CopyAssignable<false> {
   CONSTEXPR CopyAssignable() {}
   CONSTEXPR CopyAssignable(const CopyAssignable&) {}
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   CONSTEXPR CopyAssignable(CopyAssignable&&) {}
   CopyAssignable& operator=(CopyAssignable&&) { return *this; }
-
+#endif
  private:
   CopyAssignable& operator=(const CopyAssignable&);
 };
@@ -262,13 +313,16 @@ template <>
 struct MoveAssignable<false> {
   CONSTEXPR MoveAssignable() {}
   CONSTEXPR MoveAssignable(const MoveAssignable&) {}
-  CONSTEXPR MoveAssignable(MoveAssignable&&) {}
   MoveAssignable& operator=(const MoveAssignable&) { return *this; }
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
+  CONSTEXPR MoveAssignable(MoveAssignable&&) {}
 
  private:
   MoveAssignable& operator=(MoveAssignable&&);
+#endif
 };
 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
 // Helper to conditionally enable converting constructors and assign operators.
 template <typename T, typename U>
 struct IsConvertibleFromOptional
@@ -310,10 +364,9 @@ struct IsSwappableImpl {
   static std::false_type Check(...);
 };
 }  // namespace swappable_impl
-
 template <typename T>
 struct IsSwappable : decltype(swappable_impl::IsSwappableImpl::Check<T&>(0)) {};
-
+#endif
 }  // namespace internal
 
 // On Windows, by default, empty-base class optimization does not work,
@@ -321,8 +374,8 @@ struct IsSwappable : decltype(swappable_impl::IsSwappableImpl::Check<T&>(0)) {};
 // byte for its body. __declspec(empty_bases) enables the optimization.
 // cf)
 // https://blogs.msdn.microsoft.com/vcblog/2016/03/30/optimizing-the-layout-of-empty-base-classes-in-vs2015-update-2-3/
-#ifdef OS_WIN
-#define OPTIONAL_DECLSPEC_EMPTY_BASES
+#if defined(_WIN32)
+#define OPTIONAL_DECLSPEC_EMPTY_BASES __declspec(empty_bases)
 #else
 #define OPTIONAL_DECLSPEC_EMPTY_BASES
 #endif
@@ -348,13 +401,16 @@ struct IsSwappable : decltype(swappable_impl::IsSwappableImpl::Check<T&>(0)) {};
 // behavior, but anyway it reports an error, too.
 template <typename T>
 class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
-    : public internal::OptionalBase<T>,
-      public internal::CopyConstructible<std::is_copy_constructible<T>::value>,
+    : public internal::OptionalBase<T>
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
+      , public internal::CopyConstructible<std::is_copy_constructible<T>::value>,
       public internal::MoveConstructible<std::is_move_constructible<T>::value>,
       public internal::CopyAssignable<std::is_copy_constructible<T>::value &&
                                       std::is_copy_assignable<T>::value>,
       public internal::MoveAssignable<std::is_move_constructible<T>::value &&
-                                      std::is_move_assignable<T>::value> {
+                                      std::is_move_assignable<T>::value> 
+#endif
+{
  public:
 #undef OPTIONAL_DECLSPEC_EMPTY_BASES
 
@@ -373,6 +429,7 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
   template <typename U>
   Optional(const Optional<U>& other) : internal::OptionalBase<T>(other) {}
 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   // Converting move constructor. Similar to converting copy constructor,
   // declaring two (explicit and non-explicit) constructors.
   template <typename U>
@@ -387,12 +444,27 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
                               std::initializer_list<U> il,
                               Args&&... args)
       : internal::OptionalBase<T>(in_place, il, std::forward<Args>(args)...) {}
+#else
+  CONSTEXPR explicit Optional(in_place_t, const T& _value)
+      : internal::OptionalBase<T>(in_place, _value) {}
+  template <class U>
+  CONSTEXPR explicit Optional(in_place_t,
+                              const U il[],
+                              const T& _value)
+      : internal::OptionalBase<T>(in_place, il, _value) {}
+#endif
 
   // Forward value constructor. Similar to converting constructors,
   // conditionally explicit.
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   template <typename U = value_type>
   CONSTEXPR Optional(U&& value)
       : internal::OptionalBase<T>(in_place, std::forward<U>(value)) {}
+#else
+  template <typename U>
+  CONSTEXPR Optional(const U& value)
+      : internal::OptionalBase<T>(in_place, value) {}
+#endif
 
   ~Optional() {}
 
@@ -413,10 +485,17 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
 
   // Perfect-forwarded assignment.
   template <typename U>
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   Optional& operator=(U&& value) {
     InitOrAssign(std::forward<U>(value));
     return *this;
   }
+#else
+  Optional& operator=(const U& value) {
+    InitOrAssign(value);
+    return *this;
+  }
+#endif
 
   // Copy assign the state of other.
   template <typename U>
@@ -425,12 +504,14 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
     return *this;
   }
 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   // Move assign the state of other.
   template <typename U>
   Optional& operator=(Optional<U>&& other) {
     MoveAssign(std::move(other));
     return *this;
   }
+#endif
 
   const T* operator->() const {
     return &storage_.value_;
@@ -444,7 +525,12 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
     return storage_.value_;
   }
 
+
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   CONSTEXPR explicit operator bool() const { return storage_.is_populated_; }
+#else
+  CONSTEXPR operator bool() const { return storage_.is_populated_; }
+#endif
 
   CONSTEXPR bool has_value() const { return storage_.is_populated_; }
 
@@ -454,6 +540,7 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
   }
 
   template <class U>
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   CONSTEXPR T value_or(U&& default_value) const {
     // TODO(mlamouri): add the following assert when possible:
     // static_assert(std::is_copy_constructible<T>::value,
@@ -465,15 +552,25 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
                : static_cast<T>(std::forward<U>(default_value));
   }
 #else
+  CONSTEXPR T value_or(const U& default_value) const {
+    return storage_.is_populated_
+               ? value()
+               : static_cast<T>(default_value);
+  }
+#endif
+#else
   const T& value() const & {
     return storage_.value_;
   }
 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   const T&& value() const && {
     return std::move(storage_.value_);
   }
+#endif
 
   template <class U>
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   CONSTEXPR T value_or(U&& default_value) const & {
     // TODO(mlamouri): add the following assert when possible:
     // static_assert(std::is_copy_constructible<T>::value,
@@ -484,8 +581,21 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
                ? value()
                : static_cast<T>(std::forward<U>(default_value));
   }
+#else
+  CONSTEXPR T value_or(const U& default_value) const & {
+    // TODO(mlamouri): add the following assert when possible:
+    // static_assert(std::is_copy_constructible<T>::value,
+    //               "T must be copy constructible");
+    static_assert(std::is_convertible<U, T>::value,
+                  "U must be convertible to T");
+    return storage_.is_populated_
+               ? value()
+               : static_cast<T>(default_value);
+  }
+#endif
 
   template <class U>
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   CONSTEXPR T value_or(U&& default_value) const && {
     // TODO(mlamouri): add the following assert when possible:
     // static_assert(std::is_move_constructible<T>::value,
@@ -496,12 +606,14 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
                ? std::move(value())
                : static_cast<T>(std::forward<U>(default_value));
   }
+#endif
 #endif  // 1
 
   void swap(Optional& other) {
     if (!storage_.is_populated_ && !other.storage_.is_populated_)
       return;
 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
     if (storage_.is_populated_ != other.storage_.is_populated_) {
       if (storage_.is_populated_) {
         other.storage_.Init(std::move(storage_.value_));
@@ -512,12 +624,14 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
       }
       return;
     }
+#endif
     using std::swap;
     swap(**this, *other);
   }
 
   void reset() { FreeIfNeeded(); }
 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   template <class... Args>
   T& emplace(Args&&... args) {
     FreeIfNeeded();
@@ -531,6 +645,19 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
     storage_.Init(il, std::forward<Args>(args)...);
     return storage_.value_;
   }
+#else
+  T& emplace(const T& _value) {
+    FreeIfNeeded();
+    storage_.Init(_value);
+    return storage_.value_;
+  }
+  template <class U>
+  T& emplace(const U il[], const T& _value) {
+    FreeIfNeeded();
+    storage_.Init(il, _value);
+    return storage_.value_;
+  }
+#endif
 
  private:
   // Accessing template base class's protected member needs explicit
@@ -538,7 +665,9 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
   using internal::OptionalBase<T>::CopyAssign;
   using internal::OptionalBase<T>::FreeIfNeeded;
   using internal::OptionalBase<T>::InitOrAssign;
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
   using internal::OptionalBase<T>::MoveAssign;
+#endif
   using internal::OptionalBase<T>::storage_;
 };
 
@@ -720,6 +849,7 @@ CONSTEXPR bool operator>=(const U& value, const Optional<T>& opt) {
   return opt.has_value() ? value >= *opt : true;
 }
 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
 template <class T, class... Args>
 CONSTEXPR Optional<T> make_optional(Args&&... args) {
   return Optional<T>(in_place, std::forward<Args>(args)...);
@@ -730,6 +860,7 @@ CONSTEXPR Optional<T> make_optional(std::initializer_list<U> il,
                                     Args&&... args) {
   return Optional<T>(in_place, il, std::forward<Args>(args)...);
 }
+#endif
 
 // Partial specialization for a function template is not allowed. Also, it is
 // not allowed to add overload function to std namespace, while it is allowed
@@ -742,16 +873,15 @@ void swap(Optional<T>& lhs, Optional<T>& rhs) {
 
 }  // namespace agora
 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
 namespace std {
-
 template <class T>
-struct hash<agora::Optional<T>> {
+struct hash<agora::Optional<T> > {
   size_t operator()(const agora::Optional<T>& opt) const {
     return opt == agora::nullopt ? 0 : std::hash<T>()(*opt);
   }
 };
-
 }  // namespace std
-
+#endif
 #undef CONSTEXPR
-
+#undef NOEXCEPT

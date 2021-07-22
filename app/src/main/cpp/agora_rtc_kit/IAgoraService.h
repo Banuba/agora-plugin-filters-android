@@ -7,19 +7,20 @@
 #include "IAgoraLog.h"
 #include "AgoraBase.h"
 #include "AgoraOptional.h"
-#include "NGIAgoraExtensionProvider.h"
 
 namespace agora {
 namespace rtc {
 class IRtcConnection;
+class IRtmpConnection;
 class ILocalUser;
 class IMediaDeviceManager;
 class INGAudioDeviceManager;
 struct TConnectionInfo;
 struct RtcConnectionConfiguration;
+struct RtmpConnectionConfiguration;
 class ILocalAudioTrack;
-class IMediaPlayer;
 class IMediaPlayerSource;
+class IMediaStreamingSource;
 class ICameraCapturer;
 class IScreenCapturer;
 class IAudioPcmDataSender;
@@ -38,6 +39,8 @@ class IMediaPacketSender;
 class IMediaRelayService;
 
 class IRtcEngine;
+class IMediaExtensionObserver;
+class IExtensionProvider;
 /**
  * The audio encoder configuration.
  */
@@ -77,35 +80,31 @@ class IServiceObserver;
 struct AgoraServiceConfiguration {
   /**
    * Whether to enable the audio processing module.
-   * - `true`: (Default) Enable the audio processing module. Once enabled, the underlying
-   * audio processing module is initialized in advance.
-   * - `false`: Disable the audio processing module. Set this member as `false` if you
-   * do not need audio.
+   * - `true`: (Default) Enable the audio processing module.
+   * - `false`: Disable the audio processing module. If you disable the audio processing module, you cannot create audio tracks.
    */
   bool enableAudioProcessor;
   /**
-   * Whether to enable the audio device module.
-   * - `true`: (Default) Enable the audio device module. Once enabled, the underlying
-   * audio device module is initialized in advance to support audio
-   * recording and playback.
-   * - `false`: Disable the audio device module. Set this member as `false` if
-   * you do not need to record or play the audio.
+   * Whether to enable the audio device module. The function of the audio device module is to manage audio devices,
+   * such as recording and playing audio.
+   * - `true`: (Default) Enable the audio device module. Audio recording and playback is available.
+   * - `false`: Disable the audio device module. Audio recording and playback is unavailable.
    *
    * @note
-   * If you set `enableAudioDevice` as `false` and set `enableAudioProcessor` as `true`,
-   * you can still pull PCM audio data.
+   * If you set `enableAudioDevice` as `false` and set `enableAudioProcessor` as `true`, you cannot use audio devices,
+   * but you can push PCM audio data.
    */
   bool enableAudioDevice;
   /**
    * Whether to enable video.
-   * - `true`: Enable video. Once enabled, the underlying video engine is
-   * initialized in advance.
-   * - `false`: (Default) Disable video. Set this parameter as `false` if you
-   * do not need video.
+   * - `true`: Enable video.
+   * - `false`: (Default) Disable video.
    */
   bool enableVideo;
   /**
-   * The user context. For example, the activity context in Android.
+   * The user context.
+   * - For Windows, it is the handle of the window that loads the video. Specify this value to support plugging or unplugging the video devices while the host is powered on.
+   * - For Android, it is the context of activity.
    */
   void* context;
   /**
@@ -113,6 +112,11 @@ struct AgoraServiceConfiguration {
    */
   const char* appId;
   
+  /**
+   * The supported area code, default is AREA_CODE_GLOB
+   */
+  unsigned int areaCode;
+
   /** The channel profile. For details, see \ref agora::CHANNEL_PROFILE_TYPE "CHANNEL_PROFILE_TYPE". The default channel profile is `CHANNEL_PROFILE_LIVE_BROADCASTING`.
    */
   agora::CHANNEL_PROFILE_TYPE channelProfile;
@@ -120,10 +124,14 @@ struct AgoraServiceConfiguration {
    * The audio scenario. See \ref agora::rtc::AUDIO_SCENARIO_TYPE "AUDIO_SCENARIO_TYPE". The default value is `AUDIO_SCENARIO_DEFAULT`.
    */
   rtc::AUDIO_SCENARIO_TYPE audioScenario;
-  /**
+  /** 
    * The config for custumer set log path, log size and log level.
    */
   commons::LogConfig logConfig;
+  /**
+   * Whether to enable string uid.
+   */
+  bool useStringUid;
   /**
    * The service observer.
    */
@@ -134,13 +142,14 @@ struct AgoraServiceConfiguration {
                                 enableVideo(false),
                                 context(NULL),
                                 appId(NULL),
+                                areaCode(rtc::AREA_CODE_GLOB),
                                 channelProfile(agora::CHANNEL_PROFILE_LIVE_BROADCASTING),
                                 audioScenario(rtc::AUDIO_SCENARIO_DEFAULT),
-                                logConfig(),
+                                useStringUid(false),
                                 serviceObserver(NULL) {}
 };
 /**
- * The global audio session configurations.
+ * The audio session configurations.
  *
  * Set these configurations when calling \ref agora::base::IAgoraService::setAudioSessionConfiguration "setAudioSessionConfiguration".
  */
@@ -155,7 +164,7 @@ struct AudioSessionConfiguration {
    * - For the recording function to work, the user must grant permission for audio recording.
    * - By default, the audio of your app is nonmixable, which means
    * activating audio sessions in your app interrupts other nonmixable audio sessions.
-   * To allow mixing, set `allowMixWithOthers` as `true`.
+   * Set `allowMixWithOthers` as `true` to allow audio mixing.
    */
   Optional<bool> playbackAndRecord;
   /**
@@ -220,14 +229,14 @@ struct AudioSessionConfiguration {
   /**
    * The expected audio sample rate (kHz) of this session.
    *
-   * The value range is [8, 48]. The actual sample rate may differ based on the audio sampling
+   * The value range is [8,48]. The actual sample rate may differ based on the audio sampling
    * device in use.
    */
   Optional<double> sampleRate;
   /**
    * The expected input and output buffer duration (ms) of this session.
    *
-   * The value range is [0, 93]. The actual I/O buffer duration might be lower
+   * The value range is [0,93]. The actual I/O buffer duration might be lower
    * than the set value based on the hardware in use.
    */
   Optional<double> ioBufferDuration;
@@ -263,7 +272,6 @@ struct AudioSessionConfiguration {
            inputNumberOfChannels == o.inputNumberOfChannels &&
            outputNumberOfChannels == o.outputNumberOfChannels;
   }
-
   bool operator!=(const AudioSessionConfiguration& o) const { return !(*this == o); }
 
  private:
@@ -306,7 +314,7 @@ enum TCcMode {
  */
 struct SenderOptions {
   /**
-   * Whether to enable CC mode: #TCcMode.
+   * Whether to enable CC mode. See #TCcMode.
    */
   TCcMode ccMode;
   /**
@@ -319,15 +327,15 @@ struct SenderOptions {
    *
    * Choose one of the following options:
    *
-   * - #STANDARD_BITRATE: (Recommended) Standard bitrate.
+   * - \ref agora::rtc::STANDARD_BITRATE "STANDARD_BITRATE": (Recommended) Standard bitrate.
    *   - Communication profile: The encoding bitrate equals the base bitrate.
    *   - Live-broadcast profile: The encoding bitrate is twice the base bitrate.
-   * - #COMPATIBLE_BITRATE: Compatible bitrate. The bitrate stays the same
+   * - \ref agora::rtc::COMPATIBLE_BITRATE "COMPATIBLE_BITRATE": Compatible bitrate. The bitrate stays the same
    * regardless of the profile.
    *
    * The Communication profile prioritizes smoothness, while the Live Broadcast
    * profile prioritizes video quality (requiring a higher bitrate). Agora
-   * recommends setting the bitrate mode as #STANDARD_BITRATE or simply to
+   * recommends setting the bitrate mode as \ref agora::rtc::STANDARD_BITRATE "STANDARD_BITRATE" or simply to
    * address this difference.
    *
    * The following table lists the recommended video encoder configurations,
@@ -337,37 +345,37 @@ struct SenderOptions {
 
    | Resolution             | Frame Rate (fps) | Base Bitrate (Kbps, for Communication) | Live Bitrate (Kbps, for Live Broadcast)|
    |------------------------|------------------|----------------------------------------|----------------------------------------|
-   | 160 &times; 120        | 15               | 65                                     | 130 | 
-   |120 &times; 120        | 15               | 50                                     | 100 | 
-   | 320 &times; 180        | 15               | 140                                    | 280 | 
-   | 180 &times; 180        | 15               | 100                                    | 200 | 
-   | 240 &times; 180        | 15               | 120                                    | 240 | 
-   | 320 &times; 240        | 15               | 200                                    | 400 | 
+   | 160 &times; 120        | 15               | 65                                     | 130 |
+   |120 &times; 120        | 15               | 50                                     | 100 |
+   | 320 &times; 180        | 15               | 140                                    | 280 |
+   | 180 &times; 180        | 15               | 100                                    | 200 |
+   | 240 &times; 180        | 15               | 120                                    | 240 |
+   | 320 &times; 240        | 15               | 200                                    | 400 |
    | 240 &times; 240        | 15               | 140                                    | 280 |
-   | 424 &times; 240        | 15               | 220                                    | 440 | 
-   | 640 &times; 360        | 15               | 400                                    | 800 | 
-   | 360 &times; 360        | 15               | 260                                    | 520 | 
-   | 640 &times; 360        | 30               | 600                                    | 1200 | 
-   | 360 &times; 360        | 30               | 400                                    | 800 | 
+   | 424 &times; 240        | 15               | 220                                    | 440 |
+   | 640 &times; 360        | 15               | 400                                    | 800 |
+   | 360 &times; 360        | 15               | 260                                    | 520 |
+   | 640 &times; 360        | 30               | 600                                    | 1200 |
+   | 360 &times; 360        | 30               | 400                                    | 800 |
    | 480 &times; 360        | 15               | 320                                    | 640 |
-   | 480 &times; 360        | 30               | 490                                    | 980 | 
-   | 640 &times; 480        | 15               | 500                                    | 1000 | 
-   | 480 &times; 480        | 15               | 400                                    | 800 | 
+   | 480 &times; 360        | 30               | 490                                    | 980 |
+   | 640 &times; 480        | 15               | 500                                    | 1000 |
+   | 480 &times; 480        | 15               | 400                                    | 800 |
    | 640 &times; 480        | 30               | 750                                    | 1500 |
-   | 480 &times; 480        | 30               | 600                                    | 1200 | 
-   | 848 &times; 480        | 15               | 610                                    | 1220 | 
-   | 848 &times; 480        | 30               | 930                                    | 1860 | 
+   | 480 &times; 480        | 30               | 600                                    | 1200 |
+   | 848 &times; 480        | 15               | 610                                    | 1220 |
+   | 848 &times; 480        | 30               | 930                                    | 1860 |
    | 640 &times; 480        | 10               | 400                                    | 800 |
-   | 1280 &times; 720       | 15               | 1130                                   | 2260 | 
-   | 1280 &times; 720       | 30               | 1710                                   | 3420 | 
+   | 1280 &times; 720       | 15               | 1130                                   | 2260 |
+   | 1280 &times; 720       | 30               | 1710                                   | 3420 |
    | 960 &times; 720        | 15               | 910                                    | 1820 |
-   | 960 &times; 720        | 30               | 1380                                   | 2760 | 
+   | 960 &times; 720        | 30               | 1380                                   | 2760 |
    | 1920 &times; 1080      | 15               | 2080                                   | 4160 |
    | 1920 &times; 1080      | 30               | 3150                                   | 6300 |
-   | 1920 &times; 1080      | 60               | 4780                                   | 6500 | 
+   | 1920 &times; 1080      | 60               | 4780                                   | 6500 |
    | 2560 &times; 1440      | 30               | 4850                                   | 6500 |
-   | 2560 &times; 1440      | 60               | 6500                                   | 6500 | 
-   | 3840 &times; 2160      | 30               | 6500                                   | 6500 | 
+   | 2560 &times; 1440      | 60               | 6500                                   | 6500 |
+   | 3840 &times; 2160      | 30               | 6500                                   | 6500 |
    | 3840 &times; 2160      | 60               | 6500                                   | 6500 |
    */
   int targetBitrate;
@@ -378,31 +386,30 @@ struct SenderOptions {
     targetBitrate(6500) {}
 };
 
-
 /**
  * The IServiceObserver class.
  */
 class IServiceObserver {
 public:
   virtual ~IServiceObserver() {}
-  
+
   /**
     * Reports the permission error.
     * @param permission {@link PERMISSION}
     */
-  virtual void onPermissionError(agora::rtc::PERMISSION_TYPE permissionType) = 0;
+  virtual void onPermissionError(agora::rtc::PERMISSION_TYPE permissionType) {}
   /**
    * Reports the audio device error.
    * @param error {@link ERROR_CODE_TYPE}
    */
-  virtual void onAudioDeviceError(ERROR_CODE_TYPE error, const char* description) = 0;
+  virtual void onAudioDeviceError(ERROR_CODE_TYPE error, const char* description) {}
 };
 
 /**
  * The IAgoraService class.
  *
  * `IAgoraService` is the entry point of Agora low-level APIs. Use this interface to
- * create access points to Agora effect_player.interfaces, including RTC connection, media tracks.
+ * create access points to Agora interfaces, including RTC connections and media tracks.
  *
  * You can create an `IAgoraService` object by calling \ref agora::base::IAgoraService::createAgoraService "createAgoraService".
  *
@@ -413,15 +420,20 @@ class IAgoraService {
   /**
    * Initializes the \ref agora::base::IAgoraService "AgoraService" object.
    *
-   * @param config The configurations of the initialization. For details, see \ref agora::base::AgoraServiceConfiguration "AgoraServiceConfiguration".
+   * @param config The configuration of the initialization. For details, see \ref agora::base::AgoraServiceConfiguration "AgoraServiceConfiguration".
    * @return
    * - 0: Success.
    * - < 0: Failure.
    *   - `ERR_INVALID_ARGUMENT`, if `context` in `AgoraServiceConfiguration` is not provided for
    * Android.
-   *   - `ERR_INIT_NET_ENGINE`, if the event engine cannot be initialized. On Windows, the error occurs mostly because the connection to the local port is disabled by the firewall. In this case, turn off the firewall and then turn it on again.
+   *   - `ERR_INIT_NET_ENGINE`, if the network engine cannot be initialized. On Windows, the error occurs mostly because the connection to the local port is disabled by the firewall. In this case, turn off the firewall and then turn it on again.
    */
   virtual int initialize(const AgoraServiceConfiguration& config) = 0;
+
+  /**
+   * Flush log & cache before exit
+   */
+  virtual void atExit() = 0;
 
   /**
    * Releases the \ref agora::base::IAgoraService "AgoraService" object.
@@ -456,7 +468,7 @@ class IAgoraService {
   /**
    * Gets the audio session configuration.
    *
-   * @param config[out] The pointer to the audio session configuration: \ref agora::base::AudioSessionConfiguration "AudioSessionConfiguration".
+   * @param [out] config The pointer to the audio session configuration: \ref agora::base::AudioSessionConfiguration "AudioSessionConfiguration".
    * @return
    * - 0: Success.
    * - < 0: Failure.
@@ -474,7 +486,7 @@ class IAgoraService {
    *
    * @note
    * To ensure that the output log is complete, call this method immediately after calling
-   * the \ref agora::base::IAgoraService::initialize "initialize" method.
+   * \ref agora::base::IAgoraService::initialize "initialize".
    *
    * @param filePath The pointer to the log file. Ensure that the directory of the log file exists and is writable.
    * @param fileSize The size of the SDK log file size (KB).
@@ -492,6 +504,11 @@ class IAgoraService {
    * For example, if you set the log level to WARNING, you can see the logs in the levels of CRITICAL, ERROR, and WARNING.
    *
    * @param filters The log output filter.
+   * - `LOG_LEVEL_NONE (0x0000)`: Do not output any log file.
+   * - `LOG_LEVEL_INFO (0x0001)`: (Recommended) Output log files of the INFO level.
+   * - `LOG_LEVEL_WARN (0x0002)`: Output log files of the WARN level.
+   * - `LOG_LEVEL_ERROR (0x0004)`: Output log files of the ERROR level.
+   * - `LOG_LEVEL_FATAL (0x0008)`: Output log files of the FATAL level.
    * @return
    * - 0: Success.
    * - < 0: Failure.
@@ -503,11 +520,14 @@ class IAgoraService {
    *
    * @param cfg The reference to the RTC connection configuration: \ref agora::rtc::RtcConnectionConfiguration "RtcConnectionConfiguration".
    * @return
-   * - The pointer to \ref rtc::IRtcConnection "IRtcConnection", if the method call succeeds.
-   * - A null pointer, if the method call fails.
+   * - The pointer to \ref rtc::IRtcConnection "IRtcConnection": Success.
+   * - A null pointer: Failure.
    */
   virtual agora_refptr<rtc::IRtcConnection> createRtcConnection(
       const rtc::RtcConnectionConfiguration& cfg) = 0;
+
+  virtual agora_refptr<rtc::IRtmpConnection> createRtmpConnection(
+      const rtc::RtmpConnectionConfiguration& cfg) = 0;
 
   /**
    * Creates a local audio track object and returns the pointer.
@@ -516,9 +536,9 @@ class IAgoraService {
    * the built-in microphone on a mobile device.
    *
    * @return
-   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack", if the method call succeeds.
-   * - A null pointer, if the method call fails.
-   * - `INVALID_STATE`, if `enableAudioProcessor` in `AgoraServiceConfiguration` is set as `false`.
+   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack": Success.
+   * - A null pointer: Failure.
+   * - `INVALID_STATE`, if `enableAudioProcessor` in \ref agora::base::AgoraServiceConfiguration "AgoraServiceConfiguration" is set as `false`.
    */
   virtual agora_refptr<rtc::ILocalAudioTrack> createLocalAudioTrack() = 0;
 
@@ -529,9 +549,9 @@ class IAgoraService {
    *
    * @param audioSource The pointer to the PCM audio data sender: \ref agora::rtc::IAudioPcmDataSender "IAudioPcmDataSender".
    * @return
-   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack", if the method call succeeds.
-   * - A null pointer, if the method call fails.
-   * - `INVALID_STATE`, if `enableAudioProcessor` in `AgoraServiceConfiguration` is set as `false`.
+   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack": Success.
+   * - A null pointer: Failure.
+   * - `INVALID_STATE`, if `enableAudioProcessor` in \ref agora::base::AgoraServiceConfiguration "AgoraServiceConfiguration" is set as `false`.
    */
   virtual agora_refptr<rtc::ILocalAudioTrack> createCustomAudioTrack(
       agora_refptr<rtc::IAudioPcmDataSender> audioSource) = 0;
@@ -558,9 +578,9 @@ class IAgoraService {
    * @param audioSource The pointer to the encoded audio frame sender: \ref agora::rtc::IAudioEncodedFrameSender "IAudioEncoderFrameSender".
    * @param mixMode The mixing mode of the encoded audio in the channel: #TMixMode.
    * @return
-   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack", if the method call succeeds.
-   * - A null pointer, if the method call fails.
-   *   - `INVALID_STATE`, if `enableAudioProcessor` is set as `false` in AgoraServiceConfiguration.
+   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack": Success.
+   * - A null pointer: Failure.
+   *   - `INVALID_STATE`, if `enableAudioProcessor` is set as `false` in \ref agora::base::AgoraServiceConfiguration "AgoraServiceConfiguration".
    */
   virtual agora_refptr<rtc::ILocalAudioTrack> createCustomAudioTrack(
       agora_refptr<rtc::IAudioEncodedFrameSender> audioSource, TMixMode mixMode) = 0;
@@ -572,47 +592,61 @@ class IAgoraService {
    *
    * @param source The pointer to the media packet sender: \ref agora::rtc::IMediaPacketSender "IMediaPacketSender".
    * @return
-   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack", if the method call succeeds.
-   * - A null pointer, if the method call fails.
-   * - `INVALID_STATE`, if `enableAudioProcessor` is set as `false` in AgoraServiceConfiguration.
+   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack": Success.
+   * - A null pointer: Failure.
+   * - `INVALID_STATE`, if `enableAudioProcessor` is set as `false` in \ref agora::base::AgoraServiceConfiguration "AgoraServiceConfiguration".
   */
   virtual agora_refptr<rtc::ILocalAudioTrack> createCustomAudioTrack(
       agora_refptr<rtc::IMediaPacketSender> source) = 0;
   /// @endcond
   /**
-   * Creates a local audio track object with a media player source and returns the pointer.
+   * Creates a local audio track object with an IMediaPlayerSource object and returns the pointer.
    *
    * Once created, this track can be used to send PCM audio data decoded from a media player.
    *
-   * @param audioSource The pointer to the player source: IMediaPlayerSource.
+   * @param audioSource The pointer to the player source. See \ref agora::rtc::IMediaPlayerSource "IMediaPlayerSource".
    * @return
-   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack", if the method call succeeds.
-   * - A null pointer, if the method call fails.
-   * - `INVALID_STATE`, if `enableAudioProcessor` is set as `false` in AgoraServiceConfiguration.
+   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack": Success.
+   * - A null pointer: Failure.
+   * - `INVALID_STATE`, if `enableAudioProcessor` is set as `false` in \ref agora::base::AgoraServiceConfiguration "AgoraServiceConfiguration".
   */
   virtual agora_refptr<rtc::ILocalAudioTrack> createMediaPlayerAudioTrack(
       agora_refptr<rtc::IMediaPlayerSource> audioSource) = 0;
 
   /**
+   * Creates a local audio track object with an IMediaStreamingSource object and returns the pointer.
+   *
+   * Once created, this track can be used to send encoded audio data which demuxed from a media streaming.
+   *
+   * @param streamingSource The pointer to the streaming source. See \ref agora::rtc::IMediaStreamingSource "IMediaStreamingSource".
+   * @return
+   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack": Success.
+   * - A null pointer: Failure.
+   * - `INVALID_STATE`, if `enableAudioProcessor` is set as `false` in \ref agora::base::AgoraServiceConfiguration "AgoraServiceConfiguration".
+  */
+  virtual agora_refptr<rtc::ILocalAudioTrack> createMediaStreamingAudioTrack(
+      agora_refptr<rtc::IMediaStreamingSource> streamingSource) = 0;
+
+  /**
    * Creates a local audio track object with the recording device source and returns the pointer.
    *
    * Once created, this track can be used to send audio data got from a recording device.
-   * @param audioSource The pointer to the recording device source: IRecordingDeviceSource.
+   * @param audioSource The pointer to the recording device source. See \ref agora::rtc::IRecordingDeviceSource "IRecordingDeviceSource".
+   * @param enableAec Whether enable audio echo cancellation for loopback recording. If loopback
+   *                  recording device is a virtual sound card, it should be false, or it should be true.
    * @return
-   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack", if the method call succeeds.
-   * - The empty pointer NULL, if the method call fails.
-   * - error code if failed
+   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack": Success.
+   * - A null pointer: Failure.
   */
   virtual agora_refptr<rtc::ILocalAudioTrack> createRecordingDeviceAudioTrack(
-      agora_refptr<rtc::IRecordingDeviceSource> audioSource) = 0;
+      agora_refptr<rtc::IRecordingDeviceSource> audioSource, bool enableAec) = 0;
 
   /**
    * Creates an audio device manager object and returns the pointer.
    *
    * @return
-   * - The pointer to \ref rtc::INGAudioDeviceManager "INGAudioDeviceManager", if the method call
-   * succeeds.
-   * - A null pointer, if the method call fails.
+   * - The pointer to \ref rtc::INGAudioDeviceManager "INGAudioDeviceManager": Success.
+   * - A null pointer: Failure.
    */
   virtual agora_refptr<rtc::INGAudioDeviceManager> createAudioDeviceManager() = 0;
 
@@ -620,8 +654,8 @@ class IAgoraService {
    * Creates a media node factory object and returns the pointer.
    *
    * @return
-   * - The pointer to \ref rtc::IMediaNodeFactory "IMediaNodeFactory", if the method call succeeds.
-   * - A null pointer, if the method call fails.
+   * - The pointer to \ref rtc::IMediaNodeFactory "IMediaNodeFactory": Success.
+   * - A null pointer: Failure.
    */
   virtual agora_refptr<rtc::IMediaNodeFactory> createMediaNodeFactory() = 0;
 
@@ -633,8 +667,8 @@ class IAgoraService {
    * @param videoSource The pointer to the camera capturer: \ref agora::rtc::ICameraCapturer "ICameraCapturer".
    *
    * @return
-   * - The pointer to \ref rtc::ILocalVideoTrack "ILocalVideoTrack", if the method call succeeds.
-   * - A null pointer, if the method call fails.
+   * - The pointer to \ref rtc::ILocalVideoTrack "ILocalVideoTrack": Success.
+   * - A null pointer: Failure.
    */
   virtual agora_refptr<rtc::ILocalVideoTrack> createCameraVideoTrack(
       agora_refptr<rtc::ICameraCapturer> videoSource) = 0;
@@ -646,8 +680,8 @@ class IAgoraService {
    *
    * @param videoSource The pointer to the screen capturer: \ref agora::rtc::IScreenCapturer "IScreenCapturer".
    * @return
-   * - The pointer to \ref rtc::ILocalVideoTrack "ILocalVideoTrack", if the method call succeeds.
-   * - A null pointer, if the method call fails.
+   * - The pointer to \ref rtc::ILocalVideoTrack "ILocalVideoTrack": Success.
+   * - A null pointer: Failure.
    */
   virtual agora_refptr<rtc::ILocalVideoTrack> createScreenVideoTrack(
       agora_refptr<rtc::IScreenCapturer> videoSource) = 0;
@@ -657,11 +691,11 @@ class IAgoraService {
    *
    * Once created, this track can be used to send video data processed by the video mixer.
    *
-   * @param videoSource The pointer to the video mixer: IVideoMixerSource.
+   * @param videoSource The pointer to the video mixer. See \ref agora::rtc::IVideoMixerSource "IVideoMixerSource".
    *
    * @return
-   * - The pointer to \ref rtc::ILocalVideoTrack "ILocalVideoTrack", if the method call succeeds.
-   * - A null pointer, if the method call fails.
+   * - The pointer to \ref rtc::ILocalVideoTrack "ILocalVideoTrack": Success.
+   * - A null pointer: Failure.
    */
   virtual agora_refptr<rtc::ILocalVideoTrack> createMixedVideoTrack(agora_refptr<rtc::IVideoMixerSource> videoSource) = 0;
 
@@ -670,11 +704,11 @@ class IAgoraService {
    *
    * Once created, this track can be used to send video data processed by the transceiver.
    *
-   * @param transceiver The pointer to the video transceiver: IVideoFrameTransceiver.
+   * @param transceiver The pointer to the video transceiver. See \ref agora::rtc::IVideoFrameTransceiver "IVideoFrameTransceiver".
    *
    * @return
-   * - The pointer to \ref rtc::ILocalVideoTrack "ILocalVideoTrack", if the method call succeeds.
-   * - A null pointer, if the method call fails.
+   * - The pointer to \ref rtc::ILocalVideoTrack "ILocalVideoTrack": Success.
+   * - A null pointer: Failure.
    */
   virtual agora_refptr<rtc::ILocalVideoTrack> createTranscodedVideoTrack(agora_refptr<rtc::IVideoFrameTransceiver> transceiver) = 0;
 
@@ -682,30 +716,28 @@ class IAgoraService {
   /**
    * Creates a local video track object with a customized video source and returns the pointer.
    *
-   * Once created, this track can be used to send video data from a customized source, such as WebRTC.
+   * Once created, this track can be used to send video data from a customized source.
    *
    * @param videoSource The pointer to the customized video frame sender: \ref agora::rtc::IVideoFrameSender "IVideoFrameSender".
    * @return
-   * - The pointer to \ref rtc::ILocalVideoTrack "ILocalVideoTrack", if the method call succeeds.
-   * - A null pointer, if the method call fails.
+   * - The pointer to \ref rtc::ILocalVideoTrack "ILocalVideoTrack": Success.
+   * - A null pointer: Failure.
    */
   virtual agora_refptr<rtc::ILocalVideoTrack> createCustomVideoTrack(
       agora_refptr<rtc::IVideoFrameSender> videoSource) = 0;
 /// @endcond
 
   /**
-   * Creates a local video track object with an encoded video image sender and returns the
-   * pointer.
+   * Creates a local video track object with an encoded video image sender and returns the pointer.
    *
-   * Once created, this track can be used to send encoded video images, such as H.264 or VP8
-   * frames.
+   * Once created, this track can be used to send encoded video images, such as H.264 or VP8 frames.
    *
-   * @param videoSource The pointer to the encoded video frame sender: IVideoEncodedImageSender.
+   * @param videoSource The pointer to the encoded video frame sender. See \ref agora::rtc::IVideoEncodedImageSender "IVideoEncodedImageSender".
    * @param options The configuration for creating video encoded image track.
    *
    * @return
-   * - The pointer to \ref rtc::ILocalVideoTrack "ILocalVideoTrack", if the method call succeeds.
-   * - A null pointer, if the method call fails.
+   * - The pointer to \ref rtc::ILocalVideoTrack "ILocalVideoTrack": Success.
+   * - A null pointer: Failure.
    */
   virtual agora_refptr<rtc::ILocalVideoTrack> createCustomVideoTrack(
       agora_refptr<rtc::IVideoEncodedImageSender> videoSource,
@@ -715,28 +747,42 @@ class IAgoraService {
   /**
    * Creates a local video track object with a media packet sender and returns the pointer.
    *
-   * Once created, this track can be used to send video packets, for example, customized UDP/RTP packets.
+   * Once created, this track can be used to send video packets, such as customized UDP/RTP packets.
    *
    * @param source The pointer to the media packet sender: \ref agora::rtc::IMediaPacketSender "IMediaPacketSender".
    * @return
-   * - The pointer to \ref rtc::ILocalVideoTrack "ILocalVideoTrack", if the method call succeeds.
-   * - A null pointer, if the method call fails.
+   * - The pointer to \ref rtc::ILocalVideoTrack "ILocalVideoTrack": Success.
+   * - A null pointer: Failure.
   */
   virtual agora_refptr<rtc::ILocalVideoTrack> createCustomVideoTrack(
       agora_refptr<rtc::IMediaPacketSender> source) = 0;
 /// @endcond
   /**
-   * Creates a local video track object with a player source and returns the pointer.
+   * Creates a local video track object with an IMediaPlayerSource object and returns the pointer.
    *
    * Once created, this track can be used to send YUV frames decoded from a player.
    *
-   * @param videoSource The pointer to the player source: \ref agora::rtc::IMediaPlayerSource "IMediaPlayerSource".
+   * @param videoSource The pointer to the player source. See \ref agora::rtc::IMediaPlayerSource "IMediaPlayerSource".
    * @return
-   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack", if the method call succeeds.
-   * - A null pointer, if the method call fails.
+   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack": Success.
+   * - A null pointer: Failure.
   */
   virtual agora_refptr<rtc::ILocalVideoTrack> createMediaPlayerVideoTrack(
       agora_refptr<rtc::IMediaPlayerSource> videoSource) = 0;
+
+  /**
+   * Creates a local video track object with an IMediaStreamingSource object and returns the pointer.
+   *
+   * Once created, this track can be used to send H264 frames which demuxed from a streaming.
+   *
+   * @param streamingSource The pointer to the player source. See \ref agora::rtc::IMediaStreamingSource "IMediaStreamingSource".
+   * @return
+   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack": Success.
+   * - A null pointer: Failure.
+  */
+  virtual agora_refptr<rtc::ILocalVideoTrack> createMediaStreamingVideoTrack(
+      agora_refptr<rtc::IMediaStreamingSource> streamingSource) = 0;
+
 
   /**
    * Creates an RTMP streaming service object and returns the pointer.
@@ -744,9 +790,8 @@ class IAgoraService {
    * @param rtcConnection The pointer to \ref rtc::IRtcConnection "IRtcConnection".
    * @param appId The App ID of the live streaming service.
    * @return
-   * - The pointer to \ref rtc::IRtmpStreamingService "IRtmpStreamingService", if the method call
-   * succeeds.
-   * - A null pointer, if the method call fails.
+   * - The pointer to \ref rtc::IRtmpStreamingService "IRtmpStreamingService": Success.
+   * - A null pointer: Failure.
    */
   virtual agora_refptr<rtc::IRtmpStreamingService> createRtmpStreamingService(
       agora_refptr<rtc::IRtcConnection> rtcConnection, const char* appId) = 0;
@@ -768,19 +813,14 @@ class IAgoraService {
    * Creates an RTM servive object and returns the pointer.
    *
    * @return
-   * - The pointer to \ref rtm::IRtmService "IRtmService", if the method call succeeds.
-   * - A null pointer, if the method call fails.
+   * - The pointer to \ref rtm::IRtmService "IRtmService": Success.
+   * - A null pointer: Failure.
    */
   virtual rtm::IRtmService* createRtmService() = 0;
 
   virtual int addExtensionObserver(agora::agora_refptr<agora::rtc::IMediaExtensionObserver> observer) = 0;
 
   virtual int removeExtensionObserver(agora::agora_refptr<agora::rtc::IMediaExtensionObserver> observer) = 0;
-
-  virtual int addExtensionProvider(const char* id,
-    agora_refptr<rtc::IExtensionProvider> provider) = 0;
-
-  virtual int removeExtensionProvider(const char* id) = 0;
 
  protected:
   virtual ~IAgoraService() {}
@@ -796,8 +836,8 @@ class IAgoraService {
  * Creates an \ref agora::base::IAgoraService "IAgoraService" object and returns the pointer.
  *
  * @return
- * - The pointer to \ref agora::base::IAgoraService "IAgoraService", if the method call succeeds.
- * - A null pointer, if the method call fails.
+ * - The pointer to \ref agora::base::IAgoraService "IAgoraService": Success.
+ * - A null pointer: Failure.
  */
 AGORA_API agora::base::IAgoraService* AGORA_CALL createAgoraService();
 /** @} */

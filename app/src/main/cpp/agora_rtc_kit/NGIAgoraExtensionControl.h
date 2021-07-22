@@ -9,77 +9,88 @@
 #pragma once  // NOLINT(build/header_guard)
 #include "AgoraBase.h"
 #include "AgoraRefPtr.h"
+#include "AgoraRefCountedObject.h"
 #include "IAgoraLog.h"
 #include "NGIAgoraVideoFrame.h"
+#include "NGIAgoraExtensionProvider.h"
 
 namespace agora {
 namespace rtc {
+class IExtensionProvider;
 /**
- * Interface for handling agora extensions
+ * Interface for handling agora extensions.
  */
 class IExtensionControl {
  public:
   /**
-   * Agora Extension Capabilities
+   * Agora Extension Capabilities.
    */
   struct Capabilities {
+    /**
+     * Whether to support audio extensions.
+     */
     bool audio;
+    /**
+     * Whether to support video extensions.
+     */
     bool video;
-
-    Capabilities() : audio(false),
-                     video(false) {}
   };
 
   /**
-   * Get the capabilities of agora extensions
-   * @param capabilities current supported agora extension features
+   * Gets the capabilities of agora extensions.
+   *
+   * @param capabilities Supported extension capabilities.
    */
   virtual void getCapabilities(Capabilities& capabilities) = 0;
 
   /**
-   * This method creates an IVideoFrame object with specified type, format, width and height
-   * @return
-   * - The pointer to \ref agora::rtc::IVideoFrame, if the method call succeeds
-   * - The emply pointer NULL, if the method call fails
+   * Recycles internal frame memory with a specified Video frame type.
+   *
+   * The SDK automatically recycles deprecated video frames. However,
+   * you can still call this method to perform an immediate memory recycle.
+   * @param type Frame type to be recycled.
    */
-  virtual agora_refptr<IVideoFrame> createVideoFrame(
-      IVideoFrame::Type type, IVideoFrame::Format format, int width, int height) = 0;
-  
-  /**
-   * This method creates a new IVideoFrame obj by copying from the source video frame
-   * @return
-   * - The pointer to \ref agora::rtc::IVideoFrame, if the method call succeeds
-   * - The empty pointer NULL, if the method call fails
-   */
-  virtual agora_refptr<IVideoFrame> copyVideoFrame(agora_refptr<IVideoFrame> src) = 0;
-
-  /**
-   * This method recycle internal frame memory with specified type.
-   * Deprecated video frames will be recycled automatically inside sdk. However,
-   * user can invoke the following method to perform an immediate memory recycle.
-   * @param type type of the frame memory to be recycled.
-   */
-  virtual void recycleVideoCache(IVideoFrame::Type type) = 0;
+  virtual void recycleVideoCache() = 0;
 
   /**
    * This method dumps the content of the video frame to the specified file.
+   *
    * @return
-   * - 0: if succeeds
-   * - <0: failure
+   * - 0: The method call succeeds.
+   * - <0: The method call fails.
    */
   virtual int dumpVideoFrame(agora_refptr<IVideoFrame> frame, const char* file) = 0;
 
   /**
-   * write log into sdk.
-   * @param level logging level
-   * @param message logging message string
+   * Sets log file.
+   *
+   * @param level Logging level. See #commons::LOG_LEVEL.
+   * @param message Message to add to the log file.
    * @return
-   * - 0, if succeeds
-   * - <0, if error happens
+   * - 0: The method call succeeds.
+   * - <0: The method call fails.
    */
   virtual int log(commons::LOG_LEVEL level, const char* message) = 0;
 
-  virtual int fireEvent(const char* id, const char* event_key, const char* event_json_str) = 0;
+  /**
+   * Post extension events to SDK.
+   *
+   * @param provider_name name of the provider
+   * @param ext_name name of the extension
+   * @param event_key key of the extension event
+   * @param event_json_str string of the extension event
+   * @return
+   * - 0: The method call succeeds.
+   * - <0: The method call fails.
+   */
+  virtual int fireEvent(const char* provider_name, const char* ext_name, const char* event_key, const char* event_json_str) = 0;
+
+  /**
+   * Register provider to the SDK
+   * @param provider_name name of the provider
+   * @param provider instance of the provider
+   */
+  virtual int registerProvider(const char* provider_name, agora_refptr<IExtensionProvider> provider) = 0;
 
  protected:
   virtual ~IExtensionControl() {}
