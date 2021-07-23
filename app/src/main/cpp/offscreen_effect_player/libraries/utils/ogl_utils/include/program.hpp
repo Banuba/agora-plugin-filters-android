@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-namespace bnb::oep
+namespace bnb
 {
     class program
     {

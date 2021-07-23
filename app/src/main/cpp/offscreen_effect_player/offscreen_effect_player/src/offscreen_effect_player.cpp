@@ -32,6 +32,9 @@ namespace bnb {
             m_ort->init();
             m_ort->activate_context();
             m_ep->surface_created(width, height);
+            m_ep->set_render_consistency_mode(
+                    interfaces::consistency_mode::asynchronous_inconsistent
+            );
         };
 
         auto future = m_scheduler.enqueue(task);

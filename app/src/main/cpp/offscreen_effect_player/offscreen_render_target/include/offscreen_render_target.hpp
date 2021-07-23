@@ -62,7 +62,7 @@ namespace bnb {
         EGLSurface m_surface;
         EGLContext m_context;
 
-        std::unique_ptr<oep::program> m_program;
+        std::unique_ptr<program> m_program;
         std::unique_ptr<ort_frame_surface_handler> m_frame_surface_handler;
 
         std::once_flag m_init_flag;

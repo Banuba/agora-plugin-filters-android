@@ -5,7 +5,7 @@
 
 #define BNB_GLSL_VERSION "#version 300 es \n"
 
-using namespace bnb::oep;
+using namespace bnb;
 using namespace std;
 
 program::program(const char* name, const char* vertex_shader_code, const char* fragmant_shader_code)

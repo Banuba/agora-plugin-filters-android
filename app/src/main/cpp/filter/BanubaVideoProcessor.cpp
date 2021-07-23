@@ -45,8 +45,8 @@ namespace agora::extension {
         std::chrono::steady_clock::time_point time_end = std::chrono::steady_clock::now();
         auto time_result = std::chrono::duration_cast<std::chrono::milliseconds>(
                 time_end - time_begin).count();
-        sendEvent("processFrame",
-                  std::string("Processing time ms: ").append(std::to_string(time_result)).c_str());
+        send_event("processFrame",
+                   std::string("Processing time ms: ").append(std::to_string(time_result)).c_str());
 #endif
     }
 
