@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Banuba Agora plugin example</string>
+    <string name="action_enable_mask">Enable mask</string>
+    <string name="action_disable_mask">Disable mask</string>
+</resources>
