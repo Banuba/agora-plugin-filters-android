@@ -28,8 +28,8 @@ namespace rtc {
  */
 struct TextureInfo {
   OPTIONAL_ENUM_CLASS TextureType {
-    kGlTexture2D,
     kGlTextureOes,
+    kGlTexture2D,
   };
   OPTIONAL_ENUM_CLASS EglContextType {
     kEglContext10,

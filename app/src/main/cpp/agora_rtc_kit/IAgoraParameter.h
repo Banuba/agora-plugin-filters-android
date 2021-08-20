@@ -156,6 +156,11 @@
 */
 #define KEY_RTC_VIDEO_H264_QP_THRESHOLD_HIGH        "engine.video.h264_qp_thresholds_high"
 
+/**
+  * enable media packet encrypto.
+*/
+#define KEY_RTC_ENABLE_BUILT_IN_MEDIA_ENCRYPTION    "rtc.enable_built_in_media_encryption"
+
 namespace agora {
 
 namespace util {

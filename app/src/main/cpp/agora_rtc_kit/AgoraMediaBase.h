@@ -63,7 +63,15 @@ enum AudioRoute
   /**
    * The Bluetooth headset.
    */
-  ROUTE_HEADSETBLUETOOTH
+  ROUTE_HEADSETBLUETOOTH,
+  /**
+   * The HDMI
+   */
+  ROUTE_HDMI,
+  /**
+   * The USB
+   */
+  ROUTE_USB
 };
 
 /**
@@ -214,7 +222,7 @@ class IAudioFrameObserver {
    * reporting the detailed information of the audio frame.
    * @param frame The detailed information of the audio frame. See {@link AudioPcmFrame}.
    */
-  virtual void onFrame(const AudioPcmFrame* frame) = 0;
+  virtual void onFrame(AudioPcmFrame* frame) = 0;
   virtual ~IAudioFrameObserver() {}
 };
 
@@ -630,13 +638,13 @@ class IAudioFrameObserver {
   virtual bool onMixedAudioFrame(AudioFrame& audioFrame) = 0;
   /**
    * Occurs when the before-mixing playback audio frame is received.
-   * @param uid ID of the remote user.
+   * @param userId ID of the remote user.
    * @param audioFrame The reference to the audio frame: AudioFrame.
    * @return
    * - true: The before-mixing playback audio frame is valid and is encoded and sent.
    * - false: The before-mixing playback audio frame is invalid and is not encoded or sent.
    */
-  virtual bool onPlaybackAudioFrameBeforeMixing(unsigned int uid, AudioFrame& audioFrame) = 0;
+  virtual bool onPlaybackAudioFrameBeforeMixing(base::user_id_t userId, AudioFrame& audioFrame) = 0;
 };
 
 struct AudioSpectrumData {

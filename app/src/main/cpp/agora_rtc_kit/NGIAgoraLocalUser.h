@@ -443,24 +443,24 @@ class ILocalUser {
    * Please call this method after join channel.
    * This method adjust the playback volume of specified user.
    *
-   * @param uid Remote user ID。
+   * @param userId The ID of the Remote user.
    * @param volume The playback volume, range is [0,100]:
    * 0: mute, 100: The original volume
    * @return
    * - 0: Success.
    * - < 0: Failure.
    */
-  virtual int adjustUserPlaybackSignalVolume(uid_t uid, int volume) = 0;
+  virtual int adjustUserPlaybackSignalVolume(user_id_t userId, int volume) = 0;
 
   /**
    * Gets the current playback signal volume of specified user.
-   * @param uid Remote user ID。
+   * @param userId The ID of the Remote user.
    * @param volume A pointer to the playback signal volume.
    * @return
    * - 0: Success.
    * - < 0: Failure.
    */
-  virtual int getUserPlaybackSignalVolume(uid_t uid, int* volume) = 0;
+  virtual int getUserPlaybackSignalVolume(user_id_t userId, int* volume) = 0;
   
   /** Enables/Disables stereo panning for remote users.
 
@@ -539,6 +539,8 @@ class ILocalUser {
    * - 2: Stereo.
    * @param sampleRateHz The sample rate (Hz) of the audio frame in the `onRecordAudioFrame` callback. You can
    * set it as 8000, 16000, 32000, 44100, or 48000.
+   * @param mode Use mode of the audio frame. See #RAW_AUDIO_FRAME_OP_MODE_TYPE.
+   * @param samplesPerCall The number of samples of the audio frame.
    *
    * @return
    * - 0: Success.
@@ -1028,23 +1030,23 @@ class ILocalUserObserver {
    * Occurs when the audio subscribe state changed.
    *
    * @param channel The channel name of user joined.
-   * @param uid The remote user ID that is subscribed to.
+   * @param userId The remote string user ID that is subscribed to.
    * @param oldState The old state of the audio stream subscribe : #STREAM_SUBSCRIBE_STATE.
    * @param newState The new state of the audio stream subscribe : #STREAM_SUBSCRIBE_STATE.
    * @param elapseSinceLastState The time elapsed (ms) from the old state to the new state.
    */
-  virtual void onAudioSubscribeStateChanged(const char* channel, uid_t uid, STREAM_SUBSCRIBE_STATE oldState, STREAM_SUBSCRIBE_STATE newState, int elapseSinceLastState) = 0;
+  virtual void onAudioSubscribeStateChanged(const char* channel,  user_id_t userId, STREAM_SUBSCRIBE_STATE oldState, STREAM_SUBSCRIBE_STATE newState, int elapseSinceLastState) = 0;
 
   /**
    * Occurs when the video subscribe state changed.
    *
    * @param channel The channel name of user joined.
-   * @param uid The remote user ID that is subscribed to.
+   * @param userId The remote string user ID that is subscribed to.
    * @param oldState The old state of the video stream subscribe : #STREAM_SUBSCRIBE_STATE.
    * @param newState The new state of the video stream subscribe : #STREAM_SUBSCRIBE_STATE.
    * @param elapseSinceLastState The time elapsed (ms) from the old state to the new state.
    */
-  virtual void onVideoSubscribeStateChanged(const char* channel, uid_t uid, STREAM_SUBSCRIBE_STATE oldState, STREAM_SUBSCRIBE_STATE newState, int elapseSinceLastState) = 0;
+  virtual void onVideoSubscribeStateChanged(const char* channel, user_id_t userId, STREAM_SUBSCRIBE_STATE oldState, STREAM_SUBSCRIBE_STATE newState, int elapseSinceLastState) = 0;
 
   /**
    * Occurs when the audio publish state changed.

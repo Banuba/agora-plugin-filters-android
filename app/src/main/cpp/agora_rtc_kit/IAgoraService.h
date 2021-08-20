@@ -37,6 +37,8 @@ class IRemoteAudioMixerSource;
 class IRtmpStreamingService;
 class IMediaPacketSender;
 class IMediaRelayService;
+class IAudioDeviceManager;
+class IAudioDeviceManagerObserver;
 
 class IRtcEngine;
 class IMediaExtensionObserver;
@@ -557,6 +559,21 @@ class IAgoraService {
       agora_refptr<rtc::IAudioPcmDataSender> audioSource) = 0;
 
   /**
+   * Creates a local audio track object with a PCM data sender and returns the pointer.
+   *
+   * Once created, this track can be used to send PCM audio data.
+   *
+   * @param audioSource The pointer to the PCM audio data sender: \ref agora::rtc::IAudioPcmDataSender "IAudioPcmDataSender".
+   * @param enableAec Whether enable audio echo cancellation for PCM audio data.
+   * @return
+   * - The pointer to \ref rtc::ILocalAudioTrack "ILocalAudioTrack": Success.
+   * - A null pointer: Failure.
+   * - `INVALID_STATE`, if `enableAudioProcessor` in \ref agora::base::AgoraServiceConfiguration "AgoraServiceConfiguration" is set as `false`.
+   */
+  virtual agora_refptr<rtc::ILocalAudioTrack> createCustomAudioTrack(
+      agora_refptr<rtc::IAudioPcmDataSender> audioSource, bool enableAec) = 0;
+
+  /**
    * Creates a local audio track object with a audio mixer source and returns the pointer.
    *
    * Once created, this track can be used to send PCM audio data.
@@ -821,6 +838,35 @@ class IAgoraService {
   virtual int addExtensionObserver(agora::agora_refptr<agora::rtc::IMediaExtensionObserver> observer) = 0;
 
   virtual int removeExtensionObserver(agora::agora_refptr<agora::rtc::IMediaExtensionObserver> observer) = 0;
+
+  /**
+   * Creates an audio device manager and returns the pointer.
+   *
+   * @return
+   * - The pointer to \ref rtc::IAudioDeviceManager "IAudioDeviceManager": Success.
+   * - A null pointer: Failure.
+   */
+  virtual agora_refptr<rtc::IAudioDeviceManager> createAudioDeviceManagerComponent(
+      rtc::IAudioDeviceManagerObserver *observer) = 0;
+  /**
+   * @brief Get the ID of the registered extension
+   * 
+   * @param provider_name The pointer to provider name string (null-terminated)
+   * @param extension_name The pointer to extension name string (null-terminated)
+   * @return
+   *  - Pointer to the extension id string (null-terminated). The pointer will be valid during service's lifetime
+   */
+  virtual const char* getExtensionId(const char* provider_name, const char* extension_name) = 0;
+
+#if defined (_WIN32) || (defined(__linux__) && !defined(__ANDROID__))
+  /**
+   * @brief load the dynamic library of the extension
+   * 
+   * @param extension_lib_path path of the extension library
+   * @return int 
+   */
+  virtual int loadExtensionProvider(const char* extension_lib_path) = 0;
+#endif
 
  protected:
   virtual ~IAgoraService() {}

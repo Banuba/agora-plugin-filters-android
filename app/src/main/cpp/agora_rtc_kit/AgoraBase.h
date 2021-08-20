@@ -593,6 +593,12 @@ enum ERROR_CODE_TYPE {
    */
   ERR_INVALID_CHANNEL_NAME = 102,
   /**
+   * 103: Fails to get server resources in the specified region. Please try to
+   * specify another region when calling \ref agora::rtc::IRtcEngine::initialize
+   *  "initialize".
+   */
+  ERR_NO_SERVER_RESOURCES = 103,
+  /**
    * 109: The token has expired, usually for the following reasons:
    * - Timeout for token authorization: Once a token is generated, you must use it to access the
    * Agora service within 24 hours. Otherwise, the token times out and you can no longer use it.
@@ -3690,6 +3696,45 @@ struct VideoCanvas {
   VideoCanvas(view_t v, media::base::RENDER_MODE_TYPE m, VIDEO_MIRROR_MODE_TYPE mt, user_id_t)
       : view(v), renderMode(m), mirrorMode(mt), uid(0), isScreenView(false), priv(NULL), priv_size(0),
         sourceType(VIDEO_SOURCE_CAMERA_PRIMARY) {}
+};
+
+
+/** Beauty options.
+ */
+struct BeautyOptions {
+    /** The contrast level, used with the @p lightening parameter.
+     */
+    enum LIGHTENING_CONTRAST_LEVEL {
+        /** Low contrast level. */
+        LIGHTENING_CONTRAST_LOW = 0,
+        /** (Default) Normal contrast level. */
+        LIGHTENING_CONTRAST_NORMAL,
+        /** High contrast level. */
+        LIGHTENING_CONTRAST_HIGH
+    };
+
+    /** The contrast level, used with the @p lightening parameter.
+     */
+    LIGHTENING_CONTRAST_LEVEL lighteningContrastLevel;
+
+    /** The brightness level. The value ranges from 0.0 (original) to 1.0. */
+    float lighteningLevel;
+
+    /** The smoothness level. The value ranges between 0 (original) and 1. This parameter is usually used to remove blemishes.
+     */
+    float smoothnessLevel;
+
+    /** The redness level. The value ranges between 0 (original) and 1. This parameter adjusts the red saturation level.
+     */
+    float rednessLevel;
+
+    /** The sharpness level. The value ranges between 0 (original) and 1.
+    */
+    float sharpnessLevel;
+
+    BeautyOptions(LIGHTENING_CONTRAST_LEVEL contrastLevel, float lightening, float smoothness, float redness, float sharpness) : lighteningContrastLevel(contrastLevel), lighteningLevel(lightening), smoothnessLevel(smoothness), rednessLevel(redness), sharpnessLevel(sharpness) {}
+
+    BeautyOptions() : lighteningContrastLevel(LIGHTENING_CONTRAST_NORMAL), lighteningLevel(0), smoothnessLevel(0), rednessLevel(0), sharpnessLevel(0) {}
 };
 
 /**

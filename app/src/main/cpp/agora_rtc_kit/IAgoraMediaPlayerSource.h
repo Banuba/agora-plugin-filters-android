@@ -134,6 +134,38 @@ public:
   virtual int setLoopCount(int64_t loopCount) = 0;
 
   /**
+   * Mute the audio playing
+   * @param audio_mute : mute or unmute audio
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+  virtual int muteAudio(bool audio_mute) = 0;
+
+  /**
+   * Gets whehter audio is muted
+   * @param None
+   * @return true or false
+   */
+  virtual bool isAudioMuted() = 0;
+
+  /**
+   * Mute the audio playing
+   * @param audio_mute : mute or unmute audio
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+  virtual int muteVideo(bool audio_mute) = 0;
+
+  /**
+   * Gets whehter audio is muted
+   * @param None
+   * @return true or false
+   */
+  virtual bool isVideoMuted() = 0;
+
+  /**
    * Changes the playback speed.
    * @param speed The playback speed. See \ref media::base::MEDIA_PLAYER_PLAYBACK_SPEED "MEDIA_PLAYER_PLAYBACK_SPEED" for details.
    * @return

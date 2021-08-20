@@ -76,6 +76,13 @@ public:
    * To get the current information of the connected audio devices, call \ref agora::rtc::INGAudioDeviceManager::getNumberOfPlayoutDevices "getNumberOfPlayoutDevices".
    */
   virtual void onDeviceStateChanged() = 0;
+
+  /** Indicates incoming volume. This can be used to test microphone.
+   *
+   * @param volume volume between 0 (lowest volume) to 255 (highest volume).
+   */
+  virtual void onVolumeIndication(int volume) = 0;
+
   /**
    * Occurs when the audio route changes.
    *
