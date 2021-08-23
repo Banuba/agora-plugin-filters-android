@@ -1,0 +1,40 @@
+{
+  "name": "TitanicJack",
+  "recordDuration": 15,
+  "sounds": [
+    {
+      "trackName": "music.ogg",
+      "volume": 1.0,
+      "type": "background"
+    }
+  ],
+  "frx": {
+    "type": "3d_anim",
+    "3d_anim": {
+      "type": "vfx"
+    }
+  },
+   "foreground": {
+    "type": "MEDIA",
+    "media": {
+      "type": "VIDEO",
+      "file": "marilynmonroe.mp4",
+      "opacity": 0.8,
+      "videoSpeed": 1.0,
+      "blend": "MULTIPLY",
+      "mode": "RGB"
+    }
+  },
+  "final" : {
+      "type" : "FILTER",
+      "filter" : {
+        "fragmentCode" : "finalColorFilter.fsh",
+        "textures" : [{
+          "file" : "lut.png",
+          "sampler" : "lookupTexture",
+          "magFilter" : "LINEAR",
+          "minFilter" : "LINEAR"
+        }]
+      }
+  }
+}

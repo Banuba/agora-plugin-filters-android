@@ -1,0 +1,39 @@
+{
+  "name": "EnglandEightPieceCap",
+  "frx": {
+    "type": "3d_anim",
+    "3d_anim": {
+      "type": "vfx"
+    }
+  },
+ 
+  "final" : {
+      "type" : "FILTER",
+
+      "filter" : {
+        "fragmentCode" : "finalColorFilter.fsh",
+        "textures" : [{
+          "file" : "yury.png",
+          "sampler" : "lookupTexture",
+          "magFilter" : "LINEAR",
+          "minFilter" : "LINEAR"
+        }]
+      }
+
+    },
+  "sounds" : [
+                 {
+                 "type" : "background",
+                 "trackName" : "cap_sndfnt.ogg",
+                 "volume" : 0.05 }
+                 ],
+
+  "voiceChanger": {
+    "audioFilters": [{
+      "pitch": {
+        "pitchShift": -150
+      }
+    }]
+  },
+  "recordDuration": 15
+}

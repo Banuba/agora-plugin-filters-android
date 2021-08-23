@@ -8,6 +8,8 @@ import android.view.SurfaceView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.banuba.sdk.agorapluginexample.model.ArEffect
+import com.banuba.sdk.agorapluginexample.widget.carousel.EffectsCarouselView
 import io.agora.rtc2.Constants
 import io.agora.rtc2.IMediaExtensionObserver
 import io.agora.rtc2.IRtcEngineEventHandler
@@ -21,8 +23,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val REQUEST_CODE_PERMISSIONS = 1001
-
-        private const val EFFECT_NAME = "effects/Afro"
 
         private val REQUIRED_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA,
@@ -73,20 +73,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val onEffectPrepared = object : BanubaResourceManager.EffectPreparedCallback {
+        override fun onPrepared(effectName: String) {
+            sendEffectToFilter(effectName)
+        }
+    }
+    private val effectsCarouselCallback = object : EffectsCarouselView.ActionCallback {
+        override fun onEffectsSelected(effect: ArEffect) {
+            banubaResourceManager.prepareEffect(effect.name, onEffectPrepared)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        loadMaskButton.setOnClickListener {
-            it.isActivated = !it.isActivated
-            val (textResId, effect) = if (it.isActivated) {
-                R.string.action_disable_mask to EFFECT_NAME
-            } else {
-                R.string.action_enable_mask to " "
-            }
-            loadMaskButton.setText(textResId)
-            sendEffectToFilter(effect)
-        }
         banubaResourceManager.prepare()
+        effectsCarouselView.actionCallback = effectsCarouselCallback
+        val effects = BanubaEffectsLoader(this).loadEffects()
+        effectsCarouselView.setEffectsList(listOf(ArEffect.EMPTY) + effects, 0)
         if (checkAllPermissionsGranted()) {
             initAgoraEngine()
         } else {
@@ -156,6 +160,12 @@ class MainActivity : AppCompatActivity() {
             ExtensionManager.VIDEO_FILTER_NAME,
             ExtensionManager.KEY_SET_RESOURCES_PATH,
             banubaResourceManager.resourcesPath
+        )
+        agoraRtc.setExtensionProperty(
+            ExtensionManager.VENDOR_NAME,
+            ExtensionManager.VIDEO_FILTER_NAME,
+            ExtensionManager.KEY_SET_EFFECTS_PATH,
+            banubaResourceManager.effectsPath
         )
         agoraRtc.setExtensionProperty(
             ExtensionManager.VENDOR_NAME,

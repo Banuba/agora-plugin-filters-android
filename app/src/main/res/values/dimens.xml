@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="effects_carousel_item_margin">16dp</dimen>
+    <dimen name="effects_carousel_circle_width">4dp</dimen>
+    <dimen name="effect_preview_size">64dp</dimen>
+    <dimen name="effects_preview_selected_size">64dp</dimen>
+</resources>

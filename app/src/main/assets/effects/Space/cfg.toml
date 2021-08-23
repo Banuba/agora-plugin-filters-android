@@ -1,0 +1,24 @@
+warp_mesh = "BeautyFaceSP.bsm2"
+msaa = 1
+shadowmap_size = 512
+adjust_znear = 150
+draw_order = ['retouch']
+
+# Retouch
+[materials.retouch]
+vs = "retouch.vert"
+fs = "retouch.frag"
+blend = "off" # "alpha", "premul_alpha", "screen", "add", "multiply", "coverage", "off"
+backfaces = false
+colorwrite = true
+zwrite = true
+shadow = false
+onface = true
+mouth = true
+[materials.retouch.samplers]
+selection_tex="REDMASK_v3_256.png"
+lookupTexTeeth="TEETH_medium.png"
+lookupTexEyes="EYES_medium.png"
+tex_softLight="SOFT_princess_256.png"
+tex_normalMakeup="makeup.png"
+tex_highlight="FLARE_39_512.png"

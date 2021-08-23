@@ -1,0 +1,33 @@
+warp_mesh = "morph.bsm2"
+msaa = 1
+shadowmap_size = 512
+adjust_znear = 150
+draw_order = ['retouch', '!glfx_UPDATE_BG', 'TriMat']
+
+# Retouch
+[materials.retouch]
+vs = "retouch.vert"
+fs = "retouch.frag"
+blend = "off" # "alpha", "premul_alpha", "screen", "add", "multiply", "coverage", "off"
+backfaces = false
+colorwrite = true
+zwrite = true
+shadow = false
+onface = true
+mouth = true
+[materials.retouch.samplers]
+lookupTexTeeth="lut3d_teeth_middle.png"
+lookupTexEyes="lut3d_eyes_middle.png"
+tex_softLight="Soft.png"
+tex_normalMakeup="Makeup.png"
+tex_highlight="highlight.png"
+
+
+[materials.TriMat]
+vs = "fstri.vert"
+fs = "lut.frag"
+blend = "off"
+backfaces = true
+shadow = false
+zwrite = false
+samplers = {luttex="lut.png"}

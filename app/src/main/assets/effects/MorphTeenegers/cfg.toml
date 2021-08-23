@@ -1,0 +1,124 @@
+warp_mesh = "Morph.bsm2"
+msaa = 1
+shadowmap_size = 512
+adjust_znear = 150
+draw_order = ['retouch', '!glfx_WARP_IMAGE', 'cut', 'morph_mat', 'Hat_mat', 'Side_hair_mat', 'Glasses_mat', 'Hair_mat', 'Glass_mat']
+
+# Retouch
+[materials.retouch]
+vs = "retouch.vert"
+fs = "retouch.frag"
+blend = "off" # "alpha", "premul_alpha", "screen", "add", "multiply", "coverage", "off"
+backfaces = false
+colorwrite = true
+zwrite = true
+shadow = false
+onface = true
+mouth = true
+[materials.retouch.samplers]
+lookupTexTeeth="lut3d_TEETH_medium.png"
+lookupTexEyes="lut3d_EYES_medium.png"
+tex_softLight="Soft_MorphTeenagers.png"
+tex_normalMakeup="Makeup__MorphTeenagers.png"
+tex_highlight="FLARE_38_512.png"
+
+# Cut
+[materials.cut]
+vs = "cut.vert"
+fs = "cut.frag"
+blend = "off"
+backfaces = false
+colorwrite = false
+zwrite = true
+shadow = false
+samplers = {}
+
+# Cut
+[materials.morph_mat]
+vs = "morph_mat.vert"
+fs = "morph_mat.frag"
+blend = "off"
+backfaces = false
+colorwrite = false
+zwrite = true
+shadow = false
+samplers = {}
+
+# PBR
+[materials.Hat_mat]
+vs = "hat_mat.vert"
+fs = "hat_mat.frag"
+blend = "off" # "alpha", "premul_alpha", "screen", "add", "multiply", "coverage", "off"
+backfaces = false
+colorwrite = true
+zwrite = true
+shadow = false
+[materials.Hat_mat.samplers]
+tex_diffuse="Hat_mat_Base_Color.png"
+tex_normal="Hat_mat_Normal.png"
+tex_metallic="Hat_mat_Metallic.png"
+tex_roughness="Hat_mat_Roughness.png"
+
+# PBR
+[materials.Side_hair_mat]
+vs = "side_hair_mat.vert"
+fs = "side_hair_mat.frag"
+blend = "alpha" # "alpha", "premul_alpha", "screen", "add", "multiply", "coverage", "off"
+backfaces = true
+colorwrite = true
+zwrite = true
+shadow = false
+[materials.Side_hair_mat.samplers]
+tex_diffuse="Hat_mat_Base_Color.png"
+tex_normal="Hat_mat_Normal.png"
+tex_metallic="Hat_mat_Metallic.png"
+tex_roughness="Hat_mat_Roughness.png"
+
+# PBR
+[materials.Glasses_mat]
+vs = "glasses_mat.vert"
+fs = "glasses_mat.frag"
+blend = "alpha" # "alpha", "premul_alpha", "screen", "add", "multiply", "coverage", "off"
+backfaces = false
+colorwrite = true
+zwrite = true
+shadow = false
+[materials.Glasses_mat.samplers]
+tex_diffuse="Glasses_mat_Base_Color.png"
+tex_metallic="Glasses_mat_Metallic.png"
+tex_roughness="Glasses_mat_Roughness.png"
+tex_brdf="brdf.ktx"
+tex_ibl_diff="ibl_diff.ktx"
+tex_ibl_spec="ibl_spec.ktx"
+
+# PBR
+[materials.Hair_mat]
+vs = "hair_mat.vert"
+fs = "hair_mat.frag"
+blend = "alpha" # "alpha", "premul_alpha", "screen", "add", "multiply", "coverage", "off"
+backfaces = true
+colorwrite = true
+zwrite = true
+shadow = false
+[materials.Hair_mat.samplers]
+tex_diffuse="Hat_mat_Base_Color.png"
+tex_normal="Hat_mat_Normal.png"
+tex_metallic="Hat_mat_Metallic.png"
+tex_roughness="Hat_mat_Roughness.png"
+
+# PBR
+[materials.Glass_mat]
+vs = "glass_mat.vert"
+fs = "glass_mat.frag"
+blend = "alpha" # "alpha", "premul_alpha", "screen", "add", "multiply", "coverage", "off"
+backfaces = false
+colorwrite = true
+zwrite = true
+shadow = false
+[materials.Glass_mat.samplers]
+tex_diffuse="Glass_mat_Base_Color.png"
+tex_metallic="Glass_mat_Metallic.png"
+tex_roughness="Glass_mat_Roughness.png"
+tex_brdf="brdf.ktx"
+tex_ibl_diff="ibl_diff.ktx"
+tex_ibl_spec="ibl_spec.ktx"

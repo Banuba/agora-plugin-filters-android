@@ -45,9 +45,5 @@ namespace agora::extension {
                 .type = EXTENSION_TYPE::VIDEO_PRE_PROCESSING_FILTER,
                 .extension_name = "BanubaFilter"
         };
-        extension_list[1] = ExtensionMetaInfo{
-                .type = EXTENSION_TYPE::AUDIO_FILTER,
-                .extension_name = "FFFFFF"
-        };
     }
 }

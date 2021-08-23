@@ -37,7 +37,9 @@ namespace agora::extension {
             agora_refptr<rtc::IVideoFrame> in,
             agora_refptr<rtc::IVideoFrame> &out
     ) {
-        m_video_processor->process_frame(in);
+        agora::rtc::VideoFrameData captured_frame;
+        in->getVideoFrameData(captured_frame);
+        m_video_processor->process_frame(captured_frame);
         out = in;
         return rtc::IExtensionVideoFilter::ProcessResult::kSuccess;
     }

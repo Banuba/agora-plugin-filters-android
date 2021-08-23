@@ -1,0 +1,86 @@
+warp_mesh = "morph.bsm2"
+msaa = 1
+shadowmap_size = 512
+draw_order = ['retouch', '!glfx_WARP_IMAGE', 'morph_cut', 'botan', 'bant', 'glass']
+
+[materials.retouch]
+vs = "retouch.vert"
+fs = "retouch.frag"
+blend = "off"
+backfaces = false
+colorwrite = true
+zwrite = true
+shadow = false
+onface = true
+mouth = true
+[materials.retouch.samplers]
+selection_tex="redmask_new_3.png"
+lookupTexTeeth="teeth_highlighter5.png"
+lookupTexEyes="lut_80_percent.png"
+tex_softLight="soft-nor-red.png"
+
+# default
+[materials.morph_cut]
+vs = "morph_cut.vert"
+fs = "morph_cut.frag"
+blend = "alpha" # "alpha", "premul_alpha", "screen", "add", "multiply", "coverage", "off"
+backfaces = false
+colorwrite = true
+zwrite = true
+shadow = true
+[materials.morph_cut.samplers]
+tex_diffuse="face_shadow_Base_Color.ktx"
+tex_normal="no_Normal.ktx"
+tex_mrao="no_MRAO.ktx"
+
+
+# default
+[materials.botan]
+vs = "botan.vert"
+fs = "botan.frag"
+blend = "alpha" # "alpha", "premul_alpha", "screen", "add", "multiply", "coverage", "off"
+backfaces = false
+colorwrite = true
+zwrite = true
+shadow = true
+[materials.botan.samplers]
+tex_diffuse="botan_Base_Color.ktx"
+tex_normal="botan_Normal.ktx"
+tex_mrao="botan_MRAO.ktx"
+tex_brdf="brdf.ktx"
+tex_ibl_diff="ibl_diff.ktx"
+tex_ibl_spec="ibl_spec.ktx"
+
+# default
+[materials.bant]
+vs = "bant.vert"
+fs = "bant.frag"
+blend = "off" # "alpha", "premul_alpha", "screen", "add", "multiply", "coverage", "off"
+backfaces = false
+colorwrite = true
+zwrite = true
+shadow = true
+[materials.bant.samplers]
+tex_diffuse="botan_Base_Color.ktx"
+tex_normal="botan_Normal.ktx"
+tex_mrao="botan_MRAO.ktx"
+tex_brdf="brdf.ktx"
+tex_ibl_diff="ibl_diff.ktx"
+tex_ibl_spec="ibl_spec.ktx"
+
+# default
+[materials.glass]
+vs = "glass.vert"
+fs = "glass.frag"
+blend = "off" # "alpha", "premul_alpha", "screen", "add", "multiply", "coverage", "off"
+backfaces = false
+colorwrite = true
+zwrite = true
+shadow = true
+[materials.glass.samplers]
+tex_diffuse="botan_Base_Color.ktx"
+tex_normal="botan_Normal.ktx"
+tex_mrao="botan_MRAO.ktx"
+tex_brdf="brdf.ktx"
+tex_ibl_diff="ibl_diff.ktx"
+tex_ibl_spec="ibl_spec.ktx"

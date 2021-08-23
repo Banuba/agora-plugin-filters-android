@@ -15,11 +15,11 @@
         android:layout_gravity="top|end"
         android:layout_margin="32dp" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/loadMaskButton"
-        android:layout_width="wrap_content"
+
+    <com.banuba.sdk.agorapluginexample.widget.carousel.EffectsCarouselView
+        android:id="@+id/effectsCarouselView"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
         android:layout_margin="16dp"
-        android:text="@string/action_enable_mask" />
+        android:layout_gravity="bottom|center_horizontal"/>
 </FrameLayout>

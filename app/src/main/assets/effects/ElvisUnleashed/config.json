@@ -1,0 +1,30 @@
+{
+  "name": "ElvisUnleashed",
+  "recordDuration": 15,
+        "sounds": [
+    {
+      "trackName": "music.ogg",
+      "volume": 1.0,
+      "type": "background"
+    }
+  ],
+  "frx": {
+    "type": "3d_anim",
+    "3d_anim": {
+      "type": "vfx"
+    }
+  },
+          "final": {
+    "type": "FILTER",
+
+    "filter": {
+      "fragmentCode": "finalColorFilter.fsh",
+      "textures": [{
+        "file": "august.png",
+        "sampler": "lookupTexture",
+        "magFilter": "LINEAR",
+        "minFilter": "LINEAR"
+      }]
+    }
+  }
+}

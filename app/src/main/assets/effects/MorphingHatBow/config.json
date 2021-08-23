@@ -1,0 +1,35 @@
+{
+  "name": "MorphingHatBow",
+  "frx": {
+    "type": "3d_anim",
+    "3d_anim": {
+      "type": "vfx"
+    }
+  },
+  "final": {
+    "type": "FILTER",
+
+    "filter": {
+      "fragmentCode": "finalColorFilter.fsh",
+      "textures": [{
+        "file": "cream.png",
+        "sampler": "lookupTexture",
+        "magFilter": "LINEAR",
+        "minFilter": "LINEAR"
+      }]
+    }
+  },
+  "voiceChanger": {
+    "audioFilters": [{
+      "pitch": {
+        "pitchShift": 285
+      }
+    }]
+  },
+  "sounds": [{
+    "type": "background",
+    "trackName": "music.ogg",
+    "volume": 0.08
+  }],
+  "recordDuration": 10
+}

@@ -1,0 +1,31 @@
+{
+  "name": "SnapBubblesGlasses",
+  "recordDuration": 15,
+  "sounds": [
+    {
+      "trackName": "music.ogg",
+      "volume": 1.0,
+      "type": "background"
+    }
+  ],
+  "frx": {
+    "type": "MEDIA",
+    "media": {
+      "type": "VIDEO",
+      "file": "bokeh.mp4"
+    }
+  },
+  "final" : {
+      "type" : "FILTER",
+
+      "filter" : {
+        "fragmentCode" : "finalColorFilter.fsh",
+        "textures" : [{
+          "file" : "nash.png",
+          "sampler" : "lookupTexture",
+          "magFilter" : "LINEAR",
+          "minFilter" : "LINEAR"
+        }] 
+      }
+  }
+}

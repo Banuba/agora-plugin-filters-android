@@ -1,0 +1,45 @@
+{
+  "name": "Space",
+  "frx": {
+    "type": "3d_anim",
+    "3d_anim": {
+      "type": "vfx"
+    }
+  },
+  "camera": {
+      "type": "MEDIA",
+      "media": {
+          "type": "PICTURE",
+          "file": "space.png",
+          "opacity": 0.7,
+          "blend": "HARD_LIGHT"
+       }
+  }, 
+  "foreground": {
+    "type": "MEDIA",
+    "media": {
+      "type": "VIDEO",
+      "file": "space.mp4",
+      "opacity": 1.0,
+      "videoSpeed": 1.0,
+      "blend": "HARD_LIGHT",
+      "mode": "RGBA"
+    }
+  },
+  "final" : {
+      "type" : "FILTER",
+      "filter" : {
+        "fragmentCode" : "finalColorFilter.fsh",
+        "textures" : [{
+          "file" : "space_lut.png",
+          "sampler" : "lookupTexture",
+          "magFilter" : "LINEAR",
+          "minFilter" : "LINEAR"
+        }] 
+      }
+  },
+  "sounds" : [
+                  { "trackName" : "music.ogg" }
+                  ], 
+  "recordDuration" : 15
+}
