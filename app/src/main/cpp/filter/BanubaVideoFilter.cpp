@@ -29,18 +29,14 @@ namespace agora::extension {
 
     void BanubaVideoFilter::getProcessMode(rtc::IExtensionVideoFilter::ProcessMode &mode,
                                            bool &independent_thread) {
-        mode = rtc::IExtensionVideoFilter::ProcessMode::kSync;
+        mode = rtc::IExtensionVideoFilter::ProcessMode::kAsync;
         independent_thread = false;
     }
 
-    rtc::IExtensionVideoFilter::ProcessResult BanubaVideoFilter::adaptVideoFrame(
-            agora_refptr<rtc::IVideoFrame> in,
-            agora_refptr<rtc::IVideoFrame> &out
+    rtc::IExtensionVideoFilter::ProcessResult BanubaVideoFilter::pendVideoFrame(
+            agora_refptr<rtc::IVideoFrame> frame
     ) {
-        agora::rtc::VideoFrameData captured_frame;
-        in->getVideoFrameData(captured_frame);
-        m_video_processor->process_frame(captured_frame);
-        out = in;
+        m_video_processor->process_frame(frame);
         return rtc::IExtensionVideoFilter::ProcessResult::kSuccess;
     }
 

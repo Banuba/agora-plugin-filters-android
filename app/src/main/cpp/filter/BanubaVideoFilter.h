@@ -23,10 +23,7 @@ namespace agora::extension {
 
         void getProcessMode(ProcessMode &mode, bool &independent_thread) override;
 
-        ProcessResult adaptVideoFrame(
-                agora_refptr<rtc::IVideoFrame> in,
-                agora_refptr<rtc::IVideoFrame> &out
-        ) override;
+        ProcessResult pendVideoFrame(agora_refptr<rtc::IVideoFrame> frame) override;
 
         void setEnabled(bool enable) override;
         bool isEnabled() override;

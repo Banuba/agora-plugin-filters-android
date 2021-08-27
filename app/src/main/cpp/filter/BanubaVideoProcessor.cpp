@@ -11,9 +11,14 @@ namespace agora::extension {
     BanubaVideoProcessor::BanubaVideoProcessor() = default;
 
     void BanubaVideoProcessor::process_frame(
-            const agora::rtc::VideoFrameData &captured_frame
+            const agora_refptr<rtc::IVideoFrame> &frame
     ) {
-        if (!m_is_initialized) return;
+        if (!m_is_initialized) {
+            m_control->deliverVideoFrame(frame);
+            return;
+        }
+        agora::rtc::VideoFrameData captured_frame;
+        frame->getVideoFrameData(captured_frame);
         if (!m_oep ||
             m_image_format.width != captured_frame.width ||
             m_image_format.height != captured_frame.height) {
@@ -33,22 +38,31 @@ namespace agora::extension {
         );
         auto image_ptr = std::make_shared<bnb::full_image_t>(std::move(yuv_image));
         auto pb = m_oep->process_image(image_ptr, m_target_orient);
-        auto image = pb->get_rgba();
-        if (image.has_value()) {
-            auto &rgba_image = image->get_data<bnb::bpc8_image_t>();
-            libyuv::ABGRToNV12(rgba_image.get_data(), m_image_format.width * 4,
-                               pixels, captured_frame.width,
-                               pixels + y_size, captured_frame.width,
-                               captured_frame.width, captured_frame.height);
-        }
-        pb->unlock();
+        auto convert_callback = [this, pb, frame, captured_frame, time_begin](
+                std::optional<bnb::full_image_t> image
+        ) {
+            if (image.has_value()) {
+                auto pixels = captured_frame.pixels.data;
+                auto &rgba_image = image->get_data<bnb::bpc8_image_t>();
+                int32_t y_size = captured_frame.width * captured_frame.height;
+                libyuv::ABGRToNV12(rgba_image.get_data(), m_image_format.width * 4,
+                                   pixels, captured_frame.width,
+                                   pixels + y_size, captured_frame.width,
+                                   captured_frame.width, captured_frame.height);
+
+                m_control->deliverVideoFrame(frame);
+            }
+            pb->unlock();
 #ifdef DEBUG
-        std::chrono::steady_clock::time_point time_end = std::chrono::steady_clock::now();
-        auto time_result = std::chrono::duration_cast<std::chrono::milliseconds>(
-                time_end - time_begin).count();
-        send_event("processFrame",
-                   std::string("Processing time ms: ").append(std::to_string(time_result)).c_str());
+            std::chrono::steady_clock::time_point time_end = std::chrono::steady_clock::now();
+            auto time_result = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    time_end - time_begin).count();
+            send_event("processFrame",
+                       std::string("Processing time ms: ").append(
+                               std::to_string(time_result)).c_str());
 #endif
+        };
+        pb->get_rgba_async(convert_callback);
     }
 
     void BanubaVideoProcessor::set_parameter(
@@ -77,8 +91,11 @@ namespace agora::extension {
     }
 
     void BanubaVideoProcessor::initialize() {
-        if (m_client_token.empty() || m_path_to_resources.empty() || m_path_to_effects.empty()) return;
-        bnb::interfaces::utility_manager::initialize({m_path_to_resources,m_path_to_effects}, m_client_token);
+        if (m_client_token.empty() || m_path_to_resources.empty() ||
+            m_path_to_effects.empty())
+            return;
+        bnb::interfaces::utility_manager::initialize({m_path_to_resources, m_path_to_effects},
+                                                     m_client_token);
         m_is_initialized = true;
     }
 

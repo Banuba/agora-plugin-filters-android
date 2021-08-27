@@ -16,7 +16,7 @@ namespace agora::extension {
 
         BanubaVideoProcessor();
 
-        void process_frame(const agora::rtc::VideoFrameData &captured_frame);
+        void process_frame(const agora_refptr<rtc::IVideoFrame> &frame);
 
         void set_parameter(const std::string &key, const std::string &parameter);
 
