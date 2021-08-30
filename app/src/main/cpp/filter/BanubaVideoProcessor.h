@@ -45,6 +45,6 @@ namespace agora::extension {
         ioep_sptr m_oep;
 
         bnb::image_format m_image_format;
-        bnb::interfaces::orient_format m_target_orient{bnb::camera_orientation::deg_0, false};
+        bnb::interfaces::orient_format m_target_orient{bnb::camera_orientation::deg_270, false};
     };
 }

@@ -42,7 +42,7 @@ namespace bnb {
     private:
         void create_context();
 
-        void generate_texture(GLuint &texture);
+        void generate_texture(GLuint &texture, uint32_t width, uint32_t height);
 
         void prepare_post_processing_rendering();
 

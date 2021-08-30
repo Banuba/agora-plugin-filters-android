@@ -101,12 +101,15 @@ namespace agora::extension {
 
     void BanubaVideoProcessor::create_ep(int32_t width, int32_t height) {
         auto ort = std::make_shared<bnb::offscreen_render_target>(width, height);
-        m_oep = bnb::interfaces::offscreen_effect_player::create(width, height, ort);
+        //TODO: check orientation before
+        m_oep = bnb::interfaces::offscreen_effect_player::create(height, width, ort);
         m_oep->enable_audio(false);
 
         m_image_format.width = width;
         m_image_format.height = height;
-        m_image_format.orientation = bnb::camera_orientation::deg_0;
+        m_image_format.require_mirroring = true;
+        //TODO: check orientation before
+        m_image_format.orientation = bnb::camera_orientation::deg_270;
     }
 
     void BanubaVideoProcessor::send_event(const char *key, const char *data) {

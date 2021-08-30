@@ -306,10 +306,14 @@ namespace bnb {
 
     }
 
-    void offscreen_render_target::generate_texture(GLuint &texture) {
+    void offscreen_render_target::generate_texture(
+            GLuint &texture,
+            uint32_t width,
+            uint32_t height
+    ) {
         GL_CALL(glGenTextures(1, &texture));
         GL_CALL(glBindTexture(GL_TEXTURE_2D, texture));
-        GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA,
+        GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
                              GL_UNSIGNED_BYTE, NULL));
 
         GL_CALL(glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_MIN_FILTER), GL_NEAREST));
@@ -321,13 +325,17 @@ namespace bnb {
     }
 
     void offscreen_render_target::prepare_rendering() {
+        //TODO: check orientation before
+        uint32_t width = m_height;
+        uint32_t height = m_width;
         if (m_offscreen_render_texture == 0) {
-            generate_texture(m_offscreen_render_texture);
+            generate_texture(m_offscreen_render_texture, width, height);
         }
 
         GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer));
         GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                                        m_offscreen_render_texture, 0));
+        GL_CALL(glViewport(0, 0, GLsizei(width), GLsizei(height)));
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -340,7 +348,7 @@ namespace bnb {
 
     void offscreen_render_target::prepare_post_processing_rendering() {
         if (m_offscreen_post_processuing_render_texture == 0) {
-            generate_texture(m_offscreen_post_processuing_render_texture);
+            generate_texture(m_offscreen_post_processuing_render_texture, m_width, m_height);
         }
         GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, m_post_processing_framebuffer));
         GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
