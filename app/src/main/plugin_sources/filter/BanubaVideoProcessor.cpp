@@ -2,9 +2,7 @@
 #include <chrono>
 #include <optional>
 #include <utility>
-#include <lib_yuv/libyuv.h>
-
-#define DEBUG
+#include <libyuv.h>
 
 namespace agora::extension {
 
@@ -24,9 +22,6 @@ namespace agora::extension {
             m_image_format.height != captured_frame.height) {
             create_ep(captured_frame.width, captured_frame.height);
         }
-#ifdef DEBUG
-        std::chrono::steady_clock::time_point time_begin = std::chrono::steady_clock::now();
-#endif
         auto pixels = captured_frame.pixels.data;
         int32_t y_size = captured_frame.width * captured_frame.height;
         auto yuv_image = bnb::full_image_t(
@@ -38,7 +33,7 @@ namespace agora::extension {
         );
         auto image_ptr = std::make_shared<bnb::full_image_t>(std::move(yuv_image));
         auto pb = m_oep->process_image(image_ptr, m_target_orient);
-        auto convert_callback = [this, pb, frame, captured_frame, time_begin](
+        auto convert_callback = [this, pb, frame, captured_frame](
                 std::optional<bnb::full_image_t> image
         ) {
             if (image.has_value()) {
@@ -53,14 +48,6 @@ namespace agora::extension {
                 m_control->deliverVideoFrame(frame);
             }
             pb->unlock();
-#ifdef DEBUG
-            std::chrono::steady_clock::time_point time_end = std::chrono::steady_clock::now();
-            auto time_result = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    time_end - time_begin).count();
-            send_event("processFrame",
-                       std::string("Processing time ms: ").append(
-                               std::to_string(time_result)).c_str());
-#endif
         };
         pb->get_rgba_async(convert_callback);
     }

@@ -40,11 +40,11 @@ android {
         jvmTarget = '1.8'
     }
 
-    externalNativeBuild {
+  /*  externalNativeBuild {
         cmake {
-            path "src/main/cpp/CMakeLists.txt"
+            path "src/main/plugin_sources/CMakeLists.txt"
         }
-    }
+    }*/
 
     buildFeatures {
         viewBinding true
@@ -77,4 +77,4 @@ task extractAAR(type: Copy) {
     includeEmptyDirs = false
 }
 
-preBuild.dependsOn extractAAR
+//preBuild.dependsOn extractAAR

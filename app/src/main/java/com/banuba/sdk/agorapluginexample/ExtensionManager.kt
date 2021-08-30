@@ -5,7 +5,7 @@ import androidx.annotation.Keep
 @Keep
 object ExtensionManager {
 
-    const val EXTENSION_NAME = "plugin-lib"
+    const val EXTENSION_NAME = "banuba-plugin"
     const val VENDOR_NAME = "Banuba"
     const val VIDEO_FILTER_NAME = "BanubaFilter"
 

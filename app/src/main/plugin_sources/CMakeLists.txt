@@ -26,7 +26,7 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/agora_rtc_kit)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/offscreen_effect_player)
 
 add_library(
-        plugin-lib
+        banuba-plugin
 
         SHARED
 
@@ -35,9 +35,9 @@ add_library(
         filter/BanubaVideoProcessor.cpp
         plugin_lib.cpp
 )
-target_include_directories(plugin-lib PRIVATE ${PROJECT_SOURCE_DIR})
+target_include_directories(banuba-plugin PRIVATE ${PROJECT_SOURCE_DIR})
 target_link_libraries(
-        plugin-lib
+        banuba-plugin
         android
         log
         offscreen_ep
