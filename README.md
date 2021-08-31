@@ -37,7 +37,7 @@ RtcEngineConfig().apply {
  ...
 }
 ```
-[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L51)
+[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L51)
 
 Create and initialize BanubaResourceManager:
 ```kotlin
@@ -45,7 +45,7 @@ private val banubaResourceManager by lazy(LazyThreadSafetyMode.NONE) {
   BanubaResourceManager(this)
 }
 ```
-[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L36)
+[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L36)
 
 ```kotlin
 override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,7 +53,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
   banubaResourceManager.prepare()
 }
 ```
-[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L93)
+[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L93)
 
 After those steps enable and initialize extension:
 ```kotlin
@@ -63,7 +63,7 @@ agoraRtc.enableExtension(
   true
 )
 ```
-[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L125)
+[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L125)
 ```kotlin
 private fun initBanubaPlugin() {
   agoraRtc.setExtensionProperty(
@@ -86,7 +86,7 @@ private fun initBanubaPlugin() {
   )
 }
 ```
-[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L160)
+[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L160)
 
 To enable/disable effects use the following code:
 ```kotlin
@@ -105,7 +105,7 @@ private fun sendEffectToFilter(effect: String) {
   )
 }
 ```
-[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L79)
+[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L79)
 
 ```kotlin
 banubaResourceManager.prepareEffect(Effect name, onEffectPrepared)
