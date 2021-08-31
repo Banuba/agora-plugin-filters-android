@@ -112,9 +112,9 @@ To retrieve current effects use the following code:
 val effects: List<ArEffect> = BanubaEffectsLoader(this).loadEffects()
 ```
 
-ArEffect contains following information:
+ArEffect contains following information:\
   `name: String` - pass to `banubaResourceManager.prepareEffect(Effect name, onEffectPrepared)`.
-  Also can be used to display label on the UI
+  Also can be used to display label on the UI\
   `preview: Bitmap` - can be used as preview image
 
 To modify effects, add or remove effect folder in `app/src/main/assets/effects` directory.
