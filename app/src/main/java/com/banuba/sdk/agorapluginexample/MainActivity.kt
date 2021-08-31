@@ -8,7 +8,10 @@ import android.view.SurfaceView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.banuba.sdk.agorapluginexample.model.ArEffect
+import com.banuba.agora.plugin.BanubaEffectsLoader
+import com.banuba.agora.plugin.BanubaExtensionManager
+import com.banuba.agora.plugin.BanubaResourceManager
+import com.banuba.agora.plugin.model.ArEffect
 import com.banuba.sdk.agorapluginexample.widget.carousel.EffectsCarouselView
 import io.agora.rtc2.Constants
 import io.agora.rtc2.IMediaExtensionObserver
@@ -45,7 +48,7 @@ class MainActivity : AppCompatActivity() {
             mContext = this@MainActivity
             mAppId = AGORA_APP_ID
             System.loadLibrary("banuba")
-            addExtension(ExtensionManager.EXTENSION_NAME)
+            addExtension(BanubaExtensionManager.EXTENSION_NAME)
             mEventHandler = agoraEventHandler
             mExtensionObserver = agoraExtensionObserver
         }
@@ -120,8 +123,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun initAgoraEngine() {
         agoraRtc.enableExtension(
-            ExtensionManager.VENDOR_NAME,
-            ExtensionManager.VIDEO_FILTER_NAME,
+            BanubaExtensionManager.VENDOR_NAME,
+            BanubaExtensionManager.VIDEO_FILTER_NAME,
             true
         )
         val localSurfaceView = setupLocalVideo()
@@ -156,30 +159,30 @@ class MainActivity : AppCompatActivity() {
 
     private fun initBanubaPlugin() {
         agoraRtc.setExtensionProperty(
-            ExtensionManager.VENDOR_NAME,
-            ExtensionManager.VIDEO_FILTER_NAME,
-            ExtensionManager.KEY_SET_RESOURCES_PATH,
+            BanubaExtensionManager.VENDOR_NAME,
+            BanubaExtensionManager.VIDEO_FILTER_NAME,
+            BanubaExtensionManager.KEY_SET_RESOURCES_PATH,
             banubaResourceManager.resourcesPath
         )
         agoraRtc.setExtensionProperty(
-            ExtensionManager.VENDOR_NAME,
-            ExtensionManager.VIDEO_FILTER_NAME,
-            ExtensionManager.KEY_SET_EFFECTS_PATH,
+            BanubaExtensionManager.VENDOR_NAME,
+            BanubaExtensionManager.VIDEO_FILTER_NAME,
+            BanubaExtensionManager.KEY_SET_EFFECTS_PATH,
             banubaResourceManager.effectsPath
         )
         agoraRtc.setExtensionProperty(
-            ExtensionManager.VENDOR_NAME,
-            ExtensionManager.VIDEO_FILTER_NAME,
-            ExtensionManager.KEY_SET_TOKEN,
+            BanubaExtensionManager.VENDOR_NAME,
+            BanubaExtensionManager.VIDEO_FILTER_NAME,
+            BanubaExtensionManager.KEY_SET_TOKEN,
             BANUBA_CLIENT_TOKEN
         )
     }
 
     private fun sendEffectToFilter(effect: String) {
         agoraRtc.setExtensionProperty(
-            ExtensionManager.VENDOR_NAME,
-            ExtensionManager.VIDEO_FILTER_NAME,
-            ExtensionManager.KEY_LOAD_EFFECT,
+            BanubaExtensionManager.VENDOR_NAME,
+            BanubaExtensionManager.VIDEO_FILTER_NAME,
+            BanubaExtensionManager.KEY_LOAD_EFFECT,
             effect
         )
     }

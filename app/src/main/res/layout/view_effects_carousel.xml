@@ -5,16 +5,6 @@
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
     <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/effectsCarouselExitButton"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:visibility="gone"
-        android:src="@drawable/ic_cross"
-        app:layout_constraintEnd_toEndOf="@+id/effectsCarouselSelectionCircle"
-        app:layout_constraintStart_toStartOf="@+id/effectsCarouselSelectionCircle"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/effectsCarouselSelectionCircle"
         android:layout_width="@dimen/effects_preview_selected_size"
         android:layout_height="@dimen/effects_preview_selected_size"
@@ -22,7 +12,7 @@
         android:src="@drawable/ic_circle"
         app:layout_constraintEnd_toEndOf="@+id/effectsCarouselRecyclerView"
         app:layout_constraintStart_toStartOf="@+id/effectsCarouselRecyclerView"
-        app:layout_constraintTop_toBottomOf="@+id/effectsCarouselExitButton"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_goneMarginTop="0dp" />
 
     <androidx.recyclerview.widget.RecyclerView

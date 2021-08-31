@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.banuba.sdk.agorapluginexample.R
 import com.banuba.sdk.agorapluginexample.databinding.ItemCarouselEffectBinding
-import com.banuba.sdk.agorapluginexample.model.ArEffect
+import com.banuba.agora.plugin.model.ArEffect
 
 private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<ArEffect>() {
 

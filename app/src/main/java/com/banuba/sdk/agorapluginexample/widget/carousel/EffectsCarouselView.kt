@@ -7,11 +7,10 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.doOnLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.banuba.agora.plugin.model.ArEffect
 import com.banuba.sdk.agorapluginexample.R
 import com.banuba.sdk.agorapluginexample.databinding.ViewEffectsCarouselBinding
 import com.banuba.sdk.agorapluginexample.ext.dimenPx
-import com.banuba.sdk.agorapluginexample.ext.setOneFirePerIntervalClickListener
-import com.banuba.sdk.agorapluginexample.model.ArEffect
 import kotlin.math.abs
 
 class EffectsCarouselView @JvmOverloads constructor(
@@ -21,8 +20,6 @@ class EffectsCarouselView @JvmOverloads constructor(
     interface ActionCallback {
 
         fun onEffectsSelected(effect: ArEffect)
-
-        fun onClose() {}
     }
 
     companion object {
@@ -64,15 +61,14 @@ class EffectsCarouselView @JvmOverloads constructor(
         }
     }
 
-    private val binding =
-        ViewEffectsCarouselBinding.inflate(LayoutInflater.from(context), this)
+    private val binding = ViewEffectsCarouselBinding.inflate(
+        LayoutInflater.from(context),
+        this
+    )
 
     init {
         clipChildren = false
         setupRecyclerView()
-        binding.effectsCarouselExitButton.setOneFirePerIntervalClickListener {
-            actionCallback?.onClose()
-        }
     }
 
     fun setEffectsList(
