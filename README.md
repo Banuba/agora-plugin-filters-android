@@ -37,7 +37,7 @@ RtcEngineConfig().apply {
  ...
 }
 ```
-[Example](src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L51)
+[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L51)
 
 Create and initialize BanubaResourceManager:
 ```kotlin
@@ -45,7 +45,7 @@ private val banubaResourceManager by lazy(LazyThreadSafetyMode.NONE) {
   BanubaResourceManager(this)
 }
 ```
-[Example](src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L36)
+[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L36)
 
 ```kotlin
 override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,7 +53,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
   banubaResourceManager.prepare()
 }
 ```
-[Example](src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L93)
+[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L93)
 
 After those steps enable and initialize extension:
 ```kotlin
@@ -63,7 +63,7 @@ agoraRtc.enableExtension(
   true
 )
 ```
-[Example](src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L125)
+[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L125)
 ```kotlin
 private fun initBanubaPlugin() {
   agoraRtc.setExtensionProperty(
@@ -86,7 +86,7 @@ private fun initBanubaPlugin() {
   )
 }
 ```
-[Example](src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L160)
+[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L160)
 
 To enable/disable effects use the following code:
 ```kotlin
@@ -105,7 +105,7 @@ private fun sendEffectToFilter(effect: String) {
   )
 }
 ```
-[Example](src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L79)
+[Example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity#L79)
 
 ```kotlin
 banubaResourceManager.prepareEffect(Effect name, onEffectPrepared)
@@ -123,8 +123,8 @@ ArEffect contains following information:
   Also can be used to display label on the UI
   `preview: Bitmap` - can be used as preview image
 
-To modify effects add or remove effect folder in `app/src/main/assets/effects` directory.
-By default sample contains following effects:
+To modify effects, add or remove effect folder in `app/src/main/assets/effects` directory.
+By default sample contains the following effects:
 1. ElvisUnleashed
 2. EnglandEightPieceCap
 3. FashionHistory1940_male
