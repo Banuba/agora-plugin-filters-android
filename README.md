@@ -2,7 +2,11 @@ Examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar-sdk/android
 
 # Getting Started
 
-1. Get the latest Banuba SDK archive for Android and the client token. Please fill in our form on [form on banuba.com](https://www.banuba.com/face-filters-sdk) website, or contact us via [info@banuba.com](mailto:info@banuba.com).
+1. Get
+(a) the latest Banuba SDK archive,
+(b) [BanubaFiltersAgoraExtension for iOS](https://f.hubspotusercontent10.net/hubfs/4992313/Agora_Banuba_Extension/AgoraBanubaExtension(iOS).zip),
+(c) [Banuba trial client token](https://docs.agora.io/en/extension_customer/Banuba_downloads).
+To receive full commercial licence from Banuba - please fill in our form on [form on banuba.com](https://www.banuba.com/face-filters-sdk) website, or contact us via [info@banuba.com](mailto:info@banuba.com).
 2. Copy `aar` files from the Banuba SDK archive into `libs` dir:
     `BNBEffectPlayer/banuba_effect_player-release.aar` => `app/libs/`
 3. Get the latest Banuba Agora plugin library for Android.
