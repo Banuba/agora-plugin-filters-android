@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
             mEventHandler = agoraEventHandler
             mExtensionObserver = agoraExtensionObserver
         }
+        Log.d("AgoraRtcEngine","Agora sdk version: ${RtcEngine.getSdkVersion()}")
         RtcEngine.create(config)
     }
     private val agoraExtensionObserver = IMediaExtensionObserver { vendor, ext, key, value ->
