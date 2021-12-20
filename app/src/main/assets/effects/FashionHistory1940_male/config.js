@@ -17,7 +17,7 @@ function Effect() {
             }
         }
 
-        // if(isMouthOpen(world.landmarks, world.latents)) {
+        // if(Api.isMouthOpen()) {
         //  Api.hideHint();
         // }
     };
@@ -32,7 +32,7 @@ function Effect() {
             self.meshes[i].animIdx = -1;
             self.meshes[i].endTime = 0;
         }
-        Api.playSound("1940_music_v2.ogg", true, 1);
+        //Api.playSound("1940_music_v2.ogg", true, 1);
 
         self.faceActions = [self.play];
         // Api.showHint("Open mouth");
@@ -44,7 +44,7 @@ function Effect() {
     this.restart = function() {
         Api.meshfxReset();
         // Api.stopVideo("frx");
-        Api.stopSound("1940_music_v2.ogg");
+        //Api.stopSound("1940_music_v2.ogg");
         self.init();
     };
 

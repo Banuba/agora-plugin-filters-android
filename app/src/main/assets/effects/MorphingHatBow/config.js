@@ -45,7 +45,7 @@ function Effect() {
         self.removeHint = (new Date()).getTime() + 5000;
         // Api.showHint("Open mouth");
         // Api.playVideo("frx",true,1);
-        Api.playSound("music.ogg",true,1);
+        // Api.playSound("music.ogg",true,1);
         Api.showRecordButton();
         self.faceActions = [this.play];
     };
@@ -53,7 +53,7 @@ function Effect() {
     this.removeSound = function() {
         if(Api.getPlatform() == "ios") {
             Api.hideHint();
-            Api.stopSound("music.ogg");
+            // Api.stopSound("music.ogg");
         };
     };
 

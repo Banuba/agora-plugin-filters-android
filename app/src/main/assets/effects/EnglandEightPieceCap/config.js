@@ -16,7 +16,7 @@ function Effect() {
         if (now > self.time){
             Api.hideHint();
         };
-        if(isMouthOpen(world.landmarks, world.latents)) {
+        if(Api.isMouthOpen()) {
             Api.hideHint();
         };
     };
@@ -30,7 +30,7 @@ function Effect() {
         Api.meshfxMsg("spawn", 1, 0, "hat.bsm2");
         // Api.meshfxMsg("animOnce", 1, 0, "Take 001");
 
-        Api.showHint("")
+        Api.showHint("Voice changer")
         self.time = (new Date()).getTime() + 5000;
         self.faceActions = [self.play];
         // Api.showHint("Open mouth");

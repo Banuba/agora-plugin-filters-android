@@ -20,7 +20,7 @@ function Effect() {
             }
         }
 
-        // if(isMouthOpen(world.landmarks, world.latents)) {
+        // if(Api.isMouthOpen()) {
         //  Api.hideHint();
         // }
     };
