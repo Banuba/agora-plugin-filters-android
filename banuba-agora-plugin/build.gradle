@@ -4,14 +4,11 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 31
 
     defaultConfig {
         minSdkVersion 23
-        targetSdkVersion 30
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion 31
 
         externalNativeBuild {
             cmake {
@@ -56,10 +53,9 @@ dependencies {
     compileOnly(name: 'banuba_effect_player-release', ext: 'aar')
     compileOnly(name: 'agora-rtc-sdk', ext: 'jar')
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.5.30"
-    implementation 'androidx.core:core-ktx:1.6.0'
-    implementation 'androidx.appcompat:appcompat:1.3.1'
-    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'androidx.core:core-ktx:1.7.0'
+    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'com.google.android.material:material:1.5.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.1'
 }
 
