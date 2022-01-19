@@ -1,2 +1,3 @@
 rootProject.name = "Banuba Agora-plugin android"
 include ':app'
+include ':banuba-agora-plugin'

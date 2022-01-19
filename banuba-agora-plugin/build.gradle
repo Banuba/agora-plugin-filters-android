@@ -1,7 +1,6 @@
 plugins {
-    id 'com.android.application'
+    id 'com.android.library'
     id 'kotlin-android'
-    id 'kotlin-android-extensions'
 }
 
 android {
@@ -9,7 +8,6 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "com.banuba.sdk.agorapluginexample"
         minSdkVersion 23
         targetSdkVersion 30
         versionCode 1
@@ -17,10 +15,11 @@ android {
 
         externalNativeBuild {
             cmake {
-                abiFilters "armeabi-v7a", "arm64-v8a", "x86_64"
+                arguments "-DANDROID_STL=c++_shared"
+                arguments "-DUSE_BNB_OEP_CAMERA=OFF"
             }
             ndk {
-                abiFilters "armeabi-v7a", "arm64-v8a", "x86_64"
+                abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"
             }
         }
     }
@@ -31,6 +30,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -38,22 +38,23 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-
+/*
     sourceSets {
         main {
             jniLibs.srcDirs = ['../libs/jniLibs']
         }
     }
-
-    buildFeatures {
-        viewBinding true
+*/
+    externalNativeBuild {
+        cmake {
+            path "src/main/plugin_sources/CMakeLists.txt"
+        }
     }
 }
 
 dependencies {
-    implementation(name: 'banuba_effect_player-release', ext: 'aar')
-    implementation(name: 'agora-rtc-sdk', ext: 'jar')
-    implementation project(':banuba-agora-plugin')
+    compileOnly(name: 'banuba_effect_player-release', ext: 'aar')
+    compileOnly(name: 'agora-rtc-sdk', ext: 'jar')
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.5.30"
     implementation 'androidx.core:core-ktx:1.6.0'
@@ -61,3 +62,22 @@ dependencies {
     implementation 'com.google.android.material:material:1.4.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.1'
 }
+
+
+task extractAAR(type: Copy) {
+    println 'Extracting *.so file(s)....'
+
+    from zipTree("../libs/banuba_effect_player-release.aar")
+    into "libs/lib/"
+    include "jni/**/*.so"
+
+    eachFile {
+        def segments = it.getRelativePath().getSegments() as List
+        println segments
+        it.setPath(segments.tail().join("/"))
+        return it
+    }
+    includeEmptyDirs = false
+}
+
+preBuild.dependsOn extractAAR
