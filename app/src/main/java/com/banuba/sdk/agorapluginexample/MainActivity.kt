@@ -84,6 +84,7 @@ class MainActivity : AppCompatActivity() {
     }
     private val effectsCarouselCallback = object : EffectsCarouselView.ActionCallback {
         override fun onEffectsSelected(effect: ArEffect) {
+            if (effect == ArEffect.EMPTY) return
             banubaResourceManager.prepareEffect(effect.name, onEffectPrepared)
         }
     }

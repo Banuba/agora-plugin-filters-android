@@ -46,13 +46,9 @@ class BanubaResourceManager(private val context: Context) {
 
     fun prepareEffect(name: String, callback: EffectPreparedCallback) {
         val deviceDirPath = "$effectsPath/$name"
-        File(deviceDirPath).mkdirs()
         val assetsDirPath = "${EFFECTS_PATH}/$name"
         scope.launch {
-            val effectFiles = context.assets.list(assetsDirPath) ?: emptyArray()
-            effectFiles.forEach { file ->
-                copyFile(sourcePath = "$assetsDirPath/$file", destFile = File(deviceDirPath, file))
-            }
+            copyAssets(assetsDirPath, deviceDirPath)
             callback.onPrepared(name)
         }
     }
@@ -67,17 +63,13 @@ class BanubaResourceManager(private val context: Context) {
         ).forEach {
             copyFile(it, File(destDir, it))
         }
-        val zipFile = File(destDir,
-            RESOURCES_ARCHIVE_NAME
-        )
+        val zipFile = File(destDir, RESOURCES_ARCHIVE_NAME)
         unzip(destDir, zipFile)
         zipFile.delete()
     }
 
     private fun shouldCopyResources(destDir: File): Boolean = try {
-        val checksumCurrent = File(destDir,
-            RESOURCES_CHECKSUM_FILE
-        ).readBytes()
+        val checksumCurrent = File(destDir, RESOURCES_CHECKSUM_FILE).readBytes()
         val referenceChecksum = assetManager.open(RESOURCES_CHECKSUM_FILE).readBytes()
         !checksumCurrent.contentEquals(referenceChecksum)
     } catch (e: IOException) {
@@ -102,6 +94,22 @@ class BanubaResourceManager(private val context: Context) {
         }
     } catch (e: IOException) {
         Log.w(TAG, "unzip error", e)
+    }
+
+    private fun copyAssets(from: String, to: String) {
+        val files = context.assets.list(from) ?: emptyArray()
+        File(to).mkdirs()
+        files.forEach {
+            val absoluteAssetsPath = "$from/$it"
+            if (context.assets.list(absoluteAssetsPath)?.size != 0) {
+                copyAssets(
+                    absoluteAssetsPath,
+                    "$to/$it"
+                )
+            } else {
+                copyFile(absoluteAssetsPath, File("$to/$it"))
+            }
+        }
     }
 
     private fun copyFile(sourcePath: String, destFile: File) = try {
