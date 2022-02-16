@@ -13,6 +13,7 @@ import com.banuba.agora.plugin.BanubaExtensionManager
 import com.banuba.agora.plugin.BanubaResourceManager
 import com.banuba.agora.plugin.model.ArEffect
 import com.banuba.sdk.agorapluginexample.widget.carousel.EffectsCarouselView
+import com.banuba.sdk.utils.ContextProvider
 import io.agora.rtc2.Constants
 import io.agora.rtc2.IMediaExtensionObserver
 import io.agora.rtc2.IRtcEngineEventHandler
@@ -49,6 +50,7 @@ class MainActivity : AppCompatActivity() {
             mAppId = AGORA_APP_ID
             System.loadLibrary("banuba")
             addExtension(BanubaExtensionManager.EXTENSION_NAME)
+            ContextProvider.setContext(mContext)
             mEventHandler = agoraEventHandler
             mExtensionObserver = agoraExtensionObserver
         }
