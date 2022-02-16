@@ -4,7 +4,7 @@ Examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar-sdk-v1/andr
 
 1. Get the latest Banuba SDK archive, [Banuba trial client token](https://www.banuba.com/facear-sdk/face-filters).
 To receive full commercial license from Banuba - please fill in our form on [form on banuba.com](https://www.banuba.com/face-filters-sdk) website, or contact us via [info@banuba.com](mailto:info@banuba.com).
-2. Copy `aar` files from the Banuba SDK archive into `libs` dir:
+2. Copy `.aar` file from the Banuba SDK archive into `libs` dir:
    >`banuba_effect_player-release.aar` => `libs/`
 3. Copy `include/bnb` directory into `libs/bnb_sdk/`:
    >`include/bnb` => `libs/bnb_sdk/bnb`
@@ -15,9 +15,9 @@ To receive full commercial license from Banuba - please fill in our form on [for
    >`arm64-v8a`, `armeabi-v7a` and `x86_64` => `libs/jniLibs/`
 7. Copy Agora SDK headers (`*.h` files) into `libs/agora_rtc_sdk/include`:
    >`low_level_api/include` => `libs/agora_rtc_sdk/include`
-8. Copy and Paste your banuba client token into appropriate section of `app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt` with “ ” symbols. For example: BANUBA_CLIENT_TOKEN = “place_your_token_here”
+8. Copy and Paste your Banuba client token into appropriate section of `app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt` with " " symbols. For example: BANUBA_CLIENT_TOKEN = "place_your_token_here"
 9. Visit agora.io to sign up and get token, app ID and channel ID.
-10. Copy and Paste your agora token, app ID and channel ID into appropriate section of `app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt` with “ ” symbols. For example: AGORA_APP_ID = “place_your_token_here”
+10. Copy and Paste your agora token, app ID and channel ID into appropriate section of `app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt` with " " symbols. For example: AGORA_APP_ID = "place_your_token_here"
 11. Open the project in Android Studio and run the necessary target using the usual steps.
 
 # How to use `BanubaFiltersAgoraExtension`
@@ -29,6 +29,7 @@ import com.banuba.agora.plugin.BanubaEffectsLoader
 import com.banuba.agora.plugin.BanubaExtensionManager
 import com.banuba.agora.plugin.BanubaResourceManager
 import com.banuba.agora.plugin.model.ArEffect
+import com.banuba.sdk.utils.ContextProvider
 ```
 
 Add extension to RtcEngineConfig:
@@ -38,6 +39,7 @@ RtcEngineConfig().apply {
  ...
  System.loadLibrary("banuba")
  addExtension(BanubaExtensionManager.EXTENSION_NAME)
+ ContextProvider.setContext(mContext)
  ...
 }
 ```
