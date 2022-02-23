@@ -25,6 +25,12 @@ namespace agora::extension {
         uint8_t* y_plane_data{pixels};
         uint8_t* uv_plane_data = y_plane_data + y_size;
 
+        // Agora doesn't provide the way to "return" processed frame from plugin, just to "modify" it.
+        // But due to Banuba SDK specifics, the input frame should NOT be modified even after processing
+        // (Banuba SDK keeps this buffer internally for future usage).
+        // So the only way to avoid modification of data already passed to Banuba SDK is just a copying
+        // source frame into another buffer (which will be used and stored by Banuba SDK).
+        // TODO: hide this specific on OEP or even SDK side
         using ns = bnb::oep::interfaces::pixel_buffer;
         ns::plane_data y_plane{std::shared_ptr<uint8_t>(new uint8_t[y_size]), 0, captured_frame.width};
         memcpy(y_plane.data.get(), y_plane_data, y_size);
