@@ -35,13 +35,7 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-/*
-    sourceSets {
-        main {
-            jniLibs.srcDirs = ['../libs/jniLibs']
-        }
-    }
-*/
+
     externalNativeBuild {
         cmake {
             path "src/main/plugin_sources/CMakeLists.txt"
