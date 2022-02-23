@@ -20,13 +20,16 @@ namespace agora::extension {
         }
         auto pixels = captured_frame.pixels.data;
         int32_t y_size = captured_frame.width * captured_frame.height;
+        int32_t uv_size = y_size / 2;
 
         uint8_t* y_plane_data{pixels};
         uint8_t* uv_plane_data = y_plane_data + y_size;
 
         using ns = bnb::oep::interfaces::pixel_buffer;
-        ns::plane_data y_plane{std::shared_ptr<uint8_t>(y_plane_data, [frame](uint8_t*) { /* do nothing */ }), 0, captured_frame.width};
-        ns::plane_data uv_plane{std::shared_ptr<uint8_t>(uv_plane_data, [frame](uint8_t*) { /* do nothing */ }), 0, captured_frame.width};
+        ns::plane_data y_plane{std::shared_ptr<uint8_t>(new uint8_t[y_size]), 0, captured_frame.width};
+        memcpy(y_plane.data.get(), y_plane_data, y_size);
+        ns::plane_data uv_plane{std::shared_ptr<uint8_t>(new uint8_t[uv_size]), 0, captured_frame.width};
+        memcpy(uv_plane.data.get(), uv_plane_data, uv_size);
         std::vector<ns::plane_data> planes{y_plane, uv_plane};
 
         pixel_buffer_sptr img = ns::create(planes, bnb::oep::interfaces::image_format::nv12_bt709_full, captured_frame.width, captured_frame.height);
