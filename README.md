@@ -1,5 +1,15 @@
 Examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar-sdk-v1/android/android_overview) and [Agora.io](https://www.agora.io/en/) SDK integration via Agora Plugin Filters to enhance video calls with real-time face filters and virtual backgrounds.
 
+> **Important**
+>
+> [master](../../tree/master) branch is always compatible with latest SDK version. Please use [legacy](../../tree/legacy) branch for SDK version 0.x (e.g. v0.38.x).
+>
+> Repository contains submodule! So aware of it when cloning this repo:
+>
+> ```bash
+> git clone --recursive https://github.com/Banuba/agora-plugin-filters-android.git
+> ```
+
 # Getting Started
 
 1. Get the latest Banuba SDK archive, [Banuba trial client token](https://www.banuba.com/facear-sdk/face-filters).
