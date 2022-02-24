@@ -27,8 +27,8 @@ To receive full commercial license from Banuba - please fill in our form on [for
 7. Copy Agora SDK headers (`*.h` files) into `libs/agora_rtc_sdk/include`:
    >`low_level_api/include` => `libs/agora_rtc_sdk/include`
 8. Copy and Paste your Banuba client token into appropriate section of `app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt` with " " symbols. For example: BANUBA_CLIENT_TOKEN = "place_your_token_here"
-9. Visit agora.io to sign up and get token, app ID and channel ID.
-10. Copy and Paste your agora token, app ID and channel ID into appropriate section of `app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt` with " " symbols. For example: AGORA_APP_ID = "place_your_token_here"
+9. Visit [agora.io](https://console.agora.io) to sign up and get token, app ID and channel ID.
+10. Copy and Paste your Agora token, app ID and channel ID into appropriate section of `app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt` with " " symbols. For example: AGORA_APP_ID = "place_your_token_here"
 11. Open the project in Android Studio and run the necessary target using the usual steps.
 
 # How to use `BanubaFiltersAgoraExtension`
