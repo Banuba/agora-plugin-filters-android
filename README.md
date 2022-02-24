@@ -12,7 +12,7 @@ Examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar-sdk-v1/andr
 
 # Getting Started
 
-0. Make sure that you have Android **NDK** installed! Project contains C++ sources, so this is required! Recommended NDK versions is 21.1.6352462
+0. Make sure that you have Android **NDK** and **CMake** are installed! Project contains C++ sources, so this is required! Recommended NDK versions is 21.1.6352462, required CMake version is 3.9, 3.14 or above is recommended (Android SDK manager provides 3.18.1, it should be installed).
 1. Get the latest Banuba SDK archive, [Banuba trial client token](https://www.banuba.com/facear-sdk/face-filters).
 To receive full commercial license from Banuba - please fill in our form on [form on banuba.com](https://www.banuba.com/face-filters-sdk) website, or contact us via [info@banuba.com](mailto:info@banuba.com).
 2. Copy `.aar` file from the Banuba SDK archive into `libs` dir:
