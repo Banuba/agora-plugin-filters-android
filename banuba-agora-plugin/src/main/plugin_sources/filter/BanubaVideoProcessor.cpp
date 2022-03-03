@@ -43,9 +43,30 @@ namespace agora::extension {
         auto proc_callback = [this, frame, captured_frame] (const image_processing_result_sptr& result) {
             if (result) {
                 auto image_callback = [this, frame, captured_frame] (const pixel_buffer_sptr& out_img) {
-                    int32_t y_size = captured_frame.width * captured_frame.height;
-                    memcpy(captured_frame.pixels.data, out_img->get_base_sptr_of_plane(0).get(), y_size);
-                    memcpy(captured_frame.pixels.data + y_size, out_img->get_base_sptr_of_plane(1).get(), y_size / 2);
+                    // returned image may have stride != width, but agora doesn't provide
+                    // the way to set stride (expects stride == width), so copy image line by line
+                    uint8_t* src_y = out_img->get_base_sptr_of_plane(0).get();
+                    uint8_t* src_uv = out_img->get_base_sptr_of_plane(1).get();
+                    int32_t src_y_stride = out_img->get_bytes_per_row_of_plane(0);
+                    int32_t src_uv_stride = out_img->get_bytes_per_row_of_plane(1);
+                    int32_t src_y_size = src_y_stride * out_img->get_height();
+                    int32_t src_uv_size = src_uv_stride * out_img->get_height() / 2;
+
+                    uint8_t* dst_y = captured_frame.pixels.data;
+                    uint8_t* dst_uv = captured_frame.pixels.data + captured_frame.width * captured_frame.height;
+
+                    // copy Y plane
+                    for (uint8_t* line = src_y; line != src_y + src_y_size; line += src_y_stride) {
+                        memcpy(dst_y, line, captured_frame.width);
+                        dst_y += captured_frame.width;
+                    }
+
+                    // copy UV plane
+                    for (uint8_t* line = src_uv; line != src_uv + src_uv_size; line += src_uv_stride) {
+                        memcpy(dst_uv, line, captured_frame.width);
+                        dst_uv += captured_frame.width;
+                    }
+
                     m_control->deliverVideoFrame(frame);
                 };
                 result->get_image(bnb::oep::interfaces::image_format::nv12_bt709_full, image_callback);
