@@ -10,6 +10,7 @@ object BanubaExtensionManager {
     const val VIDEO_FILTER_NAME = "BanubaFilter"
 
     const val KEY_LOAD_EFFECT = "load_effect"
+    const val KEY_CALL_JS = "call_js"
     const val KEY_SET_RESOURCES_PATH = "set_resources_path"
     const val KEY_SET_EFFECTS_PATH = "set_effects_path"
     const val KEY_SET_TOKEN = "set_token"

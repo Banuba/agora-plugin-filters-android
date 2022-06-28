@@ -85,6 +85,10 @@ namespace agora::extension {
             m_oep->load_effect(parameter);
             return;
         }
+        if (m_oep && key == "call_js") {
+            m_oep->call_js_method(parameter, "");
+            return;
+        }
         if (key == "set_resources_path") {
             m_path_to_resources = parameter;
             initialize();

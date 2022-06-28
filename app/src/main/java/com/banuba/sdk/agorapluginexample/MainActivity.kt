@@ -82,6 +82,16 @@ class MainActivity : AppCompatActivity() {
     private val onEffectPrepared = object : BanubaResourceManager.EffectPreparedCallback {
         override fun onPrepared(effectName: String) {
             sendEffectToFilter(effectName)
+            if (effectName == "Makeup") {
+                // Here you can call methods everything you can find on this link:
+                // https://docs.banuba.com/face-ar-sdk-v1/effect_api/face_beauty
+                // or this link: https://docs.banuba.com/face-ar-sdk-v1/effect_api/makeup
+                // How to use Beauty Filters example:
+                sendCallJs("FaceMorph.eyes(2)");
+                sendCallJs("FaceMorph.face(2)");
+                sendCallJs("FaceMorph.nose(2)");
+                sendCallJs("FaceMorph.lips(2)");
+            }
         }
     }
     private val effectsCarouselCallback = object : EffectsCarouselView.ActionCallback {
@@ -188,6 +198,15 @@ class MainActivity : AppCompatActivity() {
             BanubaExtensionManager.VIDEO_FILTER_NAME,
             BanubaExtensionManager.KEY_LOAD_EFFECT,
             effect
+        )
+    }
+
+    private fun sendCallJs(js: String) {
+        agoraRtc.setExtensionProperty(
+            BanubaExtensionManager.VENDOR_NAME,
+            BanubaExtensionManager.VIDEO_FILTER_NAME,
+            BanubaExtensionManager.KEY_CALL_JS,
+            js
         )
     }
 
