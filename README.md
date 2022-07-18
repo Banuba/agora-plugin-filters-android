@@ -19,9 +19,8 @@ To receive full commercial license from Banuba - please fill in our form on [for
    >`banuba_effect_player-release.aar` => `libs/`
 3. Copy `include/bnb` directory into `libs/bnb_sdk/`:
    >`include/bnb` => `libs/bnb_sdk/bnb`
-4. Download and copy folders of the needed effects into `app/src/main/assets/effects` directory. 
-The effects can be downloaded from [here](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters).
-5. Get [The latest Agora Video SDK archive for android](https://docs.agora.io/en/extension_customer/Banuba_downloads).
+4. Download and copy folders of the needed effects into `app/src/main/assets/effects` directory. The effects can be downloaded from [here](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters).
+5. Get the Agora Video SDK archive for android (v4.0.0 Preview) from [here](https://docs.agora.io/en/extension_customer/Banuba_downloads). 
 6. Copy `jar` files from the Agora Video SDK archive into `libs` dir:
    >`agora-rtc-sdk.jar` => `libs/`
 7. Copy architecture folders from the Agora Video SDK archive into `jniLibs` dir:
