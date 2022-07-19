@@ -1,5 +1,7 @@
 #include "BanubaVideoProcessor.h"
 
+#include <bnb/recognizer/interfaces/utility_manager.hpp>
+
 #include <optional>
 
 namespace agora::extension {
@@ -73,7 +75,7 @@ namespace agora::extension {
             }
         };
 
-        m_oep->process_image_async(img, bnb::oep::interfaces::rotation::deg0,
+        m_oep->process_image_async(img, bnb::oep::interfaces::rotation::deg0, false,
                                    proc_callback, std::nullopt);
     }
 
@@ -83,6 +85,10 @@ namespace agora::extension {
     ) {
         if (m_oep && key == "load_effect") {
             m_oep->load_effect(parameter);
+            return;
+        }
+        if (m_oep && key == "call_js") {
+            m_oep->call_js_method(parameter, "");
             return;
         }
         if (key == "set_resources_path") {
@@ -106,9 +112,16 @@ namespace agora::extension {
         if (m_client_token.empty() || m_path_to_resources.empty() ||
             m_path_to_effects.empty())
             return;
-        m_ep = bnb::oep::interfaces::effect_player::create(
-                {m_path_to_resources, m_path_to_effects}, m_client_token);
-        m_is_initialized = true;
+        constexpr int32_t oep_width = 1280;
+        constexpr int32_t oep_height = 720;
+        // Initialize Banuba SDK
+        if(!m_is_initialized) {
+            bnb::interfaces::utility_manager::initialize({m_path_to_resources, m_path_to_effects}, m_client_token);
+
+            // Create our implementation of effect_player, pass effect player frame buffer sizes
+            m_ep = bnb::oep::interfaces::effect_player::create(oep_width, oep_height);
+            m_is_initialized = true;
+        }
     }
 
     void BanubaVideoProcessor::create_ep(int32_t width, int32_t height) {

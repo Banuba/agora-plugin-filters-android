@@ -19,17 +19,18 @@ To receive full commercial license from Banuba - please fill in our form on [for
    >`banuba_effect_player-release.aar` => `libs/`
 3. Copy `include/bnb` directory into `libs/bnb_sdk/`:
    >`include/bnb` => `libs/bnb_sdk/bnb`
-4. Get [The latest Agora Video SDK archive for android](https://docs.agora.io/en/extension_customer/Banuba_downloads).
-5. Copy `jar` files from the Agora Video SDK archive into `libs` dir:
+4. Download and copy folders of the needed effects into `app/src/main/assets/effects` directory. The effects can be downloaded from [here](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters).
+5. Get the Agora Video SDK archive for android (v4.0.0 Preview) from [here](https://docs.agora.io/en/extension_customer/Banuba_downloads). 
+6. Copy `jar` files from the Agora Video SDK archive into `libs` dir:
    >`agora-rtc-sdk.jar` => `libs/`
-6. Copy architecture folders from the Agora Video SDK archive into `jniLibs` dir:
+7. Copy architecture folders from the Agora Video SDK archive into `jniLibs` dir:
    >`arm64-v8a`, `armeabi-v7a` and `x86_64` => `libs/jniLibs/`
-7. Copy Agora SDK headers (`*.h` files) into `libs/agora_rtc_sdk/include`:
+8. Copy Agora SDK headers (`*.h` files) into `libs/agora_rtc_sdk/include`:
    >`low_level_api/include` => `libs/agora_rtc_sdk/include`
-8. Copy and Paste your Banuba client token into appropriate section of `app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt` with " " symbols. For example: BANUBA_CLIENT_TOKEN = "place_your_token_here"
-9. Visit [agora.io](https://console.agora.io) to sign up and get token, app ID and channel ID.
-10. Copy and Paste your Agora token, app ID and channel ID into appropriate section of `app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt` with " " symbols. For example: AGORA_APP_ID = "place_your_token_here"
-11. Open the project in Android Studio and run the necessary target using the usual steps.
+9. Copy and Paste your Banuba client token into appropriate section of `app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt` with " " symbols. For example: BANUBA_CLIENT_TOKEN = "place_your_token_here"
+10. Visit [agora.io](https://console.agora.io) to sign up and get token, app ID and channel ID.
+11. Copy and Paste your Agora token, app ID and channel ID into appropriate section of `app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt` with " " symbols. For example: AGORA_APP_ID = "place_your_token_here"
+12. Open the project in Android Studio and run the necessary target using the usual steps.
 
 # How to use `BanubaFiltersAgoraExtension`
 
