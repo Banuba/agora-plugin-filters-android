@@ -57,8 +57,22 @@ class MainActivity : AppCompatActivity() {
         Log.d("AgoraRtcEngine","Agora sdk version: ${RtcEngine.getSdkVersion()}")
         RtcEngine.create(config)
     }
-    private val agoraExtensionObserver = IMediaExtensionObserver { vendor, ext, key, value ->
-        Log.d(vendor, "$key - $value")
+    private val agoraExtensionObserver = object : IMediaExtensionObserver {
+        override fun onEvent(provider: String?, extension: String?, key: String?, value: String?) {
+            Log.d("ExtensionObserver","Extension event")
+        }
+
+        override fun onStarted(provider: String?, extension: String?) {
+            Log.d("ExtensionObserver","Extension started")
+        }
+
+        override fun onStopped(provider: String?, extension: String?) {
+            Log.d("ExtensionObserver","Extension stopped")
+        }
+
+        override fun onError(provider: String?, extension: String?, errCode: Int, errMsg: String?) {
+            Log.d("ExtensionObserver","Extension error")
+        }
     }
     private val agoraEventHandler = object : IRtcEngineEventHandler() {
 
