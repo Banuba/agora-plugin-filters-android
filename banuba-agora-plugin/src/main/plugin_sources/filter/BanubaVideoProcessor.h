@@ -9,38 +9,47 @@
 namespace agora::extension {
 
     class BanubaVideoProcessor : public RefCountInterface {
-
     public:
-
-        BanubaVideoProcessor();
+        BanubaVideoProcessor() = default;
 
         void process_frame(const agora_refptr<rtc::IVideoFrame> &frame);
 
         void set_parameter(const std::string &key, const std::string &parameter);
 
-        int set_extension_control(
-                agora::agora_refptr<rtc::IExtensionVideoFilter::Control> control
-        ) {
-            m_control = control;
-            return 0;
-        };
+        int set_extension_control(agora::agora_refptr<rtc::IExtensionVideoFilter::Control> control);
 
     protected:
         ~BanubaVideoProcessor() = default;
 
     private:
-        void send_event(const char *key, const char *data);
-
         void initialize();
-        void create_ep(int32_t width, int32_t height);
 
+        void create();
+
+        void destroy();
+
+        void update_oep_surface_size(int32_t width, int32_t height);
+
+        static bnb::oep::interfaces::rotation degrees_to_bnb_rotation(int degrees);
+
+    private:
         std::string m_path_to_resources;
         std::string m_path_to_effects;
         std::string m_client_token;
         bool m_is_initialized = false;
+        std::atomic<bnb::oep::interfaces::rotation> m_oep_input_rotation = bnb::oep::interfaces::rotation::deg0;
 
         agora::agora_refptr<rtc::IExtensionVideoFilter::Control> m_control;
-        effect_player_sptr m_ep;
         offscreen_effect_player_sptr m_oep;
+        int32_t m_oep_surface_width = 0;
+        int32_t m_oep_surface_height = 0;
+    }; /* class BanubaVideoProcessor */
+
+
+
+    /* BanubaVideoProcessor::set_extension_control */
+    inline int BanubaVideoProcessor::set_extension_control(agora::agora_refptr<rtc::IExtensionVideoFilter::Control> control) {
+        m_control = control;
+        return 0;
     };
 }
