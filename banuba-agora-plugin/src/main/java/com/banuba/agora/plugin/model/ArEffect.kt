@@ -7,6 +7,6 @@ data class ArEffect(
     val preview: Bitmap?
 ) {
     companion object {
-        val EMPTY = ArEffect(" ", null)
+        val EMPTY = ArEffect("", null)
     }
 }

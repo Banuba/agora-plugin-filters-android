@@ -1,27 +1,29 @@
 package com.banuba.sdk.agorapluginexample
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
+import android.view.Surface
 import android.view.SurfaceView
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.banuba.agora.plugin.BanubaEffectsLoader
 import com.banuba.agora.plugin.BanubaExtensionManager
+import com.banuba.agora.plugin.BanubaExtensionManager.AgoraInterface
 import com.banuba.agora.plugin.BanubaResourceManager
 import com.banuba.agora.plugin.model.ArEffect
 import com.banuba.sdk.agorapluginexample.widget.carousel.EffectsCarouselView
 import com.banuba.sdk.utils.ContextProvider
-import io.agora.rtc2.Constants
-import io.agora.rtc2.IMediaExtensionObserver
-import io.agora.rtc2.IRtcEngineEventHandler
-import io.agora.rtc2.RtcEngine
-import io.agora.rtc2.RtcEngineConfig
+import io.agora.rtc2.*
 import io.agora.rtc2.video.VideoCanvas
 import io.agora.rtc2.video.VideoEncoderConfiguration
 import kotlinx.android.synthetic.main.activity_main.*
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -49,7 +51,7 @@ class MainActivity : AppCompatActivity() {
             mContext = this@MainActivity
             mAppId = AGORA_APP_ID
             System.loadLibrary("banuba")
-            addExtension(BanubaExtensionManager.EXTENSION_NAME)
+            addExtension("banuba-plugin")
             ContextProvider.setContext(mContext)
             mEventHandler = agoraEventHandler
             mExtensionObserver = agoraExtensionObserver
@@ -57,6 +59,7 @@ class MainActivity : AppCompatActivity() {
         Log.d("AgoraRtcEngine","Agora sdk version: ${RtcEngine.getSdkVersion()}")
         RtcEngine.create(config)
     }
+
     private val agoraExtensionObserver = object : IMediaExtensionObserver {
         override fun onEvent(provider: String?, extension: String?, key: String?, value: String?) {
             Log.d("ExtensionObserver","Extension event")
@@ -74,8 +77,8 @@ class MainActivity : AppCompatActivity() {
             Log.d("ExtensionObserver","Extension error")
         }
     }
-    private val agoraEventHandler = object : IRtcEngineEventHandler() {
 
+    private val agoraEventHandler = object : IRtcEngineEventHandler() {
         override fun onJoinChannelSuccess(channel: String, uid: Int, elapsed: Int) {
             runOnUiThread { agoraRtc.startPreview() }
         }
@@ -93,15 +96,35 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val banubaExtension = BanubaExtensionManager(object : BanubaExtensionManager.AgoraInterface {
+        override fun onEnableExtension(provider: String, extension: String, enable: Boolean) {
+            agoraRtc.enableExtension(provider, extension, enable)
+            if (enable) {
+                val localSurfaceView = setupLocalVideo()
+                localVideoContainer.addView(localSurfaceView)
+                agoraRtc.setChannelProfile(Constants.CHANNEL_PROFILE_LIVE_BROADCASTING)
+                agoraRtc.setClientRole(Constants.CLIENT_ROLE_BROADCASTER)
+                agoraRtc.setVideoEncoderConfiguration(videoEncoderConfiguration)
+                agoraRtc.enableVideo()
+                agoraRtc.enableAudio()
+                agoraRtc.joinChannel(AGORA_CLIENT_TOKEN, AGORA_CHANNEL_ID, null, 0)
+            }
+        }
+
+        override fun onSetExtensionProperty(provider: String, extension: String, propertyKey: String, propertyValue: String) {
+            agoraRtc.setExtensionProperty(provider, extension, propertyKey, propertyValue)
+        }
+    })
+
     private val onEffectPrepared = object : BanubaResourceManager.EffectPreparedCallback {
         override fun onPrepared(effectName: String) {
-            sendEffectToFilter(effectName)
+            banubaExtension.loadEffect(effectName)
         }
     }
+
     private val effectsCarouselCallback = object : EffectsCarouselView.ActionCallback {
         override fun onEffectsSelected(effect: ArEffect) {
-            if (effect == ArEffect.EMPTY) return
-            banubaResourceManager.prepareEffect(effect.name, onEffectPrepared)
+            banubaResourceManager.prepareEffect(effect.name, onEffectPrepared);
         }
     }
 
@@ -119,10 +142,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        banubaExtension.pause();
+    }
+
+    override fun onResume() {
+        super.onResume()
+        banubaExtension.resume();
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        banubaExtension.destroy()
         agoraRtc.leaveChannel()
         RtcEngine.destroy()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        banubaExtension.setDeviceOrientation(getDeviceOrientationDegrees())
     }
 
     override fun onRequestPermissionsResult(
@@ -140,20 +179,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initAgoraEngine() {
-        agoraRtc.enableExtension(
-            BanubaExtensionManager.VENDOR_NAME,
-            BanubaExtensionManager.VIDEO_FILTER_NAME,
-            true
-        )
-        val localSurfaceView = setupLocalVideo()
-        localVideoContainer.addView(localSurfaceView)
-        agoraRtc.setChannelProfile(Constants.CHANNEL_PROFILE_LIVE_BROADCASTING)
-        agoraRtc.setClientRole(Constants.CLIENT_ROLE_BROADCASTER)
-        agoraRtc.setVideoEncoderConfiguration(videoEncoderConfiguration)
-        agoraRtc.enableVideo()
-        agoraRtc.enableAudio()
-        agoraRtc.joinChannel(AGORA_CLIENT_TOKEN, AGORA_CHANNEL_ID, null, 0)
-        initBanubaPlugin()
+        banubaExtension.create(banubaResourceManager.resourcesPath, banubaResourceManager.effectsPath, BANUBA_CLIENT_TOKEN);
+        banubaExtension.setDeviceOrientation(getDeviceOrientationDegrees())
     }
 
     private fun setupLocalVideo(): SurfaceView {
@@ -175,37 +202,22 @@ class MainActivity : AppCompatActivity() {
         return surfaceView
     }
 
-    private fun initBanubaPlugin() {
-        agoraRtc.setExtensionProperty(
-            BanubaExtensionManager.VENDOR_NAME,
-            BanubaExtensionManager.VIDEO_FILTER_NAME,
-            BanubaExtensionManager.KEY_SET_RESOURCES_PATH,
-            banubaResourceManager.resourcesPath
-        )
-        agoraRtc.setExtensionProperty(
-            BanubaExtensionManager.VENDOR_NAME,
-            BanubaExtensionManager.VIDEO_FILTER_NAME,
-            BanubaExtensionManager.KEY_SET_EFFECTS_PATH,
-            banubaResourceManager.effectsPath
-        )
-        agoraRtc.setExtensionProperty(
-            BanubaExtensionManager.VENDOR_NAME,
-            BanubaExtensionManager.VIDEO_FILTER_NAME,
-            BanubaExtensionManager.KEY_SET_TOKEN,
-            BANUBA_CLIENT_TOKEN
-        )
-    }
-
-    private fun sendEffectToFilter(effect: String) {
-        agoraRtc.setExtensionProperty(
-            BanubaExtensionManager.VENDOR_NAME,
-            BanubaExtensionManager.VIDEO_FILTER_NAME,
-            BanubaExtensionManager.KEY_LOAD_EFFECT,
-            effect
-        )
-    }
 
     private fun checkAllPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun getDeviceOrientationDegrees(): Int {
+        when (getDeviceOrientationConst()) {
+            Surface.ROTATION_90 -> return 90
+            Surface.ROTATION_180 -> return 180
+            Surface.ROTATION_270 -> return 270
+            else -> return 0; // Surface.ROTATION_0
+        }
+    }
+
+    /* Returns one of: Surface.ROTATION_0; Surface.ROTATION_90; Surface.ROTATION_180; Surface.ROTATION_270 */
+    private fun getDeviceOrientationConst(): Int {
+        return (this.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.rotation
     }
 }
