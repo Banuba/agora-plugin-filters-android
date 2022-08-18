@@ -24,9 +24,7 @@ import io.agora.rtc2.video.VideoCanvas
 import io.agora.rtc2.video.VideoEncoderConfiguration
 import kotlinx.android.synthetic.main.activity_main.*
 
-
 class MainActivity : AppCompatActivity() {
-
     companion object {
         private const val REQUEST_CODE_PERMISSIONS = 1001
 
@@ -40,18 +38,12 @@ class MainActivity : AppCompatActivity() {
         BanubaResourceManager(this)
     }
 
-    private val videoEncoderConfiguration = VideoEncoderConfiguration(
-        VideoEncoderConfiguration.VD_840x480,
-        VideoEncoderConfiguration.FRAME_RATE.FRAME_RATE_FPS_30,
-        VideoEncoderConfiguration.STANDARD_BITRATE,
-        VideoEncoderConfiguration.ORIENTATION_MODE.ORIENTATION_MODE_FIXED_PORTRAIT
-    )
     private val agoraRtc: RtcEngine by lazy(LazyThreadSafetyMode.NONE) {
         val config = RtcEngineConfig().apply {
             mContext = this@MainActivity
             mAppId = AGORA_APP_ID
-            System.loadLibrary("banuba")
-            addExtension("banuba-plugin")
+            System.loadLibrary(banubaExtension.getLibraryName())
+            addExtension(banubaExtension.getPluginName())
             ContextProvider.setContext(mContext)
             mEventHandler = agoraEventHandler
             mExtensionObserver = agoraExtensionObserver
@@ -96,21 +88,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val banubaExtension = BanubaExtensionManager(object : BanubaExtensionManager.AgoraInterface {
-        override fun onEnableExtension(provider: String, extension: String, enable: Boolean) {
-            agoraRtc.enableExtension(provider, extension, enable)
-            if (enable) {
-                val localSurfaceView = setupLocalVideo()
-                localVideoContainer.addView(localSurfaceView)
-                agoraRtc.setChannelProfile(Constants.CHANNEL_PROFILE_LIVE_BROADCASTING)
-                agoraRtc.setClientRole(Constants.CLIENT_ROLE_BROADCASTER)
-                agoraRtc.setVideoEncoderConfiguration(videoEncoderConfiguration)
-                agoraRtc.enableVideo()
-                agoraRtc.enableAudio()
-                agoraRtc.joinChannel(AGORA_CLIENT_TOKEN, AGORA_CHANNEL_ID, null, 0)
-            }
-        }
-
+    private val banubaExtension = BanubaExtensionManager(object : AgoraInterface {
         override fun onSetExtensionProperty(provider: String, extension: String, propertyKey: String, propertyValue: String) {
             agoraRtc.setExtensionProperty(provider, extension, propertyKey, propertyValue)
         }
@@ -118,45 +96,29 @@ class MainActivity : AppCompatActivity() {
 
     private val onEffectPrepared = object : BanubaResourceManager.EffectPreparedCallback {
         override fun onPrepared(effectName: String) {
+            if (!isStarted) {
+                requestPermissionsIfNecessaryAndStart()
+            }
             banubaExtension.loadEffect(effectName)
         }
     }
 
-    private val effectsCarouselCallback = object : EffectsCarouselView.ActionCallback {
-        override fun onEffectsSelected(effect: ArEffect) {
-            banubaResourceManager.prepareEffect(effect.name, onEffectPrepared);
-        }
-    }
+    private var isStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        banubaResourceManager.prepare()
-        effectsCarouselView.actionCallback = effectsCarouselCallback
-        val effects = BanubaEffectsLoader(this).loadEffects()
-        effectsCarouselView.setEffectsList(listOf(ArEffect.EMPTY) + effects, 0)
-        if (checkAllPermissionsGranted()) {
-            initAgoraEngine()
-        } else {
-            requestPermissions(REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
-        }
+        initializeUI()
+        requestPermissionsIfNecessaryAndStart()
     }
 
     override fun onPause() {
         super.onPause()
-        banubaExtension.pause();
+        banubaExtension.pause()
     }
 
     override fun onResume() {
         super.onResume()
-        banubaExtension.resume();
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        banubaExtension.destroy()
-        agoraRtc.leaveChannel()
-        RtcEngine.destroy()
+        banubaExtension.resume()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -164,22 +126,77 @@ class MainActivity : AppCompatActivity() {
         banubaExtension.setDeviceOrientation(getDeviceOrientationDegrees())
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        results: IntArray
-    ) {
-        if (checkAllPermissionsGranted()) {
-            initAgoraEngine()
-        } else {
+    override fun onDestroy() {
+        super.onDestroy()
+        if (isStarted) {
+            shutdownBanubaExtension()
+            shutdownAgora()
+            isStarted = false
+        }
+    }
+
+    private fun isPermissionsGranted() = REQUIRED_PERMISSIONS.all {
+        ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestPermissionsIfNecessaryAndStart() {
+        checkPermissionsAndStart()
+        if (!isPermissionsGranted()) {
+            requestPermissions(REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+            return
+        }
+    }
+
+    private fun checkPermissionsAndStart() {
+        if (isPermissionsGranted()) {
+            initializeAgora()
+            initializeBanubaExtension()
+            isStarted = true
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, results: IntArray) {
+        checkPermissionsAndStart()
+        if (!isPermissionsGranted()) {
             Toast.makeText(applicationContext, "Please grant permission.", Toast.LENGTH_LONG).show()
             finish()
         }
         super.onRequestPermissionsResult(requestCode, permissions, results)
     }
 
-    private fun initAgoraEngine() {
-        banubaExtension.create(banubaResourceManager.resourcesPath, banubaResourceManager.effectsPath, BANUBA_CLIENT_TOKEN);
+
+    private fun initializeUI() {
+        setContentView(R.layout.activity_main)
+        banubaResourceManager.prepare()
+        effectsCarouselView.actionCallback = object : EffectsCarouselView.ActionCallback {
+            override fun onEffectsSelected(effect: ArEffect) {
+                banubaResourceManager.prepareEffect(effect.name, onEffectPrepared)
+            }
+        }
+        val effects = BanubaEffectsLoader(this).loadEffects()
+        effectsCarouselView.setEffectsList(listOf(ArEffect.EMPTY) + effects, 0)
+    }
+
+    private fun initializeAgora() {
+        val localSurfaceView = setupLocalVideo()
+        val videoEncoderConfiguration = VideoEncoderConfiguration(
+            VideoEncoderConfiguration.VD_840x480,
+            VideoEncoderConfiguration.FRAME_RATE.FRAME_RATE_FPS_30,
+            VideoEncoderConfiguration.STANDARD_BITRATE,
+            VideoEncoderConfiguration.ORIENTATION_MODE.ORIENTATION_MODE_FIXED_PORTRAIT
+        )
+        localVideoContainer.addView(localSurfaceView)
+        agoraRtc.setChannelProfile(Constants.CHANNEL_PROFILE_LIVE_BROADCASTING)
+        agoraRtc.setClientRole(Constants.CLIENT_ROLE_BROADCASTER)
+        agoraRtc.setVideoEncoderConfiguration(videoEncoderConfiguration)
+        agoraRtc.enableVideo()
+        agoraRtc.enableAudio()
+    }
+
+    private fun initializeBanubaExtension() {
+        agoraRtc.enableExtension(banubaExtension.getProviderName(), banubaExtension.getExtensionName(), true)
+        agoraRtc.joinChannel(AGORA_CLIENT_TOKEN, AGORA_CHANNEL_ID, null, 0)
+        banubaExtension.create(banubaResourceManager.resourcesPath, banubaResourceManager.effectsPath, BANUBA_CLIENT_TOKEN)
         banubaExtension.setDeviceOrientation(getDeviceOrientationDegrees())
     }
 
@@ -188,10 +205,7 @@ class MainActivity : AppCompatActivity() {
         surfaceView.setZOrderMediaOverlay(true)
         val videoCanvas = VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_HIDDEN, 0)
         agoraRtc.setupLocalVideo(videoCanvas)
-        agoraRtc.setLocalRenderMode(
-            Constants.RENDER_MODE_HIDDEN,
-            Constants.VIDEO_MIRROR_MODE_DISABLED
-        )
+        agoraRtc.setLocalRenderMode(Constants.RENDER_MODE_HIDDEN, Constants.VIDEO_MIRROR_MODE_DISABLED)
         return surfaceView
     }
 
@@ -202,9 +216,14 @@ class MainActivity : AppCompatActivity() {
         return surfaceView
     }
 
+    private fun shutdownAgora() {
+        agoraRtc.leaveChannel()
+        RtcEngine.destroy()
+    }
 
-    private fun checkAllPermissionsGranted() = REQUIRED_PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
+    private fun shutdownBanubaExtension() {
+        banubaExtension.destroy()
+        agoraRtc.enableExtension(banubaExtension.getProviderName(), banubaExtension.getExtensionName(), false)
     }
 
     private fun getDeviceOrientationDegrees(): Int {
@@ -212,11 +231,11 @@ class MainActivity : AppCompatActivity() {
             Surface.ROTATION_90 -> return 90
             Surface.ROTATION_180 -> return 180
             Surface.ROTATION_270 -> return 270
-            else -> return 0; // Surface.ROTATION_0
+            else -> return 0 // Surface.ROTATION_0
         }
     }
 
-    /* Returns one of: Surface.ROTATION_0; Surface.ROTATION_90; Surface.ROTATION_180; Surface.ROTATION_270 */
+    /* Returns one of: Surface.ROTATION_0, Surface.ROTATION_90, Surface.ROTATION_180, Surface.ROTATION_270 */
     private fun getDeviceOrientationConst(): Int {
         return (this.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.rotation
     }

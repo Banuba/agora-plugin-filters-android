@@ -1,10 +1,29 @@
 package com.banuba.agora.plugin
 
-class BanubaExtensionManager(agora: AgoraInterface) {
+class BanubaExtensionManager(agora: AgoraInterface) : AgoraExtension {
     private val agoraInterface: AgoraInterface = agora
 
+    interface AgoraInterface {
+        fun onSetExtensionProperty(provider: String, extension: String, propertyKey: String, propertyValue: String)
+    }
+
+    override fun getLibraryName(): String {
+        return LIBRARY_NAME
+    }
+
+    override fun getPluginName(): String {
+        return PLUGIN_NAME
+    }
+
+    override fun getProviderName(): String {
+        return PROVIDER_NAME
+    }
+
+    override fun getExtensionName(): String {
+        return EXTENSION_NAME
+    }
+
     fun create(resourcesPath: String, effectsPath: String, clientToken: String) {
-        sendEnableExtension(true)
         sendProperty(CALL_SET_RESOURCES_PATH, resourcesPath);
         sendProperty(CALL_SET_EFFECTS_PATH, effectsPath);
         sendProperty(CALL_SET_CLIENT_TOKEN, clientToken);
@@ -14,7 +33,6 @@ class BanubaExtensionManager(agora: AgoraInterface) {
 
     fun destroy() {
         sendProperty(CALL_DESTROY, EMPTY_PARAMETER);
-        sendEnableExtension(false)
     }
 
     fun loadEffect(effectName: String) {
@@ -41,22 +59,15 @@ class BanubaExtensionManager(agora: AgoraInterface) {
         sendProperty(CALL_SET_DEVICE_ORIENTATION, angle.toString())
     }
 
-    private fun sendEnableExtension(enable: Boolean) {
-        agoraInterface.onEnableExtension(VENDOR_NAME, VIDEO_FILTER_NAME, enable)
-    }
-
     private fun sendProperty(propertyKey: String, propertyValue: String) {
-        agoraInterface.onSetExtensionProperty(VENDOR_NAME, VIDEO_FILTER_NAME, propertyKey, propertyValue)
-    }
-
-    interface AgoraInterface {
-        fun onEnableExtension(provider: String, extension: String, enable: Boolean)
-        fun onSetExtensionProperty(provider: String, extension: String, propertyKey: String, propertyValue: String)
+        agoraInterface.onSetExtensionProperty(PROVIDER_NAME, EXTENSION_NAME, propertyKey, propertyValue)
     }
 
     private companion object {
-        const val VENDOR_NAME = "Banuba"
-        const val VIDEO_FILTER_NAME = "BanubaFilter"
+        const val LIBRARY_NAME = "banuba"
+        const val PLUGIN_NAME = "banuba-plugin" // CMake target
+        const val PROVIDER_NAME = "Banuba"
+        const val EXTENSION_NAME = "BanubaFilter"
 
         const val CALL_INITIALIZE = "initialize"
         const val CALL_CREATE = "create"
