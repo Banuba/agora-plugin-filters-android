@@ -8,10 +8,12 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Surface
 import android.view.SurfaceView
+import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.banuba.agora.plugin.AgoraExtension
 import com.banuba.agora.plugin.BanubaEffectsLoader
 import com.banuba.agora.plugin.BanubaExtensionManager
 import com.banuba.agora.plugin.BanubaExtensionManager.AgoraInterface
@@ -42,8 +44,8 @@ class MainActivity : AppCompatActivity() {
         val config = RtcEngineConfig().apply {
             mContext = this@MainActivity
             mAppId = AGORA_APP_ID
-            System.loadLibrary(banubaExtension.getLibraryName())
-            addExtension(banubaExtension.getPluginName())
+            System.loadLibrary(banubaExtensionInterface.getLibraryName())
+            addExtension(banubaExtensionInterface.getPluginName())
             ContextProvider.setContext(mContext)
             mEventHandler = agoraEventHandler
             mExtensionObserver = agoraExtensionObserver
@@ -54,19 +56,19 @@ class MainActivity : AppCompatActivity() {
 
     private val agoraExtensionObserver = object : IMediaExtensionObserver {
         override fun onEvent(provider: String?, extension: String?, key: String?, value: String?) {
-            Log.d("ExtensionObserver","Extension event")
+            Log.d("ExtensionObserver","Extension event: $provider.$extension key:$key value:$value")
         }
 
         override fun onStarted(provider: String?, extension: String?) {
-            Log.d("ExtensionObserver","Extension started")
+            Log.d("ExtensionObserver","Extension started: $provider.$extension")
         }
 
         override fun onStopped(provider: String?, extension: String?) {
-            Log.d("ExtensionObserver","Extension stopped")
+            Log.d("ExtensionObserver","Extension stopped: $provider.$extension")
         }
 
         override fun onError(provider: String?, extension: String?, errCode: Int, errMsg: String?) {
-            Log.d("ExtensionObserver","Extension error")
+            Log.d("ExtensionObserver","Extension error: $provider.$extension code:$errCode error:$errMsg")
         }
     }
 
@@ -94,16 +96,15 @@ class MainActivity : AppCompatActivity() {
         }
     })
 
+    /* This interface separates banuba SDK and Agora rtc engine from each other.
+    * In this example, it is only demonstrative, but it can be useful in large projects. */
+    private val banubaExtensionInterface: AgoraExtension = banubaExtension
+
     private val onEffectPrepared = object : BanubaResourceManager.EffectPreparedCallback {
         override fun onPrepared(effectName: String) {
-            if (!isStarted) {
-                requestPermissionsIfNecessaryAndStart()
-            }
             banubaExtension.loadEffect(effectName)
         }
     }
-
-    private var isStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -123,16 +124,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        banubaExtension.setDeviceOrientation(getDeviceOrientationDegrees())
+        banubaExtension.setDeviceOrientation(getDeviceOrientationDegrees(this))
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if (isStarted) {
-            shutdownBanubaExtension()
-            shutdownAgora()
-            isStarted = false
-        }
+        shutdownBanubaExtension()
+        shutdownAgora()
     }
 
     private fun isPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -151,7 +149,6 @@ class MainActivity : AppCompatActivity() {
         if (isPermissionsGranted()) {
             initializeAgora()
             initializeBanubaExtension()
-            isStarted = true
         }
     }
 
@@ -163,7 +160,6 @@ class MainActivity : AppCompatActivity() {
         }
         super.onRequestPermissionsResult(requestCode, permissions, results)
     }
-
 
     private fun initializeUI() {
         setContentView(R.layout.activity_main)
@@ -185,7 +181,13 @@ class MainActivity : AppCompatActivity() {
             VideoEncoderConfiguration.STANDARD_BITRATE,
             VideoEncoderConfiguration.ORIENTATION_MODE.ORIENTATION_MODE_FIXED_PORTRAIT
         )
-        localVideoContainer.addView(localSurfaceView)
+        if (isLandscape(this)) {
+            localVideoContainerPortrait.visibility = View.GONE
+            localVideoContainerLandscape.addView(localSurfaceView)
+        } else {
+            localVideoContainerPortrait.addView(localSurfaceView)
+            localVideoContainerLandscape.visibility = View.GONE
+        }
         agoraRtc.setChannelProfile(Constants.CHANNEL_PROFILE_LIVE_BROADCASTING)
         agoraRtc.setClientRole(Constants.CLIENT_ROLE_BROADCASTER)
         agoraRtc.setVideoEncoderConfiguration(videoEncoderConfiguration)
@@ -194,10 +196,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeBanubaExtension() {
-        agoraRtc.enableExtension(banubaExtension.getProviderName(), banubaExtension.getExtensionName(), true)
+        agoraRtc.enableExtension(banubaExtensionInterface.getProviderName(), banubaExtensionInterface.getExtensionName(), true)
         agoraRtc.joinChannel(AGORA_CLIENT_TOKEN, AGORA_CHANNEL_ID, null, 0)
         banubaExtension.create(banubaResourceManager.resourcesPath, banubaResourceManager.effectsPath, BANUBA_CLIENT_TOKEN)
-        banubaExtension.setDeviceOrientation(getDeviceOrientationDegrees())
+        banubaExtension.setDeviceOrientation(getDeviceOrientationDegrees(this))
     }
 
     private fun setupLocalVideo(): SurfaceView {
@@ -223,20 +225,25 @@ class MainActivity : AppCompatActivity() {
 
     private fun shutdownBanubaExtension() {
         banubaExtension.destroy()
-        agoraRtc.enableExtension(banubaExtension.getProviderName(), banubaExtension.getExtensionName(), false)
+        agoraRtc.enableExtension(banubaExtensionInterface.getProviderName(), banubaExtensionInterface.getExtensionName(), false)
     }
 
-    private fun getDeviceOrientationDegrees(): Int {
-        when (getDeviceOrientationConst()) {
-            Surface.ROTATION_90 -> return 90
-            Surface.ROTATION_180 -> return 180
-            Surface.ROTATION_270 -> return 270
-            else -> return 0 // Surface.ROTATION_0
+    /* Returns one of: 0 or 180 - portrait, 90 or 270 landscape left or right, */
+    fun getDeviceOrientationDegrees(context: Context): Int {
+        var degrees = 0
+        val windowManager = context.getSystemService(WINDOW_SERVICE) as WindowManager
+        val rotation = windowManager.defaultDisplay.rotation
+        when (rotation) {
+            Surface.ROTATION_0 -> degrees = 0
+            Surface.ROTATION_90 -> degrees = 90
+            Surface.ROTATION_180 -> degrees = 180
+            Surface.ROTATION_270 -> degrees = 270
         }
+        return degrees
     }
 
-    /* Returns one of: Surface.ROTATION_0, Surface.ROTATION_90, Surface.ROTATION_180, Surface.ROTATION_270 */
-    private fun getDeviceOrientationConst(): Int {
-        return (this.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.rotation
+    fun isLandscape(context: Context): Boolean {
+        val orientationDegrees = getDeviceOrientationDegrees(context)
+        return orientationDegrees == 90 || orientationDegrees == 270
     }
 }

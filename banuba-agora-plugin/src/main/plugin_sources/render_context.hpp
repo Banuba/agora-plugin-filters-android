@@ -15,12 +15,13 @@ namespace bnb::oep
         void deactivate() override;
         void delete_context() override;
 
-        void * get_sharing_context() override;
+        void* get_sharing_context() override;
 
     private:
         EGLDisplay m_display{};
         EGLSurface m_surface{};
         EGLContext m_context{};
+        bool m_is_created{false};
     }; /* class render_context */
 
 } /* namespace bnb::oep */

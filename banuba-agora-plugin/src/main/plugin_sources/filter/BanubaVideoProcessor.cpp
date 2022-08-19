@@ -4,20 +4,69 @@
 
 #include <optional>
 
-namespace agora::extension {
+namespace agora::extension
+{
+
+    static int device_orientation_degrees_to_front_camera_orientation_degrees(int degrees)
+    {
+        return (degrees + 270) % 360;
+    }
+
+    static bnb::oep::interfaces::rotation degrees_to_oep_rotation(int degrees)
+    {
+        switch (degrees) {
+            case 0:
+                return bnb::oep::interfaces::rotation::deg0;
+            case 90:
+                return bnb::oep::interfaces::rotation::deg90;
+            case 180:
+                return bnb::oep::interfaces::rotation::deg180;
+            case 270:
+                return bnb::oep::interfaces::rotation::deg270;
+            default:
+                assert(0 && "Wrong 'degrees' value. The degrees must be fixed value");
+        }
+        return bnb::oep::interfaces::rotation::deg0;
+    }
 
     void BanubaVideoProcessor::process_frame(
-            const agora_refptr<rtc::IVideoFrame> &frame
-    ) {
+        const agora_refptr<rtc::IVideoFrame>& frame
+    )
+    {
         auto oep = m_oep;
-        if (!oep) {
+        if (!oep || !m_is_effect_loaded) {
             m_control->deliverVideoFrame(frame);
             return;
         }
 
         agora::rtc::VideoFrameData captured_frame;
         frame->getVideoFrameData(captured_frame);
-        update_oep_surface_size(captured_frame.width, captured_frame.height);
+        using nsr = bnb::oep::interfaces::rotation;
+        bnb::oep::interfaces::rotation target_orient = nsr::deg0;
+        bool need_flip = false;
+        switch (m_oep_input_rotation) {
+            case nsr::deg0:
+                target_orient = nsr::deg180;
+                break;
+            case nsr::deg180:
+                target_orient = nsr::deg0;
+                break;
+            case nsr::deg90:
+                target_orient = nsr::deg270;
+                need_flip = true;
+                break;
+            case nsr::deg270:
+                target_orient = nsr::deg90;
+                need_flip = true;
+                break;
+        }
+
+        if (need_flip) {
+            update_oep_surface_size(captured_frame.height, captured_frame.width);
+        } else {
+            update_oep_surface_size(captured_frame.width, captured_frame.height);
+        }
+
         auto pixels = captured_frame.pixels.data;
         int32_t y_size = captured_frame.width * captured_frame.height;
         int32_t uv_size = y_size / 2;
@@ -40,11 +89,11 @@ namespace agora::extension {
 
         pixel_buffer_sptr img = ns::create(planes, bnb::oep::interfaces::image_format::nv12_bt709_full, captured_frame.width, captured_frame.height);
 
-        auto proc_callback = [this, frame, captured_frame] (const image_processing_result_sptr& result) {
+        auto proc_callback = [this, frame, captured_frame](const image_processing_result_sptr& result) {
             if (!result) {
                 return;
             }
-            auto image_callback = [this, frame, captured_frame] (const pixel_buffer_sptr& out_img) {
+            auto image_callback = [this, frame, captured_frame](const pixel_buffer_sptr& out_img) {
                 // returned image may have stride != width, but agora doesn't provide
                 // the way to set stride (expects stride == width), so copy image line by line
                 uint8_t* src_y = out_img->get_base_sptr_of_plane(0).get();
@@ -73,13 +122,14 @@ namespace agora::extension {
             };
             result->get_image(bnb::oep::interfaces::image_format::nv12_bt709_full, image_callback);
         };
-        oep->process_image_async(img, m_oep_input_rotation, false, proc_callback, bnb::oep::interfaces::rotation::deg0);
+        oep->process_image_async(img, m_oep_input_rotation, true, proc_callback, target_orient);
     }
 
     void BanubaVideoProcessor::set_parameter(
-            const std::string &key,
-            const std::string &parameter
-    ) {
+        const std::string& key,
+        const std::string& parameter
+    )
+    {
         if (!m_is_initialized) {
             /* Banuba SDK not initialized */
             if (key == "set_resources_path") {
@@ -91,7 +141,7 @@ namespace agora::extension {
             } else if (key == "initialize") {
                 initialize();
             } else {
-
+                // TODO: print error message
             }
             return;
         }
@@ -101,36 +151,42 @@ namespace agora::extension {
             if (key == "create") {
                 create();
             } else {
-
+                // TODO: print error message
             }
             return;
         }
 
         if (key == "set_device_orientation") {
-            auto device_orientation_degrees =  std::stoi(parameter);
-            m_oep_input_rotation = degrees_to_bnb_rotation(device_orientation_degrees);
+            auto device_orientation_degrees = std::stoi(parameter);
+            auto camera_orientation_degrees = device_orientation_degrees_to_front_camera_orientation_degrees(device_orientation_degrees);
+            m_oep_input_rotation = degrees_to_oep_rotation(camera_orientation_degrees);
         } else if (key == "pause") {
             m_oep->pause();
         } else if (key == "resume") {
             m_oep->resume();
         } else if (key == "load_effect") {
             m_oep->load_effect(parameter);
+            m_is_effect_loaded = true;
         } else if (key == "unload_effect") {
+            m_is_effect_loaded = false;
             m_oep->unload_effect();
         } else if (key == "destroy") {
+            m_is_effect_loaded = false;
             destroy();
         } else {
-
+            // TODO: print error message
         }
     }
 
-    void BanubaVideoProcessor::initialize() {
-        const std::vector<std::string> resource_paths {m_path_to_resources, m_path_to_effects};
+    void BanubaVideoProcessor::initialize()
+    {
+        const std::vector<std::string> resource_paths{m_path_to_resources, m_path_to_effects};
         bnb::interfaces::utility_manager::initialize(resource_paths, m_client_token);
         m_is_initialized = true;
     }
 
-    void BanubaVideoProcessor::create() {
+    void BanubaVideoProcessor::create()
+    {
         // Frame size
         constexpr int32_t default_oep_width = 1280;
         constexpr int32_t default_oep_height = 720;
@@ -142,13 +198,15 @@ namespace agora::extension {
         update_oep_surface_size(default_oep_width, default_oep_height);
     }
 
-    void BanubaVideoProcessor::destroy() {
+    void BanubaVideoProcessor::destroy()
+    {
         m_oep->stop();
         m_oep = nullptr;
         bnb::interfaces::utility_manager::release();
     }
 
-    void BanubaVideoProcessor::update_oep_surface_size(int32_t width, int32_t height) {
+    void BanubaVideoProcessor::update_oep_surface_size(int32_t width, int32_t height)
+    {
         if (m_oep_surface_width != width || m_oep_surface_height != height) {
             m_oep->surface_changed(width, height);
             m_oep_surface_width = width;
@@ -156,17 +214,4 @@ namespace agora::extension {
         }
     }
 
-    bnb::oep::interfaces::rotation BanubaVideoProcessor::degrees_to_bnb_rotation(int degrees) {
-        using ns = bnb::oep::interfaces::rotation;
-        switch (degrees) {
-            case 90:
-                return ns::deg90;
-            case 180:
-                return ns::deg180;
-            case 270:
-                return ns::deg270;
-            default:
-                return ns::deg0;
-        }
-    }
-}
+} // namespace agora::extension

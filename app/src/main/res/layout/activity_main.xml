@@ -9,9 +9,16 @@
         android:layout_height="match_parent" />
 
     <FrameLayout
-        android:id="@+id/localVideoContainer"
+        android:id="@+id/localVideoContainerPortrait"
         android:layout_width="140dp"
         android:layout_height="250dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="32dp" />
+
+    <FrameLayout
+        android:id="@+id/localVideoContainerLandscape"
+        android:layout_width="250dp"
+        android:layout_height="140dp"
         android:layout_gravity="top|end"
         android:layout_margin="32dp" />
 

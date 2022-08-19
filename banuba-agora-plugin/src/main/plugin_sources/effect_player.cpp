@@ -12,7 +12,7 @@ namespace bnb::oep
     {
     public:
         js_callback(oep_eval_js_result_cb callback)
-                : m_callback(std::move(callback)){};
+            : m_callback(std::move(callback)){};
 
         void on_result(const std::string& result) override
         {
@@ -48,14 +48,14 @@ namespace bnb::oep
 
     /* effect_player::effect_player CONSTRUCTOR */
     effect_player::effect_player(int32_t width, int32_t height)
-        : m_ep(bnb::interfaces::effect_player::create({
-              width, // fx_width - the effect's framebuffer width
-              height, // fx_height - the effect's framebuffer height
-              bnb::interfaces::nn_mode::automatically,
-              bnb::interfaces::face_search_mode::good,
-              false,
-              false}))
+        : m_ep(bnb::interfaces::effect_player::create({width,  // fx_width - the effect's framebuffer width
+                                                       height, // fx_height - the effect's framebuffer height
+                                                       bnb::interfaces::nn_mode::automatically,
+                                                       bnb::interfaces::face_search_mode::good,
+                                                       false,
+                                                       false}))
     {
+        surface_created(width, height);
     }
 
     /* effect_player::~effect_player */
@@ -118,8 +118,7 @@ namespace bnb::oep
     {
         if (auto e_manager = m_ep->effect_manager()) {
             if (auto effect = e_manager->current()) {
-                std::shared_ptr<bnb::oep::js_callback> callback
-                        = result_callback ? std::make_shared<bnb::oep::js_callback>(std::move(result_callback)) : nullptr;
+                std::shared_ptr<bnb::oep::js_callback> callback = result_callback ? std::make_shared<bnb::oep::js_callback>(std::move(result_callback)) : nullptr;
                 effect->eval_js(script, callback);
             } else {
                 std::cout << "[Error] effect not loaded" << std::endl;
@@ -159,33 +158,39 @@ namespace bnb::oep
             case ns::bpc8_bgra:
             case ns::bpc8_argb:
                 m_ep->push_frame(
-                        full_image_t(bpc8_image_t(
-                                color_plane(image->get_base_sptr()),
-                                make_bnb_pixel_format(image),
-                                bnb_image_format)));
+                    full_image_t(bpc8_image_t(
+                        color_plane(image->get_base_sptr()),
+                        make_bnb_pixel_format(image),
+                        bnb_image_format
+                    ))
+                );
                 break;
             case ns::nv12_bt601_full:
             case ns::nv12_bt601_video:
             case ns::nv12_bt709_full:
             case ns::nv12_bt709_video:
                 m_ep->push_frame(
-                        full_image_t(yuv_image_t(
-                                color_plane(image->get_base_sptr_of_plane(0)),
-                                color_plane(image->get_base_sptr_of_plane(1)),
-                                bnb_image_format,
-                                make_bnb_yuv_format(image))));
+                    full_image_t(yuv_image_t(
+                        color_plane(image->get_base_sptr_of_plane(0)),
+                        color_plane(image->get_base_sptr_of_plane(1)),
+                        bnb_image_format,
+                        make_bnb_yuv_format(image)
+                    ))
+                );
                 break;
             case ns::i420_bt601_full:
             case ns::i420_bt601_video:
             case ns::i420_bt709_full:
             case ns::i420_bt709_video:
                 m_ep->push_frame(
-                        full_image_t(yuv_image_t(
-                                color_plane(image->get_base_sptr_of_plane(0)),
-                                color_plane(image->get_base_sptr_of_plane(1)),
-                                color_plane(image->get_base_sptr_of_plane(2)),
-                                bnb_image_format,
-                                make_bnb_yuv_format(image))));
+                    full_image_t(yuv_image_t(
+                        color_plane(image->get_base_sptr_of_plane(0)),
+                        color_plane(image->get_base_sptr_of_plane(1)),
+                        color_plane(image->get_base_sptr_of_plane(2)),
+                        bnb_image_format,
+                        make_bnb_yuv_format(image)
+                    ))
+                );
                 break;
             default:
                 break;
@@ -204,7 +209,7 @@ namespace bnb::oep
     /* effect_player::make_bnb_image_format */
     bnb::image_format effect_player::make_bnb_image_format(pixel_buffer_sptr image, interfaces::rotation orientation, bool require_mirroring)
     {
-        bnb::camera_orientation camera_orient {bnb::camera_orientation::deg_0};
+        bnb::camera_orientation camera_orient{bnb::camera_orientation::deg_0};
 
         using ns = bnb::oep::interfaces::rotation;
         switch (orientation) {
@@ -228,9 +233,9 @@ namespace bnb::oep
     /* effect_player::make_bnb_yuv_format */
     bnb::yuv_format_t effect_player::make_bnb_yuv_format(pixel_buffer_sptr image)
     {
-        bnb::yuv_format format {bnb::yuv_format::yuv_nv12};  /* i.e. NV12 or I420 */
-        bnb::color_std standard {bnb::color_std::bt601}; /* i.e. BT.601 or BT.709 */
-        bnb::color_range range {bnb::color_range::full}; /* i.e. "full" or "video" */
+        bnb::yuv_format format{bnb::yuv_format::yuv_nv12}; /* i.e. NV12 or I420 */
+        bnb::color_std standard{bnb::color_std::bt601};    /* i.e. BT.601 or BT.709 */
+        bnb::color_range range{bnb::color_range::full};    /* i.e. "full" or "video" */
 
         using ns = bnb::oep::interfaces::image_format;
         switch (image->get_image_format()) {
@@ -272,7 +277,7 @@ namespace bnb::oep
     /* effect_player::make_bnb_pixel_format */
     bnb::interfaces::pixel_format effect_player::make_bnb_pixel_format(pixel_buffer_sptr image)
     {
-        bnb::interfaces::pixel_format fmt {bnb::interfaces::pixel_format::rgb};
+        bnb::interfaces::pixel_format fmt{bnb::interfaces::pixel_format::rgb};
 
         using ns = bnb::oep::interfaces::image_format;
         switch (image->get_image_format()) {
