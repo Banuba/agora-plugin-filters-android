@@ -28,6 +28,101 @@ namespace bnb::oep
 namespace bnb::oep
 {
 
+    /* make_bnb_image_format */
+    static bnb::image_format make_bnb_image_format(pixel_buffer_sptr image, interfaces::rotation orientation, bool require_mirroring)
+    {
+        bnb::camera_orientation camera_orient{bnb::camera_orientation::deg_0};
+
+        using ns = bnb::oep::interfaces::rotation;
+        switch (orientation) {
+            case ns::deg0:
+                break;
+            case ns::deg90:
+                camera_orient = bnb::camera_orientation::deg_90;
+                break;
+            case ns::deg180:
+                camera_orient = bnb::camera_orientation::deg_180;
+                break;
+                break;
+            case ns::deg270:
+                camera_orient = bnb::camera_orientation::deg_270;
+                break;
+        }
+
+        return {static_cast<uint32_t>(image->get_width()), static_cast<uint32_t>(image->get_height()), camera_orient, require_mirroring, 0, std::nullopt};
+    }
+
+    /* make_bnb_yuv_format */
+    static bnb::yuv_format_t make_bnb_yuv_format(pixel_buffer_sptr image)
+    {
+        bnb::yuv_format format{bnb::yuv_format::yuv_nv12}; /* i.e. NV12 or I420 */
+        bnb::color_std standard{bnb::color_std::bt601};    /* i.e. BT.601 or BT.709 */
+        bnb::color_range range{bnb::color_range::full};    /* i.e. "full" or "video" */
+
+        using ns = bnb::oep::interfaces::image_format;
+        switch (image->get_image_format()) {
+            case ns::nv12_bt601_full:
+                break;
+            case ns::nv12_bt601_video:
+                range = bnb::color_range::video;
+                break;
+            case ns::nv12_bt709_full:
+                standard = bnb::color_std::bt709;
+                break;
+            case ns::nv12_bt709_video:
+                range = bnb::color_range::video;
+                standard = bnb::color_std::bt709;
+                break;
+            case ns::i420_bt601_full:
+                format = bnb::yuv_format::yuv_i420;
+                break;
+            case ns::i420_bt601_video:
+                range = bnb::color_range::video;
+                format = bnb::yuv_format::yuv_i420;
+                break;
+            case ns::i420_bt709_full:
+                format = bnb::yuv_format::yuv_i420;
+                standard = bnb::color_std::bt709;
+                break;
+            case ns::i420_bt709_video:
+                range = bnb::color_range::video;
+                format = bnb::yuv_format::yuv_i420;
+                standard = bnb::color_std::bt709;
+                break;
+            default:
+                break;
+        }
+
+        return {range, standard, format};
+    }
+
+    /* make_bnb_pixel_format */
+    static bnb::interfaces::pixel_format make_bnb_pixel_format(pixel_buffer_sptr image)
+    {
+        bnb::interfaces::pixel_format fmt{bnb::interfaces::pixel_format::rgb};
+
+        using ns = bnb::oep::interfaces::image_format;
+        switch (image->get_image_format()) {
+            case ns::bpc8_rgb:
+                break;
+            case ns::bpc8_bgr:
+                fmt = bnb::interfaces::pixel_format::bgr;
+                break;
+            case ns::bpc8_rgba:
+                fmt = bnb::interfaces::pixel_format::rgba;
+                break;
+            case ns::bpc8_bgra:
+                fmt = bnb::interfaces::pixel_format::bgra;
+                break;
+            case ns::bpc8_argb:
+                fmt = bnb::interfaces::pixel_format::argb;
+                break;
+            default:
+                break;
+        }
+        return fmt;
+    }
+
     /* effect_player::create */
     effect_player_sptr interfaces::effect_player::create(int32_t width, int32_t height)
     {
@@ -204,101 +299,6 @@ namespace bnb::oep
             std::this_thread::yield();
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
-    }
-
-    /* effect_player::make_bnb_image_format */
-    bnb::image_format effect_player::make_bnb_image_format(pixel_buffer_sptr image, interfaces::rotation orientation, bool require_mirroring)
-    {
-        bnb::camera_orientation camera_orient{bnb::camera_orientation::deg_0};
-
-        using ns = bnb::oep::interfaces::rotation;
-        switch (orientation) {
-            case ns::deg0:
-                break;
-            case ns::deg90:
-                camera_orient = bnb::camera_orientation::deg_90;
-                break;
-            case ns::deg180:
-                camera_orient = bnb::camera_orientation::deg_180;
-                break;
-                break;
-            case ns::deg270:
-                camera_orient = bnb::camera_orientation::deg_270;
-                break;
-        }
-
-        return {static_cast<uint32_t>(image->get_width()), static_cast<uint32_t>(image->get_height()), camera_orient, require_mirroring, 0, std::nullopt};
-    }
-
-    /* effect_player::make_bnb_yuv_format */
-    bnb::yuv_format_t effect_player::make_bnb_yuv_format(pixel_buffer_sptr image)
-    {
-        bnb::yuv_format format{bnb::yuv_format::yuv_nv12}; /* i.e. NV12 or I420 */
-        bnb::color_std standard{bnb::color_std::bt601};    /* i.e. BT.601 or BT.709 */
-        bnb::color_range range{bnb::color_range::full};    /* i.e. "full" or "video" */
-
-        using ns = bnb::oep::interfaces::image_format;
-        switch (image->get_image_format()) {
-            case ns::nv12_bt601_full:
-                break;
-            case ns::nv12_bt601_video:
-                range = bnb::color_range::video;
-                break;
-            case ns::nv12_bt709_full:
-                standard = bnb::color_std::bt709;
-                break;
-            case ns::nv12_bt709_video:
-                range = bnb::color_range::video;
-                standard = bnb::color_std::bt709;
-                break;
-            case ns::i420_bt601_full:
-                format = bnb::yuv_format::yuv_i420;
-                break;
-            case ns::i420_bt601_video:
-                range = bnb::color_range::video;
-                format = bnb::yuv_format::yuv_i420;
-                break;
-            case ns::i420_bt709_full:
-                format = bnb::yuv_format::yuv_i420;
-                standard = bnb::color_std::bt709;
-                break;
-            case ns::i420_bt709_video:
-                range = bnb::color_range::video;
-                format = bnb::yuv_format::yuv_i420;
-                standard = bnb::color_std::bt709;
-                break;
-            default:
-                break;
-        }
-
-        return {range, standard, format};
-    }
-
-    /* effect_player::make_bnb_pixel_format */
-    bnb::interfaces::pixel_format effect_player::make_bnb_pixel_format(pixel_buffer_sptr image)
-    {
-        bnb::interfaces::pixel_format fmt{bnb::interfaces::pixel_format::rgb};
-
-        using ns = bnb::oep::interfaces::image_format;
-        switch (image->get_image_format()) {
-            case ns::bpc8_rgb:
-                break;
-            case ns::bpc8_bgr:
-                fmt = bnb::interfaces::pixel_format::bgr;
-                break;
-            case ns::bpc8_rgba:
-                fmt = bnb::interfaces::pixel_format::rgba;
-                break;
-            case ns::bpc8_bgra:
-                fmt = bnb::interfaces::pixel_format::bgra;
-                break;
-            case ns::bpc8_argb:
-                fmt = bnb::interfaces::pixel_format::argb;
-                break;
-            default:
-                break;
-        }
-        return fmt;
     }
 
 } /* namespace bnb::oep */

@@ -7,6 +7,18 @@
 namespace agora::extension
 {
 
+    const char* CALL_INITIALIZE = "initialize";
+    const char* CALL_CREATE = "create";
+    const char* CALL_DESTROY = "destroy";
+    const char* CALL_LOAD_EFFECT = "load_effect";
+    const char* CALL_UNLOAD_EFFECT = "unload_effect";
+    const char* CALL_PAUSE = "pause";
+    const char* CALL_RESUME = "resume";
+    const char* CALL_SET_DEVICE_ORIENTATION = "set_device_orientation";
+    const char* CALL_SET_RESOURCES_PATH = "set_resources_path";
+    const char* CALL_SET_EFFECTS_PATH = "set_effects_path";
+    const char* CALL_SET_CLIENT_TOKEN = "set_client_token";
+
     static bool bnb_sdk_is_initialized = false;
 
     static int device_orientation_degrees_to_front_camera_orientation_degrees(int degrees)
@@ -97,7 +109,7 @@ namespace agora::extension
 
         /* Do not pass 'this' to access the 'm_oep' and 'm_control' class members.
          * You can stumble upon a case when oep is already released, but the callback has not
-         * yet completed - this will lead to an application crash */
+         * yet been completed - this will lead to an application crash */
         auto proc_callback = [agora_control, oep, frame, captured_frame](const image_processing_result_sptr& result) {
             if (!result) {
                 return;
@@ -109,8 +121,8 @@ namespace agora::extension
                 uint8_t* src_uv = out_img->get_base_sptr_of_plane(1).get();
                 int32_t src_y_stride = out_img->get_bytes_per_row_of_plane(0);
                 int32_t src_uv_stride = out_img->get_bytes_per_row_of_plane(1);
-                int32_t src_y_size = src_y_stride * out_img->get_height();
-                int32_t src_uv_size = src_uv_stride * out_img->get_height() / 2;
+                int32_t src_y_size = src_y_stride * out_img->get_height_of_plane(0);
+                int32_t src_uv_size = src_uv_stride * out_img->get_height_of_plane(1);
 
                 uint8_t* dst_y = captured_frame.pixels.data;
                 uint8_t* dst_uv = captured_frame.pixels.data + captured_frame.width * captured_frame.height;
@@ -141,49 +153,43 @@ namespace agora::extension
     {
         if (!bnb_sdk_is_initialized) {
             /* Banuba SDK is not initialized */
-            if (key == "set_resources_path") {
+            if (key == CALL_SET_RESOURCES_PATH) {
                 m_path_to_resources = parameter;
-            } else if (key == "set_effects_path") {
+            } else if (key == CALL_SET_EFFECTS_PATH) {
                 m_path_to_effects = parameter;
-            } else if (key == "set_client_token") {
+            } else if (key == CALL_SET_CLIENT_TOKEN) {
                 m_client_token = parameter;
-            } else if (key == "initialize") {
+            } else if (key == CALL_INITIALIZE) {
                 initialize();
-            } else {
-                // TODO: print error message
             }
             return;
         }
 
         if (!m_oep) {
             /* oep not created */
-            if (key == "create") {
+            if (key == CALL_CREATE) {
                 create();
-            } else {
-                // TODO: print error message
             }
             return;
         }
 
-        if (key == "set_device_orientation") {
+        if (key == CALL_SET_DEVICE_ORIENTATION) {
             auto device_orientation_degrees = std::stoi(parameter);
             auto camera_orientation_degrees = device_orientation_degrees_to_front_camera_orientation_degrees(device_orientation_degrees);
             m_oep_input_rotation = degrees_to_oep_rotation(camera_orientation_degrees);
-        } else if (key == "pause") {
+        } else if (key == CALL_PAUSE) {
             m_oep->pause();
-        } else if (key == "resume") {
+        } else if (key == CALL_RESUME) {
             m_oep->resume();
-        } else if (key == "load_effect") {
+        } else if (key == CALL_LOAD_EFFECT) {
             m_oep->load_effect(parameter);
             m_is_effect_loaded = true;
-        } else if (key == "unload_effect") {
+        } else if (key == CALL_UNLOAD_EFFECT) {
             m_is_effect_loaded = false;
             m_oep->unload_effect();
-        } else if (key == "destroy") {
+        } else if (key == CALL_DESTROY) {
             m_is_effect_loaded = false;
             destroy();
-        } else {
-            // TODO: print error message
         }
     }
 

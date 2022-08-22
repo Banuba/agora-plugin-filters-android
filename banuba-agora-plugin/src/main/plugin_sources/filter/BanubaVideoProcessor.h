@@ -39,7 +39,7 @@ namespace agora::extension
         std::atomic<bnb::oep::interfaces::rotation> m_oep_input_rotation = bnb::oep::interfaces::rotation::deg0;
 
         agora::agora_refptr<rtc::IExtensionVideoFilter::Control> m_control;
-        bool m_is_effect_loaded = false;
+        std::atomic_bool m_is_effect_loaded = false;
         offscreen_effect_player_sptr m_oep;
         int32_t m_oep_surface_width = 0;
         int32_t m_oep_surface_height = 0;

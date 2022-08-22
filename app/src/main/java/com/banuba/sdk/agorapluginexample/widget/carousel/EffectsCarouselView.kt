@@ -84,6 +84,7 @@ class EffectsCarouselView @JvmOverloads constructor(
         ars: List<ArEffect>, checkedPosition: Int
     ) {
         savedStateEffectIndex = checkedPosition
+        savedStateEffectIsLoaded = false
         effectsAdapter.submitList(ars) {
             binding.effectsCarouselRecyclerView.scrollToPosition(checkedPosition)
         }

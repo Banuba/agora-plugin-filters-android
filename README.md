@@ -67,8 +67,7 @@ private val banubaExtension = BanubaExtensionManager(object : AgoraInterface {
   }
 })
 
-/* This interface separates banuba SDK and Agora rtc engine from each other.
-* In this example, it is only demonstrative, but it can be useful in large projects. */
+/* This interface separates banuba SDK and Agora rtc engine from each other */
 private val banubaExtensionInterface: AgoraExtension = banubaExtension
 ```
 

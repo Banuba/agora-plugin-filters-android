@@ -30,7 +30,6 @@ namespace bnb::oep
         m_display = display;
         m_surface = surface;
         m_context = context;
-        m_is_created = true;
     }
 
     /* render_context::activate */
@@ -48,7 +47,6 @@ namespace bnb::oep
     /* render_context::delete_context */
     void render_context::delete_context()
     {
-        m_is_created = false;
         deactivate();
         eglDestroyContext(m_display, m_context);
         eglDestroySurface(m_display, m_surface);

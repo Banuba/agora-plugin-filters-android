@@ -21,7 +21,6 @@ namespace bnb::oep
         EGLDisplay m_display{};
         EGLSurface m_surface{};
         EGLContext m_context{};
-        bool m_is_created{false};
     }; /* class render_context */
 
 } /* namespace bnb::oep */

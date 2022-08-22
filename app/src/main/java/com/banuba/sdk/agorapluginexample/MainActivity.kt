@@ -97,8 +97,7 @@ class MainActivity : AppCompatActivity() {
         }
     })
 
-    /* This interface separates banuba SDK and Agora rtc engine from each other.
-    * In this example, it is only demonstrative, but it can be useful in large projects. */
+    /* This interface separates banuba SDK and Agora rtc engine from each other. */
     private val banubaExtensionInterface: AgoraExtension = banubaExtension
 
     private val onEffectPrepared = object : BanubaResourceManager.EffectPreparedCallback {
@@ -121,11 +120,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        agoraRtc.enableVideo()
+        agoraRtc.enableAudio()
+        agoraRtc.startPreview()
         banubaExtension.resume()
     }
 
     override fun onPause() {
         super.onPause()
+        agoraRtc.disableAudio()
+        agoraRtc.disableVideo()
+        agoraRtc.stopPreview()
         banubaExtension.pause()
     }
 
@@ -186,7 +191,7 @@ class MainActivity : AppCompatActivity() {
     private fun initializeAgora() {
         val localSurfaceView = setupLocalVideo()
         val videoEncoderConfiguration = VideoEncoderConfiguration(
-            VideoEncoderConfiguration.VD_840x480,
+            VideoEncoderConfiguration.VD_1280x720,
             VideoEncoderConfiguration.FRAME_RATE.FRAME_RATE_FPS_30,
             VideoEncoderConfiguration.STANDARD_BITRATE,
             VideoEncoderConfiguration.ORIENTATION_MODE.ORIENTATION_MODE_FIXED_PORTRAIT
