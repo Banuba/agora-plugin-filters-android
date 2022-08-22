@@ -7,6 +7,8 @@
 namespace agora::extension
 {
 
+    static bool bnb_sdk_is_initialized = false;
+
     static int device_orientation_degrees_to_front_camera_orientation_degrees(int degrees)
     {
         return (degrees + 270) % 360;
@@ -34,8 +36,12 @@ namespace agora::extension
     )
     {
         auto oep = m_oep;
+        auto agora_control = m_control;
+        if (!agora_control) {
+            return;
+        }
         if (!oep || !m_is_effect_loaded) {
-            m_control->deliverVideoFrame(frame);
+            agora_control->deliverVideoFrame(frame);
             return;
         }
 
@@ -89,11 +95,14 @@ namespace agora::extension
 
         pixel_buffer_sptr img = ns::create(planes, bnb::oep::interfaces::image_format::nv12_bt709_full, captured_frame.width, captured_frame.height);
 
-        auto proc_callback = [this, frame, captured_frame](const image_processing_result_sptr& result) {
+        /* Do not pass 'this' to access the 'm_oep' and 'm_control' class members.
+         * You can stumble upon a case when oep is already released, but the callback has not
+         * yet completed - this will lead to an application crash */
+        auto proc_callback = [agora_control, oep, frame, captured_frame](const image_processing_result_sptr& result) {
             if (!result) {
                 return;
             }
-            auto image_callback = [this, frame, captured_frame](const pixel_buffer_sptr& out_img) {
+            auto image_callback = [agora_control, frame, captured_frame](const pixel_buffer_sptr& out_img) {
                 // returned image may have stride != width, but agora doesn't provide
                 // the way to set stride (expects stride == width), so copy image line by line
                 uint8_t* src_y = out_img->get_base_sptr_of_plane(0).get();
@@ -118,7 +127,7 @@ namespace agora::extension
                     dst_uv += captured_frame.width;
                 }
 
-                m_control->deliverVideoFrame(frame);
+                agora_control->deliverVideoFrame(frame);
             };
             result->get_image(bnb::oep::interfaces::image_format::nv12_bt709_full, image_callback);
         };
@@ -130,8 +139,8 @@ namespace agora::extension
         const std::string& parameter
     )
     {
-        if (!m_is_initialized) {
-            /* Banuba SDK not initialized */
+        if (!bnb_sdk_is_initialized) {
+            /* Banuba SDK is not initialized */
             if (key == "set_resources_path") {
                 m_path_to_resources = parameter;
             } else if (key == "set_effects_path") {
@@ -182,7 +191,7 @@ namespace agora::extension
     {
         const std::vector<std::string> resource_paths{m_path_to_resources, m_path_to_effects};
         bnb::interfaces::utility_manager::initialize(resource_paths, m_client_token);
-        m_is_initialized = true;
+        bnb_sdk_is_initialized = true;
     }
 
     void BanubaVideoProcessor::create()
@@ -202,7 +211,6 @@ namespace agora::extension
     {
         m_oep->stop();
         m_oep = nullptr;
-        bnb::interfaces::utility_manager::release();
     }
 
     void BanubaVideoProcessor::update_oep_surface_size(int32_t width, int32_t height)

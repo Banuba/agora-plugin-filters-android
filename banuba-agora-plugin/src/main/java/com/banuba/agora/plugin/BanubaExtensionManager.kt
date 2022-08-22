@@ -23,11 +23,17 @@ class BanubaExtensionManager(agora: AgoraInterface) : AgoraExtension {
         return EXTENSION_NAME
     }
 
-    fun create(resourcesPath: String, effectsPath: String, clientToken: String) {
+    /* The initialize(...) method must be called once at application startup.
+    * Only the very first call to this method is important.
+    * All subsequent calls do nothing and do not affect anything */
+    fun initialize(resourcesPath: String, effectsPath: String, clientToken: String) {
         sendProperty(CALL_SET_RESOURCES_PATH, resourcesPath);
         sendProperty(CALL_SET_EFFECTS_PATH, effectsPath);
         sendProperty(CALL_SET_CLIENT_TOKEN, clientToken);
         sendProperty(CALL_INITIALIZE, EMPTY_PARAMETER)
+    }
+
+    fun create() {
         sendProperty(CALL_CREATE, EMPTY_PARAMETER);
     }
 

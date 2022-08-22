@@ -29,6 +29,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 class MainActivity : AppCompatActivity() {
     companion object {
         private const val REQUEST_CODE_PERMISSIONS = 1001
+        private const val KEY_SAVED_INSTANCE_EFFECT_INDEX = "lastLoadedEffectIndex"
 
         private val REQUIRED_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA,
@@ -108,13 +109,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        initializeUI()
+        initializeUI(savedInstanceState)
         requestPermissionsIfNecessaryAndStart()
     }
 
-    override fun onPause() {
-        super.onPause()
-        banubaExtension.pause()
+    override fun onDestroy() {
+        super.onDestroy()
+        shutdownBanubaExtension()
+        shutdownAgora()
     }
 
     override fun onResume() {
@@ -122,15 +124,19 @@ class MainActivity : AppCompatActivity() {
         banubaExtension.resume()
     }
 
+    override fun onPause() {
+        super.onPause()
+        banubaExtension.pause()
+    }
+
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         banubaExtension.setDeviceOrientation(getDeviceOrientationDegrees(this))
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        shutdownBanubaExtension()
-        shutdownAgora()
+    override fun onSaveInstanceState(savedInstanceState: Bundle) {
+        super.onSaveInstanceState(savedInstanceState)
+        savedInstanceState.putInt(KEY_SAVED_INSTANCE_EFFECT_INDEX, effectsCarouselView.selectedPosition);
     }
 
     private fun isPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -161,16 +167,20 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, results)
     }
 
-    private fun initializeUI() {
+    private fun initializeUI(savedInstanceState: Bundle?) {
         setContentView(R.layout.activity_main)
         banubaResourceManager.prepare()
         effectsCarouselView.actionCallback = object : EffectsCarouselView.ActionCallback {
             override fun onEffectsSelected(effect: ArEffect) {
-                banubaResourceManager.prepareEffect(effect.name, onEffectPrepared)
+                val name = effect.name
+                banubaResourceManager.prepareEffect(name, onEffectPrepared)
             }
         }
         val effects = BanubaEffectsLoader(this).loadEffects()
-        effectsCarouselView.setEffectsList(listOf(ArEffect.EMPTY) + effects, 0)
+        val position =
+            if (savedInstanceState == null) 0
+            else savedInstanceState.getInt(KEY_SAVED_INSTANCE_EFFECT_INDEX, 0)
+        effectsCarouselView.setEffectsList(listOf(ArEffect.EMPTY) + effects, position)
     }
 
     private fun initializeAgora() {
@@ -198,7 +208,11 @@ class MainActivity : AppCompatActivity() {
     private fun initializeBanubaExtension() {
         agoraRtc.enableExtension(banubaExtensionInterface.getProviderName(), banubaExtensionInterface.getExtensionName(), true)
         agoraRtc.joinChannel(AGORA_CLIENT_TOKEN, AGORA_CHANNEL_ID, null, 0)
-        banubaExtension.create(banubaResourceManager.resourcesPath, banubaResourceManager.effectsPath, BANUBA_CLIENT_TOKEN)
+        /* The initialize(...) method must be called once at application startup.
+        * Only the very first call to this method is important.
+        * All subsequent calls do nothing and do not affect anything. */
+        banubaExtension.initialize(banubaResourceManager.resourcesPath, banubaResourceManager.effectsPath, BANUBA_CLIENT_TOKEN)
+        banubaExtension.create()
         banubaExtension.setDeviceOrientation(getDeviceOrientationDegrees(this))
     }
 

@@ -6,7 +6,9 @@
     <FrameLayout
         android:id="@+id/remoteVideoContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent" >
+
+    </FrameLayout>
 
     <FrameLayout
         android:id="@+id/localVideoContainerPortrait"
@@ -28,4 +30,5 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:layout_gravity="bottom|center_horizontal"/>
+
 </FrameLayout>

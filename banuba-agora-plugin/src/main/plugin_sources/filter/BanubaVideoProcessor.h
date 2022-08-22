@@ -36,7 +36,6 @@ namespace agora::extension
         std::string m_path_to_resources;
         std::string m_path_to_effects;
         std::string m_client_token;
-        bool m_is_initialized = false;
         std::atomic<bnb::oep::interfaces::rotation> m_oep_input_rotation = bnb::oep::interfaces::rotation::deg0;
 
         agora::agora_refptr<rtc::IExtensionVideoFilter::Control> m_control;
