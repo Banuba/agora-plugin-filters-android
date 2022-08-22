@@ -111,11 +111,12 @@ agoraRtc.enableExtension(
 
 ```kotlin
 private fun initializeBanubaExtension() {
-  banubaExtension.create(
+  banubaExtension.initialize(
     banubaResourceManager.resourcesPath,
     banubaResourceManager.effectsPath,
     BANUBA_CLIENT_TOKEN
   )
+  banubaExtension.create()
   banubaExtension.setDeviceOrientation(
     getDeviceOrientationDegrees(this)
   )
