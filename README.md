@@ -31,6 +31,21 @@ To receive full commercial license from Banuba - please fill in our form on [for
 12. Copy and Paste your Agora token, app ID and channel ID into appropriate section of `app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt` with " " symbols. For example: AGORA_APP_ID = "place_your_token_here"
 13. Open the project in Android Studio and run the necessary target using the usual steps.
 
+# Effects managing
+
+To add new effects to the example, please download effects [HERE](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters) and put them in this folder [`app/src/main/assets/effects`](./app/src/main/assets/effects).
+By default the sample doesn't contains effects.
+
+To retrieve current effects use the following code:
+
+```kotlin
+val effects: List<ArEffect> = BanubaEffectsLoader(this).loadEffects()
+```
+
+ArEffect contains following information:\
+`name: String` - pass to `banubaResourceManager.prepareEffect(Effect name, onEffectPrepared)`. Also can be used to display label on the UI\
+`preview: Bitmap` - can be used as preview image
+
 # How to use `BanubaFiltersAgoraExtension`
 
 Add following imports:
@@ -43,15 +58,28 @@ import com.banuba.agora.plugin.model.ArEffect
 import com.banuba.sdk.utils.ContextProvider
 ```
 
+Create the Banuba SDK extension object:
+
+```kotlin
+private val banubaExtension = BanubaExtensionManager(object : AgoraInterface {
+  override fun onSetExtensionProperty(provider: String, extension: String, propertyKey: String, propertyValue: String) {
+    agoraRtc.setExtensionProperty(provider, extension, propertyKey, propertyValue)
+  }
+})
+
+/* This interface separates banuba SDK and Agora rtc engine from each other */
+private val banubaExtensionInterface: AgoraExtension = banubaExtension
+```
+
 Add extension to RtcEngineConfig:
 
 ```kotlin
 RtcEngineConfig().apply {
- ...
- System.loadLibrary("banuba")
- addExtension(BanubaExtensionManager.EXTENSION_NAME)
- ContextProvider.setContext(mContext)
- ...
+  ...
+  System.loadLibrary(banubaExtensionInterface.getLibraryName())
+  addExtension(banubaExtensionInterface.getPluginName())
+  ContextProvider.setContext(mContext)
+  ...
 }
 ```
 
@@ -74,31 +102,22 @@ After those steps enable and initialize extension:
 
 ```kotlin
 agoraRtc.enableExtension(
-  BanubaExtensionManager.VENDOR_NAME,
-  BanubaExtensionManager.VIDEO_FILTER_NAME,
+  banubaExtensionInterface.getProviderName(),
+  banubaExtensionInterface.getExtensionName(),
   true
 )
 ```
 
 ```kotlin
-private fun initBanubaPlugin() {
-  agoraRtc.setExtensionProperty(
-    BanubaExtensionManager.VENDOR_NAME,
-    BanubaExtensionManager.VIDEO_FILTER_NAME,
-    BanubaExtensionManager.KEY_SET_RESOURCES_PATH,
-    banubaResourceManager.resourcesPath
-  )
-  agoraRtc.setExtensionProperty(
-    BanubaExtensionManager.VENDOR_NAME,
-    BanubaExtensionManager.VIDEO_FILTER_NAME,
-    BanubaExtensionManager.KEY_SET_EFFECTS_PATH,
-    banubaResourceManager.effectsPath
-  )
-  agoraRtc.setExtensionProperty(
-    BanubaExtensionManager.VENDOR_NAME,
-    BanubaExtensionManager.VIDEO_FILTER_NAME,
-    BanubaExtensionManager.KEY_SET_TOKEN,
+private fun initializeBanubaExtension() {
+  banubaExtension.initialize(
+    banubaResourceManager.resourcesPath,
+    banubaResourceManager.effectsPath,
     BANUBA_CLIENT_TOKEN
+  )
+  banubaExtension.create()
+  banubaExtension.setDeviceOrientation(
+    getDeviceOrientationDegrees(this)
   )
 }
 ```
@@ -108,17 +127,8 @@ To enable/disable effects use the following code:
 ```kotlin
 private val onEffectPrepared = object : BanubaResourceManager.EffectPreparedCallback {
   override fun onPrepared(effectName: String) {
-    sendEffectToFilter(effectName)
+    banubaExtension.loadEffect(effectName)
   }
-}
-
-private fun sendEffectToFilter(effect: String) {
-  agoraRtc.setExtensionProperty(
-    BanubaExtensionManager.VENDOR_NAME,
-    BanubaExtensionManager.VIDEO_FILTER_NAME,
-    BanubaExtensionManager.KEY_LOAD_EFFECT,
-    effect
-  )
 }
 ```
 
@@ -127,28 +137,3 @@ banubaResourceManager.prepareEffect(Effect name, onEffectPrepared)
 ```
 
 [Check out example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt)
-
-# Effects managing
-
-To retrieve current effects use the following code:
-
-```kotlin
-val effects: List<ArEffect> = BanubaEffectsLoader(this).loadEffects()
-```
-
-ArEffect contains following information:\
-`name: String` - pass to `banubaResourceManager.prepareEffect(Effect name, onEffectPrepared)`. Also can be used to display label on the UI\
-`preview: Bitmap` - can be used as preview image
-
-To modify effects, add or remove effect folder in `app/src/main/assets/effects` directory.
-By default sample contains the following effects:
-
-1. ElvisUnleashed
-2. EnglandEightPieceCap
-3. FashionHistory1940_male
-4. MorphingHatBow
-5. Nerd
-6. SnapBubblesGlasses
-7. Space
-8. StarGlow
-9. TitanicJack

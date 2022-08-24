@@ -11,17 +11,8 @@ namespace bnb::oep
     /* render_context::create_context */
     void render_context::create_context()
     {
-        const EGLint attribs[] = {
-                EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-                EGL_BLUE_SIZE, 8,
-                EGL_GREEN_SIZE, 8,
-                EGL_RED_SIZE, 8,
-                EGL_NONE
-        };
-        EGLint contextAttribs[] = {
-                EGL_CONTEXT_CLIENT_VERSION, 3,
-                EGL_NONE
-        };
+        const EGLint attribs[] = {EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_NONE};
+        EGLint contextAttribs[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
         EGLDisplay display;
         EGLConfig config;
         EGLint numConfigs;
@@ -55,10 +46,15 @@ namespace bnb::oep
 
     /* render_context::delete_context */
     void render_context::delete_context()
-    {}
+    {
+        deactivate();
+        eglDestroyContext(m_display, m_context);
+        eglDestroySurface(m_display, m_surface);
+        eglTerminate(m_display);
+    }
 
     /* render_context::get_sharing_context */
-    void * render_context::get_sharing_context()
+    void* render_context::get_sharing_context()
     {
         return m_context;
     }

@@ -30,7 +30,11 @@ class EffectsCarouselView @JvmOverloads constructor(
 
     private val effectsAdapter = EffectsCarouselAdapter()
     private val snapHelper = HorizontalCenterSnapHelper()
+    private var savedStateEffectIndex: Int = 0
+    private var savedStateEffectIsLoaded = false
 
+    var selectedPosition: Int = 0
+        get() = field
 
     private val recyclerViewScrollListener = object : RecyclerView.OnScrollListener() {
 
@@ -57,6 +61,11 @@ class EffectsCarouselView @JvmOverloads constructor(
             val newPosition = layoutManager.getPosition(targetView)
             if (abs(remainingDistance) > SELECTED_DISTANCE_ACCURACY * SELECTED_DISTANCE_ACCURACY || newPosition == selectedPosition) return
             selectedPosition = newPosition
+            if (!savedStateEffectIsLoaded && selectedPosition == 0) {
+                savedStateEffectIsLoaded = true
+                selectedPosition = savedStateEffectIndex
+            }
+
             onEffectSelected(selectedPosition)
         }
     }
@@ -72,17 +81,18 @@ class EffectsCarouselView @JvmOverloads constructor(
     }
 
     fun setEffectsList(
-        ars: List<ArEffect>, checkedPosition: Int = if (ars.isNotEmpty()) 0 else -1
+        ars: List<ArEffect>, checkedPosition: Int
     ) {
+        savedStateEffectIndex = checkedPosition
+        savedStateEffectIsLoaded = false
         effectsAdapter.submitList(ars) {
-            if (checkedPosition != -1) {
-                binding.effectsCarouselRecyclerView.scrollToPosition(checkedPosition)
-            }
+            binding.effectsCarouselRecyclerView.scrollToPosition(checkedPosition)
         }
     }
 
     private fun onEffectSelected(position: Int) {
         val selectedEffect = effectsAdapter.getItemAt(position)
+        selectedPosition = position
         actionCallback?.onEffectsSelected(selectedEffect)
     }
 

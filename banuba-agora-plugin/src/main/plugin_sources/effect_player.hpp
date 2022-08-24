@@ -36,11 +36,6 @@ namespace bnb::oep
         void draw() override;
 
     private:
-        bnb::image_format make_bnb_image_format(pixel_buffer_sptr image, interfaces::rotation orientation, bool require_mirroring);
-        bnb::yuv_format_t make_bnb_yuv_format(pixel_buffer_sptr image);
-        bnb::interfaces::pixel_format make_bnb_pixel_format(pixel_buffer_sptr image);
-
-    private:
         std::shared_ptr<bnb::interfaces::effect_player> m_ep;
     }; /* class effect_player */
 

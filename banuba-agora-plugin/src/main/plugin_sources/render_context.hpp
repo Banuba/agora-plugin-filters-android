@@ -15,7 +15,7 @@ namespace bnb::oep
         void deactivate() override;
         void delete_context() override;
 
-        void * get_sharing_context() override;
+        void* get_sharing_context() override;
 
     private:
         EGLDisplay m_display{};
