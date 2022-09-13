@@ -18,15 +18,15 @@ To receive full commercial license from Banuba - please fill in our form on [for
    >`banuba_effect_player-release.aar` => [`libs/`](./libs)
 4. Copy `include/bnb` directory into [`libs/bnb_sdk/`](./libs/bnb_sdk):
    >`include/bnb` => [`libs/bnb_sdk/`](./libs/bnb_sdk)
-5. Download the effects you want from [HERE](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters). Unzip the downloaded `.zip` files with effects to a folder [`app/src/main/assets/effects`](./app/src/main/assets/effects). Each effect is one folder.
+5. Download the effects you need from [HERE](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters). Unzip the downloaded `.zip` files with effects to a folder [`app/src/main/assets/effects`](./app/src/main/assets/effects). Each unpacked effect should be put into a separate folder. The folder name will be the effect name for loading.
 6. Get the Agora Video SDK archive for android (v4.0.0-beta.2) from [HERE](https://docs.agora.io/en/extension_customer/downloads?platform=Android).
 7. Copy `.jar` files from the Agora Video SDK archive into [`libs`](./libs) dir:
    >`agora-rtc-sdk.jar` => [`libs/`](./libs)
-8. Copy architecture folders from the Agora Video SDK archive into [`jniLibs`](./libs/jniLibs) dir:
+8. Copy architecture folders from the Agora Video SDK archive into [`jniLibs`](./libs/jniLibs) dir and merge them with existing folders:
    >`arm64-v8a`, `armeabi-v7a` and `x86_64` => [`libs/jniLibs/`](./libs/jniLibs)
 9. Copy the `low_level_api/include` directory from Agora SDK into [`libs/agora_rtc_sdk/`](./libs/agora_rtc_sdk/):
    >`low_level_api/include` => [`libs/agora_rtc_sdk/`](./libs/agora_rtc_sdk/)
-10. As a result of the previous points, the [`libs`](./libs) folder will contain:
+10. As a result of the previous steps, the [`libs`](./libs) folder will contain:
 ```
 libs/agora_rtc_sdk/include/             - the 'include' folder can be found in the archive: (Agora RTC archive)/rtc/sdk/low_level_api/
 libs/bnb_sdk/bnb/                       - the 'bnb' folder can be found in the archive: (Banuba SDK archive)/BNBEffectPlayer/include/
@@ -39,7 +39,7 @@ libs/banuba_effect_player-release.aar   - the 'banuba_effect_player-release.aar'
 11. Copy and Paste your Banuba client token into appropriate section of [`ClientToken.kt`](./app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt) with " " symbols.
 12. Visit [agora.io](https://console.agora.io) to sign up and get [Agora token, Agora app ID and Agora channel ID](https://docs.agora.io/en/Agora%20Platform/channel_key?platform=Android). You can read more about how you can get an Agora token at [THIS LINK](https://docs.agora.io/en/Agora%20Platform/channel_key?platform=Android).
 13. Copy and Paste your Agora token, Agora app ID and Agora channel ID into appropriate section of [`ClientToken.kt`](./app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt) with " " symbols.
-14. As a result of the previous two points, in the file [`ClientToken.kt`](./app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt) you should have the following:
+14. As a result of the two previous steps, in the file [`ClientToken.kt`](./app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt) you should have the following:
 ```kotlin
 package com.banuba.sdk.agorapluginexample
 
