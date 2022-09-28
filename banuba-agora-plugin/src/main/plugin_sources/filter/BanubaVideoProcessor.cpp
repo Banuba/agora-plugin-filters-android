@@ -61,24 +61,7 @@ namespace agora::extension
         frame->getVideoFrameData(captured_frame);
         using nsr = bnb::oep::interfaces::rotation;
         bnb::oep::interfaces::rotation target_orient = nsr::deg0;
-        bool need_flip = false;
-        switch (m_oep_input_rotation) {
-            case nsr::deg0:
-                target_orient = nsr::deg180;
-                break;
-            case nsr::deg180:
-                target_orient = nsr::deg0;
-                break;
-            case nsr::deg90:
-                target_orient = nsr::deg270;
-                need_flip = true;
-                break;
-            case nsr::deg270:
-                target_orient = nsr::deg90;
-                need_flip = true;
-                break;
-        }
-
+        bool need_flip = m_oep_input_rotation == nsr::deg90 || m_oep_input_rotation == nsr::deg270;
         if (need_flip) {
             update_oep_surface_size(captured_frame.height, captured_frame.width);
         } else {
@@ -143,7 +126,7 @@ namespace agora::extension
             };
             result->get_image(bnb::oep::interfaces::image_format::nv12_bt709_full, image_callback);
         };
-        oep->process_image_async(img, m_oep_input_rotation, true, proc_callback, target_orient);
+        oep->process_image_async(img, m_oep_input_rotation, false, proc_callback, m_oep_input_rotation);
     }
 
     void BanubaVideoProcessor::set_parameter(
