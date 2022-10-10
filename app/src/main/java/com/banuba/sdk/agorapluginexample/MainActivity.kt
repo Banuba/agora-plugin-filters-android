@@ -211,7 +211,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeBanubaExtension() {
-        agoraRtc.enableExtension(banubaExtensionInterface.getProviderName(), banubaExtensionInterface.getExtensionName(), true)
+        agoraRtc.enableExtension(banubaExtensionInterface.getProviderName(), banubaExtensionInterface.getExtensionName(), true, Constants.MediaSourceType.PRIMARY_CAMERA_SOURCE)
         agoraRtc.joinChannel(AGORA_CLIENT_TOKEN, AGORA_CHANNEL_ID, null, 0)
         /* The initialize(...) method must be called once at application startup.
         * Only the very first call to this method is important.
