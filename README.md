@@ -12,7 +12,8 @@ Examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar-sdk-v1/andr
     ```sh
         git clone --recursive https://github.com/Banuba/agora-plugin-filters-android.git
     ```
-> Important: The example uses submodules. So when cloning, don't forget to update the submodules to the latest version. 'git submodule --update --recursive --init' will help you with this.
+    > Important: The example uses submodules. So when cloning, don't forget to update the submodules to the latest version.
+    > `git submodule --update --recursive --init` will help you with this.
 2. Get the latest Banuba SDK archive, [Banuba trial client token](https://www.banuba.com/facear-sdk/face-filters).
 To receive full commercial license from Banuba - please fill in our form on [form on banuba.com](https://www.banuba.com/face-filters-sdk) website, or contact us via [info@banuba.com](mailto:info@banuba.com).
 3. Copy `.aar` file from the Banuba SDK archive into `libs` dir:
