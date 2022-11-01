@@ -12,6 +12,7 @@ Examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar-sdk-v1/andr
     ```sh
         git clone --recursive https://github.com/Banuba/agora-plugin-filters-android.git
     ```
+> Important: The example uses submodules. So when cloning, don't forget to update the submodules to the latest version. 'git submodule --update --recursive --init' will help you with this.
 2. Get the latest Banuba SDK archive, [Banuba trial client token](https://www.banuba.com/facear-sdk/face-filters).
 To receive full commercial license from Banuba - please fill in our form on [form on banuba.com](https://www.banuba.com/face-filters-sdk) website, or contact us via [info@banuba.com](mailto:info@banuba.com).
 3. Copy `.aar` file from the Banuba SDK archive into `libs` dir:
@@ -19,7 +20,7 @@ To receive full commercial license from Banuba - please fill in our form on [for
 4. Copy `include/bnb` directory into [`libs/bnb_sdk/`](./libs/bnb_sdk):
    >`include/bnb` => [`libs/bnb_sdk/`](./libs/bnb_sdk)
 5. Download the effects you need from [HERE](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters). Unzip the downloaded `.zip` files with effects to a folder [`app/src/main/assets/effects`](./app/src/main/assets/effects). Each unpacked effect should be put into a separate folder. The folder name will be the effect name for loading.
-6. Get the Agora Video SDK archive for android (v4.0.0-beta.2) from [HERE](https://docs.agora.io/en/extension_customer/downloads?platform=Android).
+6. Get the Agora Video SDK archive for android (v4.0.0-beta.2) from [HERE](https://download.agora.io/sdk/release/Agora_Native_SDK_for_Android_v4.0.0-beta.2_FULL.zip).
 7. Copy `.jar` files from the Agora Video SDK archive into [`libs`](./libs) dir:
    >`agora-rtc-sdk.jar` => [`libs/`](./libs)
 8. Copy architecture folders from the Agora Video SDK archive into [`jniLibs`](./libs/jniLibs) dir and merge them with existing folders:
