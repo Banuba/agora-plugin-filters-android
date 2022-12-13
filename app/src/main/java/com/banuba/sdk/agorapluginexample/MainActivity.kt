@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.Matrix
 import android.os.Bundle
 import android.util.Log
 import android.view.Surface
@@ -222,16 +223,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupLocalVideo(): SurfaceView {
-        val surfaceView = RtcEngine.CreateRendererView(this)
+        val surfaceView = SurfaceView(this)
         surfaceView.setZOrderMediaOverlay(true)
         val videoCanvas = VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_HIDDEN, 0)
         agoraRtc.setupLocalVideo(videoCanvas)
-        agoraRtc.setLocalRenderMode(Constants.RENDER_MODE_HIDDEN, Constants.VIDEO_MIRROR_MODE_DISABLED)
+        agoraRtc.setLocalRenderMode(Constants.RENDER_MODE_HIDDEN, Constants.VIDEO_MIRROR_MODE_ENABLED)
         return surfaceView
     }
 
     private fun setupRemoteVideo(uid: Int): SurfaceView {
-        val surfaceView = RtcEngine.CreateRendererView(this)
+        val surfaceView = SurfaceView(this)
         val videoCanvas = VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_HIDDEN, uid)
         agoraRtc.setupRemoteVideo(videoCanvas)
         return surfaceView
