@@ -142,12 +142,12 @@ namespace bnb::oep
 
     /* effect_player::effect_player CONSTRUCTOR */
     effect_player::effect_player(int32_t width, int32_t height)
-        : m_ep(bnb::interfaces::effect_player::create({width,  // fx_width - the effect's framebuffer width
-                                                       height, // fx_height - the effect's framebuffer height
-                                                       bnb::interfaces::nn_mode::automatically,
-                                                       bnb::interfaces::face_search_mode::good,
-                                                       false,
-                                                       false}))
+        : m_ep(bnb::interfaces::effect_player::create(
+            bnb::interfaces::effect_player_configuration::create(
+                720 /*fx_width*/,
+                1280 /*fx_height*/
+            )
+        ))
     {
         surface_created(width, height);
     }

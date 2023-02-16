@@ -1,10 +1,5 @@
 Examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar-sdk-v1/android/android_overview) and [Agora.io](https://www.agora.io/en/) SDK integration via Agora Plugin Filters to enhance video calls with real-time face filters and virtual backgrounds.
 
-> **Important**
->
-> [master](../../tree/master) branch is always compatible with latest SDK version. Please use [legacy](../../tree/legacy) branch for SDK version 0.x (e.g. v0.38.x).
-
-
 # Getting Started
 
 0. Make sure that you have Android **NDK** and **CMake** are installed! Project contains C++ sources, so this is required! Recommended NDK versions is 21.1.6352462, required CMake version is 3.9, 3.14 or above is recommended (Android SDK manager provides 3.18.1, it should be installed).
@@ -21,7 +16,7 @@ To receive full commercial license from Banuba - please fill in our form on [for
 4. Copy `include/bnb` directory into [`libs/bnb_sdk/`](./libs/bnb_sdk):
    >`include/bnb` => [`libs/bnb_sdk/`](./libs/bnb_sdk)
 5. Download the effects you need from [HERE](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters). Unzip the downloaded `.zip` files with effects to a folder [`app/src/main/assets/effects`](./app/src/main/assets/effects). Each unpacked effect should be put into a separate folder. The folder name will be the effect name for loading.
-6. Get the Agora Video SDK archive for android (v4.0.0-beta.2) from [HERE](https://download.agora.io/sdk/release/Agora_Native_SDK_for_Android_v4.0.1_FULL.zip).
+6. Get the Agora Video SDK archive for android (v4.0.1) from [HERE](https://download.agora.io/sdk/release/Agora_Native_SDK_for_Android_v4.0.1_FULL.zip).
 7. Copy `.jar` files from the Agora Video SDK archive into [`libs`](./libs) dir:
    >`agora-rtc-sdk.jar` => [`libs/`](./libs)
 8. Copy architecture folders from the Agora Video SDK archive into [`jniLibs`](./libs/jniLibs) dir and merge them with existing folders:
