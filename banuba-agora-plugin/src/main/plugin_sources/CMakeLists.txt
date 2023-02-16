@@ -17,7 +17,7 @@ target_include_directories(${banuba-lib} INTERFACE
 set(agora-lib agora_rtc_sdk)
 add_library(${agora-lib} INTERFACE)
 target_link_libraries(${agora-lib} INTERFACE
-        ${CMAKE_CURRENT_LIST_DIR}/../../../../libs/jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libagora-rtc-sdk-jni.so
+        ${CMAKE_CURRENT_LIST_DIR}/../../../../libs/jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libagora-rtc-sdk.so
 )
 target_include_directories(${agora-lib} INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/../../../../libs/agora_rtc_sdk/include
