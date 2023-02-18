@@ -1,91 +1,96 @@
 package com.banuba.agora.plugin
 
-class BanubaExtensionManager(agora: AgoraInterface) : AgoraExtension {
-    private val agoraInterface: AgoraInterface = agora
+import android.util.Log
 
-    interface AgoraInterface {
-        fun onSetExtensionProperty(provider: String, extension: String, propertyKey: String, propertyValue: String)
+class BanubaExtensionManager(val callback: AgoraExtensionCallback) {
+
+    interface AgoraExtensionCallback {
+        fun onExtensionPropertySet(key: String, value: String)
     }
 
-    override fun getLibraryName(): String {
-        return LIBRARY_NAME
-    }
-
-    override fun getPluginName(): String {
-        return PLUGIN_NAME
-    }
-
-    override fun getProviderName(): String {
-        return PROVIDER_NAME
-    }
-
-    override fun getExtensionName(): String {
-        return EXTENSION_NAME
-    }
-
-    /* The initialize(...) method must be called once at application startup.
-    * Only the very first call to this method is important.
-    * All subsequent calls do nothing and do not affect anything */
-    fun initialize(resourcesPath: String, effectsPath: String, clientToken: String) {
-        sendProperty(CALL_SET_RESOURCES_PATH, resourcesPath);
-        sendProperty(CALL_SET_EFFECTS_PATH, effectsPath);
-        sendProperty(CALL_SET_CLIENT_TOKEN, clientToken);
-        sendProperty(CALL_INITIALIZE, EMPTY_PARAMETER)
-    }
-
-    fun create() {
-        sendProperty(CALL_CREATE, EMPTY_PARAMETER);
-    }
-
-    fun destroy() {
-        sendProperty(CALL_DESTROY, EMPTY_PARAMETER);
-    }
-
-    fun loadEffect(effectName: String) {
-        if (effectName == "") {
-            unloadEffect()
-        } else {
-            sendProperty(CALL_LOAD_EFFECT, effectName);
-        }
-    }
-
-    fun unloadEffect() {
-        sendProperty(CALL_UNLOAD_EFFECT, EMPTY_PARAMETER);
-    }
-
-    fun pause() {
-        sendProperty(CALL_PAUSE, EMPTY_PARAMETER);
-    }
-
-    fun resume() {
-        sendProperty(CALL_RESUME, EMPTY_PARAMETER);
-    }
-
-    fun setDeviceOrientation(angle: Int) {
-        sendProperty(CALL_SET_DEVICE_ORIENTATION, angle.toString())
-    }
-
-    private fun sendProperty(propertyKey: String, propertyValue: String) {
-        agoraInterface.onSetExtensionProperty(PROVIDER_NAME, EXTENSION_NAME, propertyKey, propertyValue)
-    }
-
-    private companion object {
-        const val LIBRARY_NAME = "banuba"
+    companion object {
+        private const val NATIVE_LIBRARY_NAME = "banuba"
         const val PLUGIN_NAME = "banuba-plugin" // CMake target
         const val PROVIDER_NAME = "Banuba"
         const val EXTENSION_NAME = "BanubaFilter"
 
-        const val CALL_INITIALIZE = "initialize"
-        const val CALL_CREATE = "create"
-        const val CALL_DESTROY = "destroy"
-        const val CALL_LOAD_EFFECT = "load_effect"
-        const val CALL_UNLOAD_EFFECT = "unload_effect"
-        const val CALL_PAUSE = "pause"
-        const val CALL_RESUME = "resume"
-        const val CALL_SET_DEVICE_ORIENTATION = "set_device_orientation"
-        const val CALL_SET_RESOURCES_PATH = "set_resources_path"
-        const val CALL_SET_EFFECTS_PATH = "set_effects_path"
-        const val CALL_SET_CLIENT_TOKEN = "set_client_token"
-        const val EMPTY_PARAMETER = "1" // an empty parameter must contain a value, otherwise the agora won't process it
+        // init/destroy. Remove create
+        private const val KEY_INITIALIZE = "initialize"
+        private const val KEY_DEVICE_ORIENTATION = "set_device_orientation"
+        private const val KEY_RESOURCES_PATH = "set_resources_path"
+        private const val KEY_EFFECTS_PATH = "set_effects_path"
+        private const val KEY_CLIENT_TOKEN = "set_client_token"
+
+        private const val KEY_RESUME = "resume"
+        private const val KEY_LOAD_EFFECT = "load_effect"
+        private const val KEY_UNLOAD_EFFECT = "unload_effect"
+        private const val KEY_PAUSE = "pause"
+        private const val KEY_DESTROY = "destroy"
+
+        private const val KEY_CREATE = "create"
+
+        private const val EMPTY_PARAMETER = "1" // empty parameter to make Agora process value
+    }
+
+    init {
+        try {
+            System.loadLibrary(NATIVE_LIBRARY_NAME)
+        } catch (e: Throwable) {
+            Log.e("Banuba", "Cannot load Banuba native library")
+        }
+    }
+
+    /* Initializes Banuba extension with params */
+    fun initialize(
+        resourcesPath: String,
+        effectsPath: String,
+        clientToken: String
+    ) {
+        dispatchProperty(KEY_RESOURCES_PATH, resourcesPath);
+        dispatchProperty(KEY_EFFECTS_PATH, effectsPath);
+        dispatchProperty(KEY_CLIENT_TOKEN, clientToken);
+        dispatchProperty(KEY_INITIALIZE, EMPTY_PARAMETER)
+    }
+
+    // Creates OEP Surface -> move to initialize
+    fun create() {
+        dispatchProperty(KEY_CREATE, EMPTY_PARAMETER);
+    }
+
+    // Destroys OEP Surface
+    fun destroy() {
+        dispatchProperty(KEY_DESTROY, EMPTY_PARAMETER);
+    }
+
+    // Loads Face AR effect
+    fun loadEffect(effectName: String) {
+        if (effectName == "") {
+            unloadEffect()
+        } else {
+            dispatchProperty(KEY_LOAD_EFFECT, effectName);
+        }
+    }
+
+    // Pauses applying Face AR effect
+    fun pause() {
+        dispatchProperty(KEY_PAUSE, EMPTY_PARAMETER);
+    }
+
+    // Resumes applying Face AR effect
+    fun resume() {
+        dispatchProperty(KEY_RESUME, EMPTY_PARAMETER);
+    }
+
+    // Sets device orientation. Remove?
+    fun setDeviceOrientation(angle: Int) {
+        dispatchProperty(KEY_DEVICE_ORIENTATION, angle.toString())
+    }
+
+    private fun unloadEffect() {
+        dispatchProperty(KEY_UNLOAD_EFFECT, EMPTY_PARAMETER);
+    }
+
+    private fun dispatchProperty(propertyKey: String, propertyValue: String) {
+        callback.onExtensionPropertySet(propertyKey, propertyValue)
     }
 }

@@ -45,6 +45,8 @@ dependencies {
     implementation(name: 'agora-rtc-sdk', ext: 'jar')
     implementation project(':banuba-agora-plugin')
 
+    //implementation 'io.agora.rtc:full-sdk:4.0.1'
+
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'com.google.android.material:material:1.5.0'

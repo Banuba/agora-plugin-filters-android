@@ -1,0 +1,545 @@
+{
+    "assets": {
+        "attachments": {
+            "ComposerRT_color": {
+                "type": "color"
+            },
+            "EffectRT0_color": {
+                "type": "color"
+            },
+            "EffectRT0_depth": {
+                "clear": [
+                    1.0
+                ],
+                "type": "depth"
+            }
+        },
+        "faces": {
+            "face0": {
+                "index": 0,
+                "mesh": "!glfx_FACE"
+            }
+        },
+        "images": {
+            "Beard.png": {
+                "file_name": "images/Beard.png",
+                "type": "texture"
+            },
+            "Cut_Base_Color.ktx": {
+                "file_name": "images/Cut_Base_Color.ktx",
+                "type": "texture"
+            },
+            "Cut_MRAO.ktx": {
+                "file_name": "images/Cut_MRAO.ktx",
+                "type": "texture"
+            },
+            "Cut_Normal.ktx": {
+                "file_name": "images/Cut_Normal.ktx",
+                "type": "texture"
+            },
+            "PoliceCap_Base_Color.ktx": {
+                "file_name": "images/PoliceCap_Base_Color.ktx",
+                "type": "texture"
+            },
+            "PoliceCap_MRAO.ktx": {
+                "file_name": "images/PoliceCap_MRAO.ktx",
+                "type": "texture"
+            },
+            "PoliceCap_Normal.ktx": {
+                "file_name": "images/PoliceCap_Normal.ktx",
+                "type": "texture"
+            },
+            "background": {
+                "active": false,
+                "recognizer_feature_name": "background",
+                "type": "segmentation_mask"
+            },
+            "brdf.ktx": {
+                "file_name": "images/brdf.ktx",
+                "type": "texture"
+            },
+            "camera": {
+                "type": "procedural_texture",
+                "algorithm": "camera_composer"
+            },
+            "hair": {
+                "active": false,
+                "recognizer_feature_name": "hair",
+                "type": "segmentation_mask"
+            },
+            "ibl_diff.ktx": {
+                "file_name": "images/ibl_diff.ktx",
+                "type": "cubemap"
+            },
+            "ibl_spec.ktx": {
+                "file_name": "images/ibl_spec.ktx",
+                "type": "cubemap"
+            },
+            "left_eye": {
+                "active": false,
+                "recognizer_feature_name": "left_eye",
+                "type": "segmentation_mask"
+            },
+            "lips": {
+                "active": false,
+                "recognizer_feature_name": "lips",
+                "type": "segmentation_mask"
+            },
+            "lips_shining": {
+                "active": false,
+                "recognizer_feature_name": "lips_shining",
+                "type": "segmentation_mask"
+            },
+            "null_image.png": {
+                "file_name": "images/null_image.png",
+                "type": "texture"
+            },
+            "null_lut.png": {
+                "file_name": "images/null_lut.png",
+                "type": "texture"
+            },
+            "preview.png": {
+                "file_name": "images/preview.png",
+                "type": "texture"
+            },
+            "redmask_new_3.png": {
+                "file_name": "images/redmask_new_3.png",
+                "type": "texture"
+            },
+            "right_eye": {
+                "active": false,
+                "recognizer_feature_name": "right_eye",
+                "type": "segmentation_mask"
+            },
+            "skin": {
+                "active": false,
+                "recognizer_feature_name": "skin",
+                "type": "segmentation_mask"
+            },
+            "soft.png": {
+                "file_name": "images/soft.png",
+                "type": "texture"
+            },
+            "sunglasses_Base_Color.ktx": {
+                "file_name": "images/sunglasses_Base_Color.ktx",
+                "type": "texture"
+            },
+            "sunglasses_MRAO.ktx": {
+                "file_name": "images/sunglasses_MRAO.ktx",
+                "type": "texture"
+            },
+            "sunglasses_Normal.ktx": {
+                "file_name": "images/sunglasses_Normal.ktx",
+                "type": "texture"
+            },
+            "teeth_highlighter5.png": {
+                "file_name": "images/teeth_highlighter5.png",
+                "type": "texture"
+            }
+        },
+        "materials": {
+            "$builtin$materials/copy_pixels.0": {
+                "parameters": {},
+                "samplers": [
+                    {
+                        "image": "camera",
+                        "name": "tex_src"
+                    }
+                ],
+                "state": {
+                    "backfaces": true,
+                    "blend": "off",
+                    "colorwrite": true,
+                    "ztest": false,
+                    "zwrite": false
+                }
+            },
+            "shaders/Cut": {
+                "built_in_samplers": [
+                    "bnb_BONES",
+                    "bnb_UVMORPH",
+                    "bnb_STATICPOS",
+                    "bnb_MORPH"
+                ],
+                "samplers": [
+                    {
+                        "image": "Cut_Normal.ktx",
+                        "name": "tex_normal"
+                    },
+                    {
+                        "image": "Cut_Base_Color.ktx",
+                        "name": "tex_diffuse"
+                    },
+                    {
+                        "image": "Cut_MRAO.ktx",
+                        "name": "tex_mrao"
+                    },
+                    {
+                        "name": "bnb_BONES"
+                    },
+                    {
+                        "name": "bnb_UVMORPH"
+                    },
+                    {
+                        "name": "bnb_STATICPOS"
+                    },
+                    {
+                        "name": "bnb_MORPH"
+                    }
+                ],
+                "state": {
+                    "backfaces": false,
+                    "blend": "off",
+                    "colorwrite": false,
+                    "ztest": true,
+                    "zwrite": true
+                }
+            },
+            "shaders/PoliceCap": {
+                "built_in_samplers": [
+                    "bnb_BONES",
+                    "bnb_UVMORPH",
+                    "bnb_STATICPOS",
+                    "bnb_MORPH"
+                ],
+                "samplers": [
+                    {
+                        "image": "PoliceCap_Normal.ktx",
+                        "name": "tex_normal"
+                    },
+                    {
+                        "image": "PoliceCap_MRAO.ktx",
+                        "name": "tex_mrao"
+                    },
+                    {
+                        "image": "brdf.ktx",
+                        "name": "tex_brdf"
+                    },
+                    {
+                        "image": "PoliceCap_Base_Color.ktx",
+                        "name": "tex_diffuse"
+                    },
+                    {
+                        "image": "ibl_diff.ktx",
+                        "name": "tex_ibl_diff"
+                    },
+                    {
+                        "image": "ibl_spec.ktx",
+                        "name": "tex_ibl_spec"
+                    },
+                    {
+                        "name": "bnb_BONES"
+                    },
+                    {
+                        "name": "bnb_UVMORPH"
+                    },
+                    {
+                        "name": "bnb_STATICPOS"
+                    },
+                    {
+                        "name": "bnb_MORPH"
+                    }
+                ],
+                "state": {
+                    "backfaces": true,
+                    "blend": "off",
+                    "colorwrite": true,
+                    "ztest": true,
+                    "zwrite": true
+                }
+            },
+            "shaders/face": {
+                "built_in_samplers": [
+                    "bnb_BONES",
+                    "bnb_UVMORPH",
+                    "bnb_STATICPOS",
+                    "bnb_MORPH"
+                ],
+                "samplers": [
+                    {
+                        "image": "Cut_Normal.ktx",
+                        "name": "tex_normal"
+                    },
+                    {
+                        "image": "Cut_Base_Color.ktx",
+                        "name": "tex_diffuse"
+                    },
+                    {
+                        "image": "Cut_MRAO.ktx",
+                        "name": "tex_mrao"
+                    },
+                    {
+                        "name": "bnb_BONES"
+                    },
+                    {
+                        "name": "bnb_UVMORPH"
+                    },
+                    {
+                        "name": "bnb_STATICPOS"
+                    },
+                    {
+                        "name": "bnb_MORPH"
+                    }
+                ],
+                "state": {
+                    "backfaces": false,
+                    "blend": "off",
+                    "colorwrite": false,
+                    "ztest": true,
+                    "zwrite": true
+                }
+            },
+            "shaders/retouch": {
+                "built_in_samplers": [],
+                "samplers": [
+                    {
+                        "image": "Beard.png",
+                        "name": "tex_normalMakeup"
+                    },
+                    {
+                        "image": "soft.png",
+                        "name": "tex_softLight"
+                    },
+                    {
+                        "image": "redmask_new_3.png",
+                        "name": "selection_tex"
+                    },
+                    {
+                        "image": "teeth_highlighter5.png",
+                        "name": "lookupTexTeeth"
+                    },
+                    {
+                        "image": "camera",
+                        "name": "glfx_BACKGROUND"
+                    }
+                ],
+                "state": {
+                    "backfaces": false,
+                    "blend": "off",
+                    "colorwrite": true,
+                    "ztest": true,
+                    "zwrite": true
+                }
+            },
+            "shaders/sunglasses": {
+                "built_in_samplers": [
+                    "bnb_BONES",
+                    "bnb_UVMORPH",
+                    "bnb_STATICPOS",
+                    "bnb_MORPH"
+                ],
+                "samplers": [
+                    {
+                        "image": "sunglasses_Normal.ktx",
+                        "name": "tex_normal"
+                    },
+                    {
+                        "image": "sunglasses_MRAO.ktx",
+                        "name": "tex_mrao"
+                    },
+                    {
+                        "image": "brdf.ktx",
+                        "name": "tex_brdf"
+                    },
+                    {
+                        "image": "sunglasses_Base_Color.ktx",
+                        "name": "tex_diffuse"
+                    },
+                    {
+                        "image": "ibl_diff.ktx",
+                        "name": "tex_ibl_diff"
+                    },
+                    {
+                        "image": "ibl_spec.ktx",
+                        "name": "tex_ibl_spec"
+                    },
+                    {
+                        "name": "bnb_BONES"
+                    },
+                    {
+                        "name": "bnb_UVMORPH"
+                    },
+                    {
+                        "name": "bnb_STATICPOS"
+                    },
+                    {
+                        "name": "bnb_MORPH"
+                    }
+                ],
+                "state": {
+                    "backfaces": false,
+                    "blend": "alpha",
+                    "colorwrite": true,
+                    "ztest": true,
+                    "zwrite": true
+                }
+            }
+        },
+        "media": {
+            "Policeman_sndfnt.ogg": {
+                "file_name": "audios/Policeman_sndfnt.ogg",
+                "type": "audio"
+            }
+        },
+        "meshes": {
+            "!glfx_FACE": "$builtin$meshes/face.stream:0",
+            "Face.bsm2": "meshes/Face.bsm2",
+            "Policeman.bsm2": "meshes/Policeman.bsm2",
+            "camera_surface": "$builtin$meshes/fs_tri"
+        },
+        "morphs": {
+            "morph0": {
+                "mesh": "Face.bsm2",
+                "type": "mesh"
+            }
+        }
+    },
+    "components": {
+        "ComposerRT_copy": {
+            "materials": [
+                "$builtin$materials/copy_pixels.0"
+            ],
+            "mesh": "camera_surface",
+            "type": "mesh_instance"
+        },
+        "face_tracker:0": {
+            "face": "face0",
+            "type": "face_tracker"
+        },
+        "internal_morph__": {
+            "morph": "morph0",
+            "type": "face_morphing"
+        }
+    },
+    "entities": {
+        "ComposerRT_copy_append_to_root__": {
+            "components": [
+                "ComposerRT_copy"
+            ],
+            "layer": "ComposerRT_copy"
+        },
+        "face_tracker0": {
+            "components": [
+                "face_tracker:0"
+            ]
+        },
+        "internal_morph": {
+            "components": [
+                "internal_morph__"
+            ],
+            "layer": "internal_face_morph__"
+        },
+        "spawn_entity0": {
+            "add_to_legacy_entities_list": true,
+            "layers": [
+                "retouch",
+                "face",
+                "sunglasses",
+                "Cut",
+                "PoliceCap"
+            ]
+        },
+        "spawn_entity1": {
+            "add_to_legacy_entities_list": true,
+            "layers": [
+                "retouch",
+                "face",
+                "sunglasses",
+                "Cut",
+                "PoliceCap"
+            ]
+        },
+        "spawn_entity2": {
+            "add_to_legacy_entities_list": true,
+            "layers": [
+                "retouch",
+                "face",
+                "sunglasses",
+                "Cut",
+                "PoliceCap"
+            ]
+        }
+    },
+    "hierarchy": {
+        "face_tracker0": [
+            "internal_morph",
+            "spawn_entity0",
+            "spawn_entity1",
+            "spawn_entity2"
+        ],
+        "root": [
+            "face_tracker0",
+            "ComposerRT_copy_append_to_root__"
+        ]
+    },
+    "layers": {
+        "ComposerRT_copy": {},
+        "Cut": {},
+        "PoliceCap": {},
+        "face": {},
+        "internal_face_morph__": {},
+        "retouch": {},
+        "sunglasses": {}
+    },
+    "render_list": {
+        "default": [
+            {
+                "layer": "ComposerRT_copy",
+                "render_target": "EffectRT0"
+            },
+            {
+                "layer": "retouch",
+                "render_target": "EffectRT0",
+                "sub_geometries": [
+                    "retouch"
+                ]
+            },
+            {
+                "layer": "internal_face_morph__",
+                "render_target": "EffectRT0"
+            },
+            {
+                "layer": "face",
+                "render_target": "EffectRT0",
+                "sub_geometries": [
+                    "face"
+                ]
+            },
+            {
+                "layer": "sunglasses",
+                "render_target": "EffectRT0",
+                "sub_geometries": [
+                    "sunglasses"
+                ]
+            },
+            {
+                "layer": "Cut",
+                "render_target": "EffectRT0",
+                "sub_geometries": [
+                    "Cut"
+                ]
+            },
+            {
+                "layer": "PoliceCap",
+                "render_target": "EffectRT0",
+                "sub_geometries": [
+                    "PoliceCap"
+                ]
+            }
+        ]
+    },
+    "render_targets": {
+        "ComposerRT": [
+            "ComposerRT_color"
+        ],
+        "EffectRT0": [
+            "EffectRT0_color",
+            "EffectRT0_depth"
+        ]
+    },
+    "scene": "PoliceMan",
+    "script": {
+        "entry_point": "config.js",
+        "type": "legacy"
+    }
+}

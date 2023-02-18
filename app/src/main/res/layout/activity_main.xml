@@ -6,29 +6,45 @@
     <FrameLayout
         android:id="@+id/remoteVideoContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
-
-    </FrameLayout>
+        android:layout_height="match_parent" />
 
     <FrameLayout
-        android:id="@+id/localVideoContainerPortrait"
-        android:layout_width="140dp"
-        android:layout_height="250dp"
+        android:id="@+id/localVideoContainer"
+        android:layout_width="135dp"
+        android:layout_height="240dp"
         android:layout_gravity="top|end"
-        android:layout_margin="32dp" />
+        android:layout_margin="16dp" />
 
-    <FrameLayout
-        android:id="@+id/localVideoContainerLandscape"
-        android:layout_width="250dp"
-        android:layout_height="140dp"
-        android:layout_gravity="top|end"
-        android:layout_margin="32dp" />
-
-    <com.banuba.sdk.agorapluginexample.widget.carousel.EffectsCarouselView
-        android:id="@+id/effectsCarouselView"
-        android:layout_width="match_parent"
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/joinButton"
+        android:layout_width="120dp"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
         android:layout_margin="16dp"
-        android:layout_gravity="bottom|center_horizontal"/>
+        android:backgroundTint="@color/green"
+        android:text="Join"
+        android:textColor="@android:color/white"
+        android:textSize="11sp"
+        android:visibility="visible" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/leaveButton"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="16dp"
+        android:backgroundTint="@color/red"
+        android:text="Leave"
+        android:textColor="@android:color/white"
+        android:textSize="11sp"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/applyEffectButton"
+        android:layout_width="160dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:textSize="11sp" />
 
 </FrameLayout>
