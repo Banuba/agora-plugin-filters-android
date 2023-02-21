@@ -14,11 +14,10 @@ class BanubaExtensionManager(val callback: AgoraExtensionCallback) {
         const val PROVIDER_NAME = "Banuba"
         const val EXTENSION_NAME = "BanubaFilter"
 
-        // init/destroy. Remove create
+        // init/destroy
         private const val KEY_INITIALIZE = "initialize"
         private const val KEY_RESOURCES_PATH = "set_resources_path"
         private const val KEY_EFFECTS_PATH = "set_effects_path"
-        private const val KEY_CLIENT_TOKEN = "set_client_token"
         private const val KEY_RESUME = "resume"
         private const val KEY_LOAD_EFFECT = "load_effect"
         private const val KEY_UNLOAD_EFFECT = "unload_effect"
@@ -44,14 +43,7 @@ class BanubaExtensionManager(val callback: AgoraExtensionCallback) {
     ) {
         dispatchProperty(KEY_RESOURCES_PATH, resourcesPath);
         dispatchProperty(KEY_EFFECTS_PATH, effectsPath);
-
-        // Piotr, remove it after refactoring and pass token to KEY_INITIALIZE
-        dispatchProperty(KEY_CLIENT_TOKEN, clientToken);
-
-        dispatchProperty(KEY_INITIALIZE, EMPTY_PARAMETER)
-
-        // Piotr, remove it after refactoring
-        dispatchProperty("create", EMPTY_PARAMETER);
+        dispatchProperty(KEY_INITIALIZE, clientToken)
     }
 
     // Destroys OEP Surface

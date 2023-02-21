@@ -142,6 +142,7 @@ namespace agora::extension
             } else if (key == CALL_SET_CLIENT_TOKEN) {
                 m_client_token = parameter;
             } else if (key == CALL_INITIALIZE) {
+                m_client_token = parameter;
                 initialize();
             }
             return;
@@ -180,6 +181,7 @@ namespace agora::extension
         const std::vector<std::string> resource_paths{m_path_to_resources, m_path_to_effects};
         bnb::interfaces::utility_manager::initialize(resource_paths, m_client_token);
         bnb_sdk_is_initialized = true;
+        create();
     }
 
     void BanubaVideoProcessor::create()
