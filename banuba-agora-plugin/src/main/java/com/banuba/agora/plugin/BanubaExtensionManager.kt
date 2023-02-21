@@ -16,18 +16,14 @@ class BanubaExtensionManager(val callback: AgoraExtensionCallback) {
 
         // init/destroy. Remove create
         private const val KEY_INITIALIZE = "initialize"
-        private const val KEY_DEVICE_ORIENTATION = "set_device_orientation"
         private const val KEY_RESOURCES_PATH = "set_resources_path"
         private const val KEY_EFFECTS_PATH = "set_effects_path"
         private const val KEY_CLIENT_TOKEN = "set_client_token"
-
         private const val KEY_RESUME = "resume"
         private const val KEY_LOAD_EFFECT = "load_effect"
         private const val KEY_UNLOAD_EFFECT = "unload_effect"
         private const val KEY_PAUSE = "pause"
         private const val KEY_DESTROY = "destroy"
-
-        private const val KEY_CREATE = "create"
 
         private const val EMPTY_PARAMETER = "1" // empty parameter to make Agora process value
     }
@@ -48,13 +44,14 @@ class BanubaExtensionManager(val callback: AgoraExtensionCallback) {
     ) {
         dispatchProperty(KEY_RESOURCES_PATH, resourcesPath);
         dispatchProperty(KEY_EFFECTS_PATH, effectsPath);
-        dispatchProperty(KEY_CLIENT_TOKEN, clientToken);
-        dispatchProperty(KEY_INITIALIZE, EMPTY_PARAMETER)
-    }
 
-    // Creates OEP Surface -> move to initialize
-    fun create() {
-        dispatchProperty(KEY_CREATE, EMPTY_PARAMETER);
+        // Piotr, remove it after refactoring and pass token to KEY_INITIALIZE
+        dispatchProperty(KEY_CLIENT_TOKEN, clientToken);
+
+        dispatchProperty(KEY_INITIALIZE, EMPTY_PARAMETER)
+
+        // Piotr, remove it after refactoring
+        dispatchProperty("create", EMPTY_PARAMETER);
     }
 
     // Destroys OEP Surface
@@ -79,11 +76,6 @@ class BanubaExtensionManager(val callback: AgoraExtensionCallback) {
     // Resumes applying Face AR effect
     fun resume() {
         dispatchProperty(KEY_RESUME, EMPTY_PARAMETER);
-    }
-
-    // Sets device orientation. Remove?
-    fun setDeviceOrientation(angle: Int) {
-        dispatchProperty(KEY_DEVICE_ORIENTATION, angle.toString())
     }
 
     private fun unloadEffect() {

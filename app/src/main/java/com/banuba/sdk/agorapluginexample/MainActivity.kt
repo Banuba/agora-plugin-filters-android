@@ -1,14 +1,11 @@
 package com.banuba.sdk.agorapluginexample
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
-import android.view.Surface
 import android.view.SurfaceView
 import android.view.View
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -223,8 +220,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun startRtcAndExtensionOr(deniedBlock: () -> Unit ) {
         if (checkAllPermissionsGranted()) {
-            startLocalPreview()
-            initBanubaExtension()
+            startPreviewAndExtension()
         } else {
             deniedBlock()
         }
@@ -247,28 +243,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun initBanubaExtension() {
-        Log.d(TAG, "Initialize Banuba extension")
+    private fun startPreviewAndExtension() {
+        Log.d(TAG, "Start local preview")
+        // Important - extension works only after start preview
+        addLocalVideo()
+        agoraRtc.startPreview()
+
         /* The initialize(...) method must be called once at application startup.
-        * Only the very first call to this method is important.
-        * All subsequent calls do nothing and do not affect anything. */
+       * Only the very first call to this method is important.
+       * All subsequent calls do nothing and do not affect anything. */
         banubaExtensionManager.initialize(
             banubaResourceManager.resourcesPath,
             banubaResourceManager.effectsPath,
             BANUBA_LICENSE_TOKEN
         )
-
-        // Creates OEP
-        // Consider moving to initialize
-        banubaExtensionManager.create()
-        banubaExtensionManager.setDeviceOrientation(getDeviceOrientationDegrees(this))
-    }
-
-    private fun startLocalPreview() {
-        Log.d(TAG, "Start local preview")
-        // Important - extension works only after start preview
-        addLocalVideo()
-        agoraRtc.startPreview()
     }
 
     private fun joinChannel(channel: String) {
@@ -327,17 +315,6 @@ class MainActivity : AppCompatActivity() {
         val view = SurfaceView(this)
         agoraRtc.setupRemoteVideo(VideoCanvas(view, VideoCanvas.RENDER_MODE_HIDDEN, uid))
         remoteVideoContainer.addView(view)
-    }
-
-    /* Returns 0 or 180 - portrait, 90 or 270 landscape left or right, */
-    private fun getDeviceOrientationDegrees(context: Context): Int {
-        val windowManager = context.getSystemService(WINDOW_SERVICE) as WindowManager
-        return when (windowManager.defaultDisplay.rotation) {
-            Surface.ROTATION_90 -> 90
-            Surface.ROTATION_180 -> 180
-            Surface.ROTATION_270 -> 270
-            else -> 0
-        }
     }
 
     /**
