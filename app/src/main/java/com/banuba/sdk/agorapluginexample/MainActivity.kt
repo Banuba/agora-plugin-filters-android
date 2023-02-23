@@ -154,10 +154,8 @@ class MainActivity : AppCompatActivity() {
             getCurrentEffect().let { effectName ->
                 // effectName is empty when effect is canceled
                 Log.d(TAG, "Prepare effect = $effectName")
-                if (effectName.isNotEmpty()) {
-                    // Consider executing method in background thread
-                    banubaResourceManager.prepareEffect(effectName)
-                }
+                // Consider executing method in background thread
+                banubaResourceManager.prepareEffect(effectName)
             }
         }
 

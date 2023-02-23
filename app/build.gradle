@@ -35,7 +35,9 @@ android {
 }
 
 dependencies {
-    implementation fileTree(include: ['*.jar', '*.aar'], dir: '../libs')
+    implementation(name: 'banuba_effect_player-release', ext: 'aar')
+    implementation(name: 'banuba-agora-extension-0.0.4-release', ext: 'aar')
+    implementation(name: 'agora-rtc-sdk', ext: 'jar')
 
     //implementation 'io.agora.rtc:full-sdk:4.0.1'
 
