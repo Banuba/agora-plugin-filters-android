@@ -9,12 +9,12 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.banuba.agora.plugin.BanubaExtensionManager
-import com.banuba.agora.plugin.BanubaExtensionManager.AgoraExtensionCallback
-import com.banuba.agora.plugin.BanubaExtensionManager.Companion.EXTENSION_NAME
-import com.banuba.agora.plugin.BanubaExtensionManager.Companion.PLUGIN_NAME
-import com.banuba.agora.plugin.BanubaExtensionManager.Companion.PROVIDER_NAME
-import com.banuba.agora.plugin.BanubaResourceManager
+import com.banuba.android.sdk.ext.agora.BanubaExtensionManager
+import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.AgoraExtensionCallback
+import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.Companion.BANUBA_EXTENSION_NAME
+import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.Companion.BANUBA_PLUGIN_NAME
+import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.Companion.BANUBA_PROVIDER_NAME
+import com.banuba.android.sdk.ext.agora.BanubaResourceManager
 import com.banuba.sdk.utils.ContextProvider
 import io.agora.rtc2.*
 import io.agora.rtc2.video.VideoCanvas
@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
     private val agoraExtensionCallback = object : AgoraExtensionCallback {
         override fun onExtensionPropertySet(key: String, value: String) {
             Log.d(TAG, "Set extension property key = $key, value = $value")
-            agoraRtc.setExtensionProperty(PROVIDER_NAME, EXTENSION_NAME, key, value)
+            agoraRtc.setExtensionProperty(BANUBA_PROVIDER_NAME, BANUBA_EXTENSION_NAME, key, value)
         }
     }
 
@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         RtcEngineConfig().apply {
             mContext = applicationContext
             mAppId = AGORA_APP_ID
-            addExtension(PLUGIN_NAME)
+            addExtension(BANUBA_PLUGIN_NAME)
             mEventHandler = agoraEventHandler
             mExtensionObserver = agoraExtensionObserver
 
@@ -99,7 +99,7 @@ class MainActivity : AppCompatActivity() {
             extension: String?
         ) {
             Log.d(TAG, "Extension started: $provider.$extension")
-            if (PROVIDER_NAME == provider && EXTENSION_NAME == extension) {
+            if (BANUBA_PROVIDER_NAME == provider && BANUBA_EXTENSION_NAME == extension) {
                 runOnUiThread { showToast("Banuba extension started!") }
             }
         }
@@ -109,7 +109,7 @@ class MainActivity : AppCompatActivity() {
             extension: String?
         ) {
             Log.d(TAG, "Extension stopped: $provider.$extension")
-            if (PROVIDER_NAME == provider && EXTENSION_NAME == extension) {
+            if (BANUBA_PROVIDER_NAME == provider && BANUBA_EXTENSION_NAME == extension) {
                 runOnUiThread { showToast("Banuba extension stopped!") }
             }
         }
@@ -253,7 +253,8 @@ class MainActivity : AppCompatActivity() {
         banubaExtensionManager.initialize(
             banubaResourceManager.resourcesPath,
             banubaResourceManager.effectsPath,
-            BANUBA_LICENSE_TOKEN
+            BANUBA_LICENSE_TOKEN,
+            BANUBA_EXT_APP_KEY,
         )
     }
 
@@ -281,8 +282,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun enableBanubaExtension(enable: Boolean) {
         agoraRtc.enableExtension(
-            PROVIDER_NAME,
-            EXTENSION_NAME,
+            BANUBA_PROVIDER_NAME,
+            BANUBA_EXTENSION_NAME,
             enable,
             Constants.MediaSourceType.PRIMARY_CAMERA_SOURCE
         )

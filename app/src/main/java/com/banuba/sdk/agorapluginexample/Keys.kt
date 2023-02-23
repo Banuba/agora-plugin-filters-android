@@ -13,3 +13,7 @@ const val AGORA_TOKEN = ""
 
 // Use Banuba license token
 const val BANUBA_LICENSE_TOKEN: String = ""
+
+// Banuba Ext app key
+const val BANUBA_EXT_APP_KEY = ""
+
