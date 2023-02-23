@@ -14,7 +14,7 @@ allprojects {
         google()
         mavenCentral()
         flatDir {
-            dirs 'libs', '../libs'
+            dirs 'libs'
         }
         maven {
             name "GitHubPackages"

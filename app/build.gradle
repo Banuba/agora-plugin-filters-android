@@ -5,12 +5,12 @@ plugins {
 }
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
 
     defaultConfig {
         applicationId "com.banuba.sdk.agorapluginexample"
-        minSdkVersion 23
-        targetSdkVersion 31
+        minSdkVersion 22
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
     }
@@ -29,12 +29,6 @@ android {
         jvmTarget = '1.8'
     }
 
-    sourceSets {
-        main {
-            jniLibs.srcDirs = ['../libs/jniLibs']
-        }
-    }
-
     buildFeatures {
         viewBinding true
     }
@@ -44,10 +38,8 @@ dependencies {
     implementation(name: 'banuba_effect_player-release', ext: 'aar')
     implementation(name: 'banuba-agora-extension-0.0.4-release', ext: 'aar')
     implementation(name: 'agora-rtc-sdk', ext: 'jar')
+
     //implementation 'io.agora.rtc:full-sdk:4.0.1'
 
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'com.google.android.material:material:1.5.0'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.1'
+    implementation 'androidx.appcompat:appcompat:1.6.0'
 }

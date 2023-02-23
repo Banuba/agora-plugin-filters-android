@@ -1,4 +1,0 @@
-[submodule "oep"]
-	path = banuba-agora-plugin/src/main/plugin_sources/oep
-	url = https://github.com/Banuba/OEP-module.git
-	branch = master
