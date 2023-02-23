@@ -49,6 +49,9 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "Set extension property key = $key, value = $value")
             agoraRtc.setExtensionProperty(BANUBA_PROVIDER_NAME, BANUBA_EXTENSION_NAME, key, value)
         }
+        override fun onExtensionPropertyGet(key: String): String {
+            return agoraRtc.getExtensionProperty(BANUBA_PROVIDER_NAME, BANUBA_EXTENSION_NAME, key)
+        }
     }
 
     private val banubaExtensionManager = BanubaExtensionManager(agoraExtensionCallback)
