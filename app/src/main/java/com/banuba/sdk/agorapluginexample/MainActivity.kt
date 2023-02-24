@@ -13,8 +13,6 @@ import com.banuba.android.sdk.ext.agora.BanubaExtensionManager
 import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.BANUBA_EXTENSION_NAME
 import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.BANUBA_PLUGIN_NAME
 import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.BANUBA_PROVIDER_NAME
-import com.banuba.android.sdk.ext.agora.BanubaResourceManager
-import com.banuba.sdk.utils.ContextProvider
 import io.agora.rtc2.*
 import io.agora.rtc2.video.VideoCanvas
 import io.agora.rtc2.video.VideoEncoderConfiguration
@@ -39,10 +37,6 @@ class MainActivity : AppCompatActivity() {
 
     private var effectIndex = -1
 
-    private val banubaResourceManager by lazy(LazyThreadSafetyMode.NONE) {
-        BanubaResourceManager(applicationContext)
-    }
-
     private var isJoinedToChannel = false
 
     private val agoraVideoConfiguration = VideoEncoderConfiguration(
@@ -56,6 +50,7 @@ class MainActivity : AppCompatActivity() {
         RtcEngineConfig().apply {
             mContext = applicationContext
             mAppId = AGORA_APP_ID
+            // Add Banuba Extension
             addExtension(BANUBA_PLUGIN_NAME)
             mEventHandler = agoraEventHandler
             mExtensionObserver = agoraExtensionObserver
@@ -145,11 +140,9 @@ class MainActivity : AppCompatActivity() {
                 // effectName is empty when effect is canceled
                 Log.d(TAG, "Prepare effect = $effectName")
                 // Consider executing method in background thread
-                banubaResourceManager.prepareEffect(effectName)
+                BanubaExtensionManager.loadEffect(effectName)
             }
         }
-
-        prepareBanubaResources()
 
         // Enable BanubaFilters extension
         enableBanubaExtension(true)
@@ -218,33 +211,16 @@ class MainActivity : AppCompatActivity() {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun prepareBanubaResources() {
-        // Required for interacting with Face AR effects
-        ContextProvider.setContext(applicationContext)
-
-        // Consider executing method in background thread
-        banubaResourceManager.init()
-
-        banubaResourceManager.onEffectReadyCallback = { effectName ->
-            Log.d(TAG, "Effect = $effectName is ready")
-            BanubaExtensionManager.loadEffect(effectName)
-        }
-    }
-
     private fun startPreviewAndExtension() {
         Log.d(TAG, "Start local preview")
         // Important - extension works only after start preview
         addLocalVideo()
         agoraRtc.startPreview()
 
-        /* The initialize(...) method must be called once at application startup.
-       * Only the very first call to this method is important.
-       * All subsequent calls do nothing and do not affect anything. */
         BanubaExtensionManager.initialize(
-            agoraRtc,
-            banubaResourceManager.resourcesPath,
-            banubaResourceManager.effectsPath,
+            applicationContext,
             BANUBA_LICENSE_TOKEN,
+            agoraRtc,
             BANUBA_EXT_APP_KEY,
         )
     }
@@ -272,12 +248,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun enableBanubaExtension(enable: Boolean) {
-        agoraRtc.enableExtension(
-            BANUBA_PROVIDER_NAME,
-            BANUBA_EXTENSION_NAME,
-            enable,
-            Constants.MediaSourceType.PRIMARY_CAMERA_SOURCE
-        )
+            agoraRtc.enableExtension(
+                BANUBA_PROVIDER_NAME,
+                BANUBA_EXTENSION_NAME,
+                enable,
+                Constants.MediaSourceType.PRIMARY_CAMERA_SOURCE
+            )
     }
 
     private fun addLocalVideo() {
