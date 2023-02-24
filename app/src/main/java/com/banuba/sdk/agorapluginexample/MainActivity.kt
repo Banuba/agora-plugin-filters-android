@@ -10,10 +10,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.banuba.android.sdk.ext.agora.BanubaExtensionManager
-import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.AgoraExtensionCallback
-import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.Companion.BANUBA_EXTENSION_NAME
-import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.Companion.BANUBA_PLUGIN_NAME
-import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.Companion.BANUBA_PROVIDER_NAME
+import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.BANUBA_EXTENSION_NAME
+import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.BANUBA_PLUGIN_NAME
+import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.BANUBA_PROVIDER_NAME
 import com.banuba.android.sdk.ext.agora.BanubaResourceManager
 import com.banuba.sdk.utils.ContextProvider
 import io.agora.rtc2.*
@@ -43,18 +42,6 @@ class MainActivity : AppCompatActivity() {
     private val banubaResourceManager by lazy(LazyThreadSafetyMode.NONE) {
         BanubaResourceManager(applicationContext)
     }
-
-    private val agoraExtensionCallback = object : AgoraExtensionCallback {
-        override fun onExtensionPropertySet(key: String, value: String) {
-            Log.d(TAG, "Set extension property key = $key, value = $value")
-            agoraRtc.setExtensionProperty(BANUBA_PROVIDER_NAME, BANUBA_EXTENSION_NAME, key, value)
-        }
-        override fun onExtensionPropertyGet(key: String): String {
-            return agoraRtc.getExtensionProperty(BANUBA_PROVIDER_NAME, BANUBA_EXTENSION_NAME, key)
-        }
-    }
-
-    private val banubaExtensionManager = BanubaExtensionManager(agoraExtensionCallback)
 
     private var isJoinedToChannel = false
 
@@ -187,7 +174,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         // Required to resume current Banuba Face AR effect
-        banubaExtensionManager.resume()
+        BanubaExtensionManager.resume()
     }
 
     override fun onPause() {
@@ -195,13 +182,13 @@ class MainActivity : AppCompatActivity() {
 
         // Required to pause current Banuba Face AR effect i.e. some AR effects might play audio or
         // continue processing something in background. ".pause" method helps to stop processing.
-        banubaExtensionManager.pause()
+        BanubaExtensionManager.pause()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         // Destroys Banuba Face AR surface
-        banubaExtensionManager.destroy()
+        BanubaExtensionManager.destroy()
         enableBanubaExtension(false)
         RtcEngine.destroy()
     }
@@ -240,7 +227,7 @@ class MainActivity : AppCompatActivity() {
 
         banubaResourceManager.onEffectReadyCallback = { effectName ->
             Log.d(TAG, "Effect = $effectName is ready")
-            banubaExtensionManager.loadEffect(effectName)
+            BanubaExtensionManager.loadEffect(effectName)
         }
     }
 
@@ -253,7 +240,8 @@ class MainActivity : AppCompatActivity() {
         /* The initialize(...) method must be called once at application startup.
        * Only the very first call to this method is important.
        * All subsequent calls do nothing and do not affect anything. */
-        banubaExtensionManager.initialize(
+        BanubaExtensionManager.initialize(
+            agoraRtc,
             banubaResourceManager.resourcesPath,
             banubaResourceManager.effectsPath,
             BANUBA_LICENSE_TOKEN,
