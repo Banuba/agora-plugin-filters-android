@@ -2,155 +2,123 @@ Examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar-sdk-v1/andr
 
 # Getting Started
 
-0. Make sure that you have Android **NDK** and **CMake** are installed! Project contains C++ sources, so this is required! Recommended NDK versions is 21.1.6352462, required CMake version is 3.9, 3.14 or above is recommended (Android SDK manager provides 3.18.1, it should be installed).
-1. Clone the project to your computer:
-    ```sh
-        git clone --recursive https://github.com/Banuba/agora-plugin-filters-android.git
-    ```
-    > Important: The example uses submodules. So when cloning, don't forget to update the submodules to the latest version.
-    > `git submodule --update --recursive --init` will help you with this.
-2. Get the latest Banuba SDK archive, [Banuba trial client token](https://www.banuba.com/facear-sdk/face-filters).
-To receive full commercial license from Banuba - please fill in our form on [form on banuba.com](https://www.banuba.com/face-filters-sdk) website, or contact us via [info@banuba.com](mailto:info@banuba.com).
-3. Copy `.aar` file from the Banuba SDK archive into `libs` dir:
-   >`banuba_effect_player-release.aar` => [`libs/`](./libs)
-4. Copy `include/bnb` directory into [`libs/bnb_sdk/`](./libs/bnb_sdk):
-   >`include/bnb` => [`libs/bnb_sdk/`](./libs/bnb_sdk)
-5. Download the effects you need from [HERE](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters). Unzip the downloaded `.zip` files with effects to a folder [`app/src/main/assets/effects`](./app/src/main/assets/effects). Each unpacked effect should be put into a separate folder. The folder name will be the effect name for loading.
-6. Get the Agora Video SDK archive for android (v4.0.1) from [HERE](https://download.agora.io/sdk/release/Agora_Native_SDK_for_Android_v4.0.1_FULL.zip).
-7. Copy `.jar` files from the Agora Video SDK archive into [`libs`](./libs) dir:
-   >`agora-rtc-sdk.jar` => [`libs/`](./libs)
-8. Copy architecture folders from the Agora Video SDK archive into [`jniLibs`](./libs/jniLibs) dir and merge them with existing folders:
-   >`arm64-v8a`, `armeabi-v7a` and `x86_64` => [`libs/jniLibs/`](./libs/jniLibs)
-9. Copy the `low_level_api/include` directory from Agora SDK into [`libs/agora_rtc_sdk/`](./libs/agora_rtc_sdk/):
-   >`low_level_api/include` => [`libs/agora_rtc_sdk/`](./libs/agora_rtc_sdk/)
-10. As a result of the previous steps, the [`libs`](./libs) folder will contain:
+## Prerequisites
+
+1. Visit [agora.io](https://www.agora.io/) to sign up and get the app id, client token and channel id. Please consult with [Agora documentation about account management](https://docs.agora.io/en/voice-calling/reference/manage-agora-account) to find out exactly how mentioned IDs are created.
+
+2. Activate the [Banuba Face AR SDK extension](https://console.agora.io/marketplace/extension/introduce?serviceName=banuba) to get the app key and app secret. Please check out the [extension integration documentation](https://docs.agora.io/en/video-calling/develop/use-an-extension?platform=android) if you have any questions regarding this step.
+
+## Dependencies
+
+|                                      | Version |                    Description                    | 
+|--------------------------------------|:-------:|:-------------------------------------------------:|
+| agora-rtc-sdk.jar                            |  4.0.1  |               Agora RTC dependency                |
+| banuba_effect_player-release.aar     |  1.6.0  | Banuba Face AR dependency for applying AR filters |
+| banuba-agora-extension-*-release.aar |  1.0.0  |            Banuba Extension for Agora             |
+
+
+## Installation
+
+1. Run the following command in the Terminal to clone the project
+```sh
+git clone https://github.com/Banuba/agora-plugin-filters-android.git
 ```
-libs/agora_rtc_sdk/include/             - the 'include' folder can be found in the archive: (Agora RTC archive)/rtc/sdk/low_level_api/
-libs/bnb_sdk/bnb/                       - the 'bnb' folder can be found in the archive: (Banuba SDK archive)/BNBEffectPlayer/include/
-libs/jniLibs/arm64-v8a/                 - the 'arm64-v8a' folder can be found in the archive: (Agora RTC archive)/rtc/sdk/
-libs/jniLibs/armeabi-v7a/               - the 'armeabi-v7a' folder can be found in the archive: (Agora RTC archive)/rtc/sdk/
-libs/jniLibs/x86_64/                    - the 'x86_64' folder can be found in the archive: (Agora RTC archive)/rtc/sdk/
-libs/agora-rtc-sdk.jar                  - the 'agora-rtc-sdk.jar' file can be found in the archive: (Agora RTC archive)/rtc/sdk/
-libs/banuba_effect_player-release.aar   - the 'banuba_effect_player-release.aar' file can be found in the archive: (Banuba SDK archive)/BNBEffectPlayer/
-```
-11. Copy and Paste your Banuba client token into appropriate section of [`ClientToken.kt`](./app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt) with " " symbols.
-12. Visit [agora.io](https://console.agora.io) to sign up and get [Agora token, Agora app ID and Agora channel ID](https://docs.agora.io/en/Agora%20Platform/channel_key?platform=Android). You can read more about how you can get an Agora token at [THIS LINK](https://docs.agora.io/en/Agora%20Platform/channel_key?platform=Android).
-13. Copy and Paste your Agora token, Agora app ID and Agora channel ID into appropriate section of [`ClientToken.kt`](./app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt) with " " symbols.
-14. As a result of the two previous steps, in the file [`ClientToken.kt`](./app/src/main/java/com/banuba/sdk/agorapluginexample/ClientToken.kt) you should have the following:
+
+2. Add `banuba_effect_player-release.aar`, `banuba-agora-extension-1.0.0-release.aar`, `agora-rtc-sdk.jar` files into [libs](libs) folder and 
+   sync your project.
+
+3. Add your [keys](app/src/main/java/com/banuba/sdk/agorapluginexample/Keys.kt) to run the sample.
 ```kotlin
-package com.banuba.sdk.agorapluginexample
+// Use Agora appId key created in Agora console
+const val AGORA_APP_ID: String = ...
+// Use Agora channel created in console
+const val AGORA_CHANNEL: String = ...
+// Use token created in Agora console with Agora appId and channel
+const val AGORA_TOKEN: String = ...
 
-const val AGORA_APP_ID = "this_is_your_AGORA_APP_ID"
-const val AGORA_CLIENT_TOKEN = "this_is_your_AGORA_CLIENT_TOKEN"
-const val AGORA_CHANNEL_ID = "this_is_your_AGORA_CHANNEL_ID"
+// Use Banuba license token
+const val BANUBA_LICENSE_TOKEN: String = ...
 
-const val BANUBA_CLIENT_TOKEN: String = "this_is_your_BANUBA_CLIENT_TOKEN"
-```
-15. Open the project in Android Studio and run the necessary target using the usual steps.
-
-# Effects managing
-
-To add new effects to the example, please download effects [HERE](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters) and put them in this folder [`app/src/main/assets/effects`](./app/src/main/assets/effects).
-By default the sample doesn't contains effects.
-
-To retrieve current effects use the following code:
-
-```kotlin
-val effects: List<ArEffect> = BanubaEffectsLoader(this).loadEffects()
+// [Optional] Ext app key.
+val EXT_APP_KEY = ...
 ```
 
-ArEffect contains following information:\
-`name: String` - pass to `banubaResourceManager.prepareEffect(Effect name, onEffectPrepared)`. Also can be used to display label on the UI\
-`preview: Bitmap` - can be used as preview image
+4. The sample includes a few basic AR effects and you can [download](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters) more. All effects must be added into [effects](app/src/main/assets/effects) folder in Android assets. 
+Please modify the list of [available effects](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L38) in the sample.
 
-# How to use `BanubaFiltersAgoraExtension`
+## Integration
+The extension includes main `BanubaExtensionManager` class for interacting with AR effects.  
+AR effects should be placed to [effects](app/src/main/assets/effects) folder in Android assets.
 
-Add following imports:
-
-```kotlin
-import com.banuba.agora.plugin.BanubaEffectsLoader
-import com.banuba.agora.plugin.BanubaExtensionManager
-import com.banuba.agora.plugin.BanubaResourceManager
-import com.banuba.agora.plugin.model.ArEffect
-import com.banuba.sdk.utils.ContextProvider
+### Enable extension
+First, add Banuba extension `BanubaExtensionManager.BANUBA_PLUGIN_NAME` while initializing instance `RtcEngineConfig`
+```diff
+val rtcEngineConfig = RtcEngineConfig()
++ rtcEngineConfig.addExtension(BANUBA_PLUGIN_NAME)
 ```
-
-Create the Banuba SDK extension object:
-
-```kotlin
-private val banubaExtension = BanubaExtensionManager(object : AgoraInterface {
-  override fun onSetExtensionProperty(provider: String, extension: String, propertyKey: String, propertyValue: String) {
-    agoraRtc.setExtensionProperty(provider, extension, propertyKey, propertyValue)
-  }
-})
-
-/* This interface separates banuba SDK and Agora rtc engine from each other */
-private val banubaExtensionInterface: AgoraExtension = banubaExtension
-```
-
-Add extension to RtcEngineConfig:
-
-```kotlin
-RtcEngineConfig().apply {
-  ...
-  System.loadLibrary(banubaExtensionInterface.getLibraryName())
-  addExtension(banubaExtensionInterface.getPluginName())
-  ContextProvider.setContext(mContext)
-  ...
-}
-```
-
-Create and initialize BanubaResourceManager:
-
-```kotlin
-private val banubaResourceManager by lazy(LazyThreadSafetyMode.NONE) {
-  BanubaResourceManager(this)
-}
-```
-
-```kotlin
+Next, you need to enable the extension in `onCreate` method by providing specific provider and extension names.
+```diff
 override fun onCreate(savedInstanceState: Bundle?) {
-  ...
-  banubaResourceManager.prepare()
+   super.onCreate(savedInstanceState)
+   ...
++   agoraRtc.enableExtension(
+      BANUBA_PROVIDER_NAME,
+      BANUBA_EXTENSION_NAME,
+      true,
+      Constants.MediaSourceType.PRIMARY_CAMERA_SOURCE
+   )
+}
+```
+and disable the extension and Agora in `onDestroy` method
+```diff
+override fun onDestroy() {
+   super.onDestroy()
+
+   BanubaExtensionManager.destroy()
+
++   agoraRtc.enableExtension(
+      BANUBA_PROVIDER_NAME,
+      BANUBA_EXTENSION_NAME,
+      false,
+      Constants.MediaSourceType.PRIMARY_CAMERA_SOURCE
+   )
+   
+   RtcEngine.destroy()
 }
 ```
 
-After those steps enable and initialize extension:
+### Manage effects
+Initialize extension using `BanubaExtensionManager.initialize` method by providing a number of required params.  
+Please keep in mind that initialize should be invoked only after starting preview `agoraRtc.startPreview()`.
+```diff
+ // Important - extension works only after start preview
+addLocalVideo()
+agoraRtc.startPreview()
 
-```kotlin
-agoraRtc.enableExtension(
-  banubaExtensionInterface.getProviderName(),
-  banubaExtensionInterface.getExtensionName(),
-  true
++ BanubaExtensionManager.initialize(
+   applicationContext,
+   BANUBA_LICENSE_TOKEN,
+   agoraRtc,
+   EXT_APP_KEY,
 )
 ```
 
-```kotlin
-private fun initializeBanubaExtension() {
-  banubaExtension.initialize(
-    banubaResourceManager.resourcesPath,
-    banubaResourceManager.effectsPath,
-    BANUBA_CLIENT_TOKEN
-  )
-  banubaExtension.create()
-  banubaExtension.setDeviceOrientation(
-    getDeviceOrientationDegrees(this)
-  )
-}
+Use `BanubaExtensionManager.loadEffect` method for applying AR effects. Use empty string `""` for `effectName` to cancel an effect.  
+
+Finally, it is highly recommended to bind applying AR effects to Android lifecycle events by overriding [onResume](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L177) and [onPause](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L185) methods
+otherwise current effect might be applying even though the app is in the background and the user is not interacting with it.
+```diff
+     override fun onResume() {
+        super.onResume()
+        // Required to resume current Banuba Face AR effect
++        BanubaExtensionManager.resume()
+     }
+
+    override fun onPause() {
+        super.onPause()
+
+        // Required to pause current Banuba Face AR effect i.e. some AR effects might play audio or
+        // continue processing something in background. ".pause" method helps to stop processing.
++        BanubaExtensionManager.pause()
+    }
 ```
-
-To enable/disable effects use the following code:
-
-```kotlin
-private val onEffectPrepared = object : BanubaResourceManager.EffectPreparedCallback {
-  override fun onPrepared(effectName: String) {
-    banubaExtension.loadEffect(effectName)
-  }
-}
-```
-
-```kotlin
-banubaResourceManager.prepareEffect(Effect name, onEffectPrepared)
-```
-
-[Check out example](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt)
