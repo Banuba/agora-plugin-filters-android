@@ -221,7 +221,7 @@ class MainActivity : AppCompatActivity() {
             applicationContext,
             BANUBA_LICENSE_TOKEN,
             agoraRtc,
-            BANUBA_EXT_APP_KEY,
+            EXT_APP_KEY,
         )
     }
 

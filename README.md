@@ -39,8 +39,8 @@ const val AGORA_TOKEN: String = ...
 // Use Banuba license token
 const val BANUBA_LICENSE_TOKEN: String = ...
 
-// Banuba Ext app key
-const val BANUBA_EXT_APP_KEY = ...
+// [Optional] Ext app key.
+val EXT_APP_KEY = ...
 ```
 
 4. The sample includes a few basic AR effects and you can [download](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters) more. All effects must be added into [effects](app/src/main/assets/effects) folder in Android assets. 
@@ -99,7 +99,7 @@ agoraRtc.startPreview()
    applicationContext,
    BANUBA_LICENSE_TOKEN,
    agoraRtc,
-   BANUBA_EXT_APP_KEY,
+   EXT_APP_KEY,
 )
 ```
 

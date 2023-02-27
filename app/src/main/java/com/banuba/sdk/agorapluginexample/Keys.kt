@@ -5,15 +5,15 @@ package com.banuba.sdk.agorapluginexample
  */
 
 // Use Agora appId key created in Agora console
-const val AGORA_APP_ID = ""
+const val AGORA_APP_ID =
 // Use Agora channel created in console
-const val AGORA_CHANNEL = ""
+const val AGORA_CHANNEL =
 // Use token created in Agora console with Agora appId and channel
-const val AGORA_TOKEN = ""
+const val AGORA_TOKEN = 
 
 // Use Banuba license token
-const val BANUBA_LICENSE_TOKEN: String = ""
+const val BANUBA_LICENSE_TOKEN: String =
 
-// Banuba Ext app key
-const val BANUBA_EXT_APP_KEY = ""
+// [Optional] Ext app key.
+val EXT_APP_KEY: String? = null
 
