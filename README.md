@@ -48,20 +48,20 @@ Please modify the list of [available effects](app/src/main/java/com/banuba/sdk/a
 
 ## Integration
 The extension includes main `BanubaExtensionManager` class for interacting with AR effects.  
-AR effects should be places to [effects](app/src/main/assets/effects) folder in assets.
+AR effects should be placed to [effects](app/src/main/assets/effects) folder in Android assets.
 
 ### Enable extension
 First, add Banuba extension `BanubaExtensionManager.BANUBA_PLUGIN_NAME` while initializing instance `RtcEngineConfig`
-```kotlin
+```diff
 val rtcEngineConfig = RtcEngineConfig()
-rtcEngineConfig.addExtension(BANUBA_PLUGIN_NAME)
++ rtcEngineConfig.addExtension(BANUBA_PLUGIN_NAME)
 ```
 Next, you need to enable the extension in `onCreate` method by providing specific provider and extension names.
-```kotlin
+```diff
 override fun onCreate(savedInstanceState: Bundle?) {
    super.onCreate(savedInstanceState)
    ...
-   agoraRtc.enableExtension(
++   agoraRtc.enableExtension(
       BANUBA_PROVIDER_NAME,
       BANUBA_EXTENSION_NAME,
       true,
@@ -70,13 +70,13 @@ override fun onCreate(savedInstanceState: Bundle?) {
 }
 ```
 and disable the extension and Agora in `onDestroy` method
-```kotlin
+```diff
 override fun onDestroy() {
    super.onDestroy()
 
    BanubaExtensionManager.destroy()
 
-   agoraRtc.enableExtension(
++   agoraRtc.enableExtension(
       BANUBA_PROVIDER_NAME,
       BANUBA_EXTENSION_NAME,
       false,
@@ -90,12 +90,12 @@ override fun onDestroy() {
 ### Manage effects
 Initialize extension using `BanubaExtensionManager.initialize` method by providing a number of required params.  
 Please keep in mind that initialize should be invoked only after starting preview `agoraRtc.startPreview()`.
-```kotlin
+```diff
  // Important - extension works only after start preview
 addLocalVideo()
 agoraRtc.startPreview()
 
-BanubaExtensionManager.initialize(
++ BanubaExtensionManager.initialize(
    applicationContext,
    BANUBA_LICENSE_TOKEN,
    agoraRtc,
@@ -107,11 +107,11 @@ Use `BanubaExtensionManager.loadEffect` method for applying AR effects. Use empt
 
 Finally, it is highly recommended to bind applying AR effects to Android lifecycle events by overriding [onResume](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L177) and [onPause](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L185) methods
 otherwise current effect might be applying even though the app is in the background and the user is not interacting with it.
-```kotlin
+```diff
      override fun onResume() {
         super.onResume()
         // Required to resume current Banuba Face AR effect
-        BanubaExtensionManager.resume()
++        BanubaExtensionManager.resume()
      }
 
     override fun onPause() {
@@ -119,6 +119,6 @@ otherwise current effect might be applying even though the app is in the backgro
 
         // Required to pause current Banuba Face AR effect i.e. some AR effects might play audio or
         // continue processing something in background. ".pause" method helps to stop processing.
-        BanubaExtensionManager.pause()
++        BanubaExtensionManager.pause()
     }
 ```
