@@ -12,9 +12,9 @@ Examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar-sdk-v1/andr
 
 |                                      | Version |                    Description                    | 
 |--------------------------------------|:-------:|:-------------------------------------------------:|
-| agora-rtc-sdk.jar                            |  4.0.1  |               Agora RTC dependency                |
+| agora-rtc-sdk.jar                            |  4.1.1  |               Agora RTC dependency                |
 | banuba_effect_player-release.aar     |  1.6.0  | Banuba Face AR dependency for applying AR filters |
-| banuba-agora-extension-*-release.aar |  1.0.0  |            Banuba Extension for Agora             |
+| banuba-agora-extension-*-release.aar |  1.1.1  |            Banuba Extension for Agora             |
 
 
 ## Installation
@@ -24,23 +24,25 @@ Examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar-sdk-v1/andr
 git clone https://github.com/Banuba/agora-plugin-filters-android.git
 ```
 
-2. Add `banuba_effect_player-release.aar`, `banuba-agora-extension-1.0.0-release.aar`, `agora-rtc-sdk.jar` files into [libs](libs) folder and 
+2. Add `banuba_effect_player-release.aar`, `banuba-agora-extension-1.1.1-release.aar` files into [libs](libs) folder and 
    sync your project.
+3. Add `implementation 'io.agora.rtc:full-sdk:4.1.1'` dependency in [app gradle](app/build.gradle#L45)
 
-3. Add your [keys](app/src/main/java/com/banuba/sdk/agorapluginexample/Keys.kt) to run the sample.
+4. Add your [keys](app/src/main/java/com/banuba/sdk/agorapluginexample/Keys.kt) to run the sample.
 ```kotlin
 // Use Agora appId key created in Agora console
 const val AGORA_APP_ID: String = ...
 // Use Agora channel created in console
 const val AGORA_CHANNEL: String = ...
 // Use token created in Agora console with Agora appId and channel
+// Important! The token is optional if your Agora project is in testing mode
 const val AGORA_TOKEN: String = ...
 
 // Use Banuba license token
 const val BANUBA_LICENSE_TOKEN: String = ...
 
-// [Optional] Ext app key.
-val EXT_APP_KEY = ...
+// Banuba Ext app key
+const val BANUBA_EXT_APP_KEY = ...
 ```
 
 4. The sample includes a few basic AR effects and you can [download](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters) more. All effects must be added into [effects](app/src/main/assets/effects) folder in Android assets. 
@@ -99,7 +101,7 @@ agoraRtc.startPreview()
    applicationContext,
    BANUBA_LICENSE_TOKEN,
    agoraRtc,
-   EXT_APP_KEY,
+   BANUBA_EXT_APP_KEY,
 )
 ```
 

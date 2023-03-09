@@ -39,12 +39,10 @@ dependencies {
     implementation(name: '../libs/banuba_effect_player-release', ext: 'aar')
 
     // Banuba extension for Agora
-    implementation(name: '../libs/banuba-agora-extension-1.0.0-release', ext: 'aar')
+    implementation(name: '../libs/banuba-agora-extension-1.1.1-release', ext: 'aar')
 
     // Agora dependency
-    implementation 'io.agora.rtc:full-sdk:4.0.1'
-
-    //implementation 'io.agora.rtc:full-sdk:4.0.1'
+    implementation 'io.agora.rtc:full-sdk:4.1.1'
 
     implementation 'androidx.appcompat:appcompat:1.6.0'
 }
