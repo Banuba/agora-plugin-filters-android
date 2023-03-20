@@ -12,9 +12,9 @@ Examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar-sdk-v1/andr
 
 |                        | Version |                    Description                    | 
 |------------------------|:-------:|:-------------------------------------------------:|
-| io.agora.rtc:full-sdk              |  4.1.1  |               Agora RTC dependency                |
-| banuba_effect_player-release.aar |  1.6.0  | Banuba Face AR dependency for applying AR filters |
-| banuba-agora-extension |  1.1.1  |            Banuba Extension for Agora             |
+| io.agora.rtc:full-sdk  |  4.1.1  |               Agora RTC dependency                |
+| Banuba SDK             |  1.6.0  | Banuba Face AR dependency for applying AR filters |
+| banuba-agora-extension |  1.1.2  |            Banuba Extension for Agora             |
 
 
 ## Installation
@@ -24,7 +24,7 @@ Examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar-sdk-v1/andr
 git clone https://github.com/Banuba/agora-plugin-filters-android.git
 ```
 2. Add Banuba dependencies.
-First, add repository to [build.gradle](build.gradle#L17) to get Banuba depdencies
+Add repository to [build.gradle](build.gradle#L17) to get Banuba dependencies
 ```groovy
 maven {
   name "GitHubPackages"
@@ -35,10 +35,21 @@ maven {
   }
 }
 ```
-Next, add `implementation 'com.banuba.sdk.android:agora-extension:x.x.x'` gradle dependency in [app/build.gradle](app/build.gradle#L42).  
-Finally, add `banuba_effect_player-release.aar` file into [libs](libs) folder and sync your project.
+Add required dependencies to [app/build.gradle](app/build.gradle#L39).
+```groovy
+dependencies {
+    // Banuba Face AR dependency for playing AR effects
+    def banubaSdkVersion = "1.6.0"
+    implementation "com.banuba.sdk:sdk_core:${banubaSdkVersion}"
+    implementation "com.banuba.sdk:banuba_sdk_resources:${banubaSdkVersion}"
 
-3. Add Agora dependency `implementation 'io.agora.rtc:full-sdk:x.x.x'` in [app/build.gradle](app/build.gradle#L45)
+    // Banuba extension for Agora
+    implementation 'com.banuba.sdk.android:agora-extension:1.1.2'
+    ...
+}
+```
+
+3. Add Agora dependency `implementation 'io.agora.rtc:full-sdk:x.x.x'` in [app/build.gradle](app/build.gradle#L47)
 
 4. Add your [keys](app/src/main/java/com/banuba/sdk/agorapluginexample/Keys.kt) to run the sample.
 ```kotlin
@@ -47,17 +58,14 @@ const val AGORA_APP_ID: String = ...
 // Use Agora channel created in console
 const val AGORA_CHANNEL: String = ...
 // Use token created in Agora console with Agora appId and channel
-// Important! The token is optional if your Agora project is in testing mode
+// Important! The token is optional if your Agora project is in Testing mode
 const val AGORA_TOKEN: String = ...
 
 // Use Banuba license token
 const val BANUBA_LICENSE_TOKEN: String = ...
-
-// Banuba Ext app key
-const val BANUBA_EXT_APP_KEY = ...
 ```
 
-4. The sample includes a few basic AR effects and you can [download](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters) more. All effects must be added into [effects](app/src/main/assets/effects) folder in Android assets. 
+5. The sample includes a few basic AR effects, however you can [download](https://docs.banuba.com/face-ar-sdk-v1/overview/demo_face_filters) more. All effects must be added into [effects](app/src/main/assets/effects) folder in Android assets. 
 Please modify the list of [available effects](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L38) in the sample.
 
 ## Integration
