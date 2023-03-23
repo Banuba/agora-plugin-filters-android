@@ -220,8 +220,7 @@ class MainActivity : AppCompatActivity() {
         BanubaExtensionManager.initialize(
             applicationContext,
             BANUBA_LICENSE_TOKEN,
-            agoraRtc,
-            EXT_APP_KEY,
+            agoraRtc
         )
     }
 

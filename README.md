@@ -14,7 +14,7 @@ Examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar-sdk-v1/andr
 |------------------------|:-------:|:-------------------------------------------------:|
 | io.agora.rtc:full-sdk  |  4.1.1  |               Agora RTC dependency                |
 | Banuba SDK             |  1.6.0  | Banuba Face AR dependency for applying AR filters |
-| banuba-agora-extension |  1.1.2  |            Banuba Extension for Agora             |
+| banuba-agora-extension |  1.1.3  |            Banuba Extension for Agora             |
 
 
 ## Installation
@@ -44,7 +44,7 @@ dependencies {
     implementation "com.banuba.sdk:banuba_sdk_resources:${banubaSdkVersion}"
 
     // Banuba extension for Agora
-    implementation 'com.banuba.sdk.android:agora-extension:1.1.2'
+    implementation 'com.banuba.sdk.android:agora-extension:1.1.3'
     ...
 }
 ```
@@ -54,12 +54,14 @@ dependencies {
 4. Add your [keys](app/src/main/java/com/banuba/sdk/agorapluginexample/Keys.kt) to run the sample.
 ```kotlin
 // Use Agora appId key created in Agora console
-const val AGORA_APP_ID: String = ...
+const val AGORA_APP_ID = ...
+
 // Use Agora channel created in console
-const val AGORA_CHANNEL: String = ...
-// Use token created in Agora console with Agora appId and channel
-// Important! The token is optional if your Agora project is in Testing mode
-const val AGORA_TOKEN: String = ...
+    const val AGORA_CHANNEL = ...
+
+// Use token created in Agora console with Agora by channel
+// Important! This token can be omitted if your Agora project is in testing mode
+    const val AGORA_TOKEN = ""
 
 // Use Banuba license token
 const val BANUBA_LICENSE_TOKEN: String = ...
@@ -120,8 +122,7 @@ agoraRtc.startPreview()
 + BanubaExtensionManager.initialize(
    applicationContext,
    BANUBA_LICENSE_TOKEN,
-   agoraRtc,
-   BANUBA_EXT_APP_KEY,
+   agoraRtc
 )
 ```
 
