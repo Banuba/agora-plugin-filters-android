@@ -41,10 +41,13 @@
 
     <Button
         android:id="@+id/applyEffectButton"
-        android:layout_width="160dp"
+        android:layout_width="240dp"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
+        android:maxLines="1"
+        android:maxLength="30"
+        android:ellipsize="end"
         android:textSize="11sp" />
 
 </FrameLayout>

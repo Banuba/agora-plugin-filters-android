@@ -33,7 +33,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Use list of Face AR effects available in assets/effects folder
-    private val availableEffects = listOf("AsaiLines", "PoliceMan", "Blur")
+    private val availableEffects = listOf(
+        "360_CubemapEverest_noSound",
+        "CartoonOctopus",
+        "clubs",
+        "dialect",
+        "frame1",
+        "Graduate",
+        "prequel_VE",
+        "RainbowBeauty",
+        "Regular_blur",
+        "Regular_Dawn_of_nature",
+        "relook",
+        "Sunset",
+        "TrollGrandma",
+        "video_BG_Metro_sfx",
+        "video_BG_RainyCafe",
+        "WhooshBeautyFemale"
+    )
 
     private var effectIndex = -1
 
