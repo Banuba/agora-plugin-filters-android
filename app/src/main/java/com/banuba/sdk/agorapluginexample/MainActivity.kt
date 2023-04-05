@@ -142,6 +142,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private var isFrontCamera = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -149,6 +151,12 @@ class MainActivity : AppCompatActivity() {
         invalidateUiState()
 
         joinButton.setOnClickListener { joinChannel(AGORA_CHANNEL) }
+
+        switchCameraButton.setOnClickListener {
+            agoraRtc.switchCamera()
+            isFrontCamera = !isFrontCamera
+            BanubaExtensionManager.requireMirroring(isFrontCamera)
+        }
         leaveButton.setOnClickListener { leaveChannel() }
         applyEffectButton.setOnClickListener {
             toggleEffect()
@@ -239,6 +247,7 @@ class MainActivity : AppCompatActivity() {
             BANUBA_LICENSE_TOKEN,
             agoraRtc
         )
+        BanubaExtensionManager.requireMirroring(isFrontCamera)
     }
 
     private fun joinChannel(channel: String) {
@@ -283,7 +292,7 @@ class MainActivity : AppCompatActivity() {
         )
         agoraRtc.setLocalRenderMode(
             Constants.RENDER_MODE_HIDDEN,
-            Constants.VIDEO_MIRROR_MODE_ENABLED
+            Constants.VIDEO_MIRROR_MODE_DISABLED
         )
         localVideoContainer.removeAllViews()
         localVideoContainer.addView(view)

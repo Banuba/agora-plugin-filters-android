@@ -50,4 +50,15 @@
         android:ellipsize="end"
         android:textSize="11sp" />
 
+    <Button
+        android:id="@+id/switchCameraButton"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="top|start"
+        android:layout_margin="16dp"
+        android:ellipsize="end"
+        android:maxLength="30"
+        android:maxLines="1"
+        android:textSize="11sp" />
+
 </FrameLayout>
