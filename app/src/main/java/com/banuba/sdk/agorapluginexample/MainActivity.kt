@@ -155,7 +155,7 @@ class MainActivity : AppCompatActivity() {
         switchCameraButton.setOnClickListener {
             agoraRtc.switchCamera()
             isFrontCamera = !isFrontCamera
-            BanubaExtensionManager.requireMirroring(isFrontCamera)
+            BanubaExtensionManager.enableMirroring(isFrontCamera)
         }
         leaveButton.setOnClickListener { leaveChannel() }
         applyEffectButton.setOnClickListener {
@@ -247,7 +247,6 @@ class MainActivity : AppCompatActivity() {
             BANUBA_LICENSE_TOKEN,
             agoraRtc
         )
-        BanubaExtensionManager.requireMirroring(isFrontCamera)
     }
 
     private fun joinChannel(channel: String) {
