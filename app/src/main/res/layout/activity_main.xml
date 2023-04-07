@@ -50,4 +50,12 @@
         android:ellipsize="end"
         android:textSize="11sp" />
 
+    <Button
+        android:id="@+id/switchCameraButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Switch Facing"
+        android:textSize="11sp" />
+
 </FrameLayout>
