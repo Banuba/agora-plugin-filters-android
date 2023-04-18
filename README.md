@@ -14,7 +14,7 @@ Examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar-sdk-v1/andr
 |------------------------|:-------:|:-------------------------------------------------:|
 | io.agora.rtc:full-sdk  |  4.1.1  |               Agora RTC dependency                |
 | Banuba SDK             |  1.6.0  | Banuba Face AR dependency for applying AR filters |
-| banuba-agora-extension |  1.1.4  |            Banuba Extension for Agora             |
+| banuba-agora-extension |  1.1.5  |            Banuba Extension for Agora             |
 
 
 ## Installation
@@ -44,7 +44,7 @@ dependencies {
     implementation "com.banuba.sdk:banuba_sdk_resources:${banubaSdkVersion}"
 
     // Banuba extension for Agora
-    implementation 'com.banuba.sdk.android:agora-extension:1.1.4'
+    implementation 'com.banuba.sdk.android:agora-extension:1.1.5'
     ...
 }
 ```
@@ -72,7 +72,8 @@ Please modify the list of [available effects](app/src/main/java/com/banuba/sdk/a
 
 ## Integration
 The extension includes main `BanubaExtensionManager` class for interacting with AR effects.  
-AR effects should be placed to [effects](app/src/main/assets/effects) folder in Android assets.
+Basically, AR effects should be placed to [assets/effects](app/src/main/assets/effects) folder.  
+Additionally, you can store AR effects on device internal storage and use `File` to load effect.
 
 ### Enable extension
 First, add Banuba extension `BanubaExtensionManager.BANUBA_PLUGIN_NAME` while initializing instance `RtcEngineConfig`
@@ -126,7 +127,15 @@ agoraRtc.startPreview()
 )
 ```
 
-Use `BanubaExtensionManager.loadEffect` method for applying AR effects. Use empty string `""` for `effectName` to cancel an effect.  
+#### Load effects from assets 
+
+Use `BanubaExtensionManager.loadEffectFromAssets` method for applying AR effects stored in Android assets folder.
+Use empty string `""` for `effectName` to cancel an effect.
+
+#### Load effects from file
+
+Use `BanubaExtensionManager.loadEffectFromFile` method for applying AR effects stored on device internal storage.
+Use empty string `null` to cancel an effect.
 
 Finally, it is highly recommended to bind applying AR effects to Android lifecycle events by overriding [onResume](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L177) and [onPause](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L185) methods
 otherwise current effect might be applying even though the app is in the background and the user is not interacting with it.

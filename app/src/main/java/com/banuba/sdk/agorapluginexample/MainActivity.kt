@@ -165,7 +165,7 @@ class MainActivity : AppCompatActivity() {
                 // effectName is empty when effect is canceled
                 Log.d(TAG, "Prepare effect = $effectName")
                 // Consider executing method in background thread
-                BanubaExtensionManager.loadEffect(effectName)
+                BanubaExtensionManager.loadEffectFromAssets(effectName)
             }
         }
 
