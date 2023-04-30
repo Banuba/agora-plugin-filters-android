@@ -14,7 +14,7 @@ Examples for [Banuba SDK on Android](https://docs.banuba.com/face-ar-sdk-v1/andr
 |------------------------|:-------:|:-------------------------------------------------:|
 | io.agora.rtc:full-sdk  |  4.1.1  |               Agora RTC dependency                |
 | Banuba SDK             |  1.6.0  | Banuba Face AR dependency for applying AR filters |
-| banuba-agora-extension |  1.1.5  |            Banuba Extension for Agora             |
+| banuba-agora-extension |  1.1.6  |            Banuba Extension for Agora             |
 
 
 ## Installation
@@ -44,7 +44,7 @@ dependencies {
     implementation "com.banuba.sdk:banuba_sdk_resources:${banubaSdkVersion}"
 
     // Banuba extension for Agora
-    implementation 'com.banuba.sdk.android:agora-extension:1.1.5'
+    implementation 'com.banuba.sdk.android:agora-extension:1.1.6'
     ...
 }
 ```
@@ -154,3 +154,8 @@ otherwise current effect might be applying even though the app is in the backgro
 +        BanubaExtensionManager.pause()
     }
 ```
+
+### Interact with Effect API
+Use ```BanubaExtensionManager.evalJs()``` method and pass String commands i.e. "Background = require('bnb_js/background'); Background.blur(0.6);"
+to interact with the effect API.
+Please visit [Effect API](https://docs.banuba.com/face-ar-sdk-v1/effect_api/getting_started) guidelines to know more this feature.
