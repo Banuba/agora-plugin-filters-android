@@ -253,7 +253,7 @@ class MainActivity : AppCompatActivity() {
         if (!isJoinedToChannel) {
             Log.d(TAG, "Join to Agora channel = $channel")
             isJoinedToChannel = true
-            agoraRtc.joinChannel("", channel, null, 0)
+            agoraRtc.joinChannel(AGORA_TOKEN, channel, null, 0)
 
             invalidateUiState()
         }
