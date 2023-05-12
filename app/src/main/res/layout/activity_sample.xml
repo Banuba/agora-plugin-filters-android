@@ -3,13 +3,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/launchAgoraActivityButton"
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/startSampleButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_margin="16dp"
-        android:text="Launch agora activity"
-        android:textSize="11sp" />
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/purple_500"
+        android:text="Start sample"
+        android:textSize="14sp" />
 
 </FrameLayout>

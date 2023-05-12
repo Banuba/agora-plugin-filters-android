@@ -19,7 +19,7 @@
         android:theme="@style/Theme.AgoraBanubaFilters">
 
         <activity
-            android:name=".LauncherActivity"
+            android:name=".SampleActivity"
             android:screenOrientation="portrait"
             android:exported="true">
             <intent-filter>
