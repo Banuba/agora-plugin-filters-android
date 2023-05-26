@@ -36,12 +36,12 @@ android {
 
 dependencies {
     // Banuba Face AR dependency for playing AR filters
-    def banubaSdkVersion = "1.6.0"
+    def banubaSdkVersion = "1.7.0"
     implementation "com.banuba.sdk:sdk_core:${banubaSdkVersion}"
     implementation "com.banuba.sdk:banuba_sdk_resources:${banubaSdkVersion}"
 
     // Banuba extension for Agora
-    implementation 'com.banuba.sdk.android:agora-extension:1.1.7'
+    implementation 'com.banuba.sdk.android:agora-extension:1.2.0'
 
     // Agora dependency
     implementation 'io.agora.rtc:full-sdk:4.1.1'
