@@ -37,7 +37,6 @@ class MainActivity : AppCompatActivity() {
         "360_CubemapEverest_noSound",
         "CartoonOctopus",
         "clubs",
-        "dialect",
         "frame1",
         "Graduate",
         "prequel_VE",
