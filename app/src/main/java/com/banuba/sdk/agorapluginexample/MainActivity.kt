@@ -206,6 +206,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         // Destroys Banuba Face AR surface
+        BanubaExtensionManager.loadEffectFromFile(null)
         BanubaExtensionManager.destroy()
         enableBanubaExtension(false)
         RtcEngine.destroy()
@@ -247,6 +248,7 @@ class MainActivity : AppCompatActivity() {
             BANUBA_LICENSE_TOKEN,
             agoraRtc
         )
+        BanubaExtensionManager.enableMirroring(isFrontCamera)
     }
 
     private fun joinChannel(channel: String) {
