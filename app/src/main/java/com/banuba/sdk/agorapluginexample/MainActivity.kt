@@ -1,6 +1,7 @@
 package com.banuba.sdk.agorapluginexample
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -164,7 +165,7 @@ class MainActivity : AppCompatActivity() {
                 // effectName is empty when effect is canceled
                 Log.d(TAG, "Prepare effect = $effectName")
                 // Consider executing method in background thread
-                BanubaExtensionManager.loadEffectFromAssets(effectName)
+                BanubaExtensionManager.loadEffect(effectName)
             }
         }
 
@@ -172,6 +173,7 @@ class MainActivity : AppCompatActivity() {
         enableBanubaExtension(true)
     }
 
+    @SuppressLint("NewApi")
     override fun onStart() {
         super.onStart()
         Log.d(TAG, "onStart")
@@ -205,7 +207,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         // Destroys Banuba Face AR surface
-        BanubaExtensionManager.loadEffectFromFile(null)
+        BanubaExtensionManager.loadEffect("")
         BanubaExtensionManager.destroy()
         enableBanubaExtension(false)
         RtcEngine.destroy()
