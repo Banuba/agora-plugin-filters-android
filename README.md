@@ -55,11 +55,11 @@ dependencies {
 const val AGORA_APP_ID = ...
 
 // Use Agora channel created in console
-    const val AGORA_CHANNEL = ...
+const val AGORA_CHANNEL = ...
 
 // Use token created in Agora console with Agora by channel
 // Important! This token can be omitted if your Agora project is in testing mode
-    const val AGORA_TOKEN = ""
+const val AGORA_TOKEN = ""
 
 // Use Banuba license token
 const val BANUBA_LICENSE_TOKEN: String = ...
@@ -77,19 +77,19 @@ Additionally, you can store AR effects on device internal storage and use `File`
 First, add Banuba extension `BanubaExtensionManager.BANUBA_PLUGIN_NAME` while initializing instance `RtcEngineConfig`
 ```diff
 val rtcEngineConfig = RtcEngineConfig()
-+ rtcEngineConfig.addExtension(BANUBA_PLUGIN_NAME)
++rtcEngineConfig.addExtension(BANUBA_PLUGIN_NAME)
 ```
 Next, you need to enable the extension in `onCreate` method by providing specific provider and extension names.
 ```diff
 override fun onCreate(savedInstanceState: Bundle?) {
    super.onCreate(savedInstanceState)
    ...
-+   agoraRtc.enableExtension(
-      BANUBA_PROVIDER_NAME,
-      BANUBA_EXTENSION_NAME,
-      true,
-      Constants.MediaSourceType.PRIMARY_CAMERA_SOURCE
-   )
++  agoraRtc.enableExtension(
++     BANUBA_PROVIDER_NAME,
++     BANUBA_EXTENSION_NAME,
++     true,
++     Constants.MediaSourceType.PRIMARY_CAMERA_SOURCE
++  )
 }
 ```
 and disable the extension and Agora in `onDestroy` method
@@ -99,12 +99,12 @@ override fun onDestroy() {
 
    BanubaExtensionManager.destroy()
 
-+   agoraRtc.enableExtension(
-      BANUBA_PROVIDER_NAME,
-      BANUBA_EXTENSION_NAME,
-      false,
-      Constants.MediaSourceType.PRIMARY_CAMERA_SOURCE
-   )
++  agoraRtc.enableExtension(
++     BANUBA_PROVIDER_NAME,
++     BANUBA_EXTENSION_NAME,
++     false,
++     Constants.MediaSourceType.PRIMARY_CAMERA_SOURCE
++  )
    
    RtcEngine.destroy()
 }
@@ -118,22 +118,30 @@ Please keep in mind that initialize should be invoked only after starting previe
 addLocalVideo()
 agoraRtc.startPreview()
 
-+ BanubaExtensionManager.initialize(
-   applicationContext,
-   BANUBA_LICENSE_TOKEN,
-   agoraRtc
-)
++BanubaExtensionManager.initialize(
++   applicationContext,
++   BANUBA_LICENSE_TOKEN,
++   agoraRtc
++)
 ```
 
 #### Load effects from assets 
 
-Use `BanubaExtensionManager.loadEffectFromAssets` method for applying AR effects stored in Android assets folder.
-Use empty string `""` for `effectName` to cancel an effect.
+Use `BanubaExtensionManager.loadEffect` method for applying AR effects stored in Android `assets/effects` folder.
 
-#### Load effects from file
+#### Load effects from path
 
-Use `BanubaExtensionManager.loadEffectFromFile` method for applying AR effects stored on device internal storage.
-Use empty string `null` to cancel an effect.
+Use `agoraRtc.setExtensionProperty` method for applying AR effects stored on device internal storage.
+Use empty string `""` to cancel an effect.
+
+```kotlin
+agoraRtc.setExtensionProperty(
+   BANUBA_PROVIDER_NAME,  // "Banuba"
+   BANUBA_EXTENSION_NAME, // "BanubaFilter"
+   "load_effect",
+   path_to_effect
+)
+```
 
 Finally, it is highly recommended to bind applying AR effects to Android lifecycle events by overriding [onResume](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L177) and [onPause](app/src/main/java/com/banuba/sdk/agorapluginexample/MainActivity.kt#L185) methods
 otherwise current effect might be applying even though the app is in the background and the user is not interacting with it.
@@ -141,7 +149,7 @@ otherwise current effect might be applying even though the app is in the backgro
      override fun onResume() {
         super.onResume()
         // Required to resume current Banuba Face AR effect
-+        BanubaExtensionManager.resume()
++       BanubaExtensionManager.resume()
      }
 
     override fun onPause() {
@@ -149,7 +157,7 @@ otherwise current effect might be applying even though the app is in the backgro
 
         // Required to pause current Banuba Face AR effect i.e. some AR effects might play audio or
         // continue processing something in background. ".pause" method helps to stop processing.
-+        BanubaExtensionManager.pause()
++       BanubaExtensionManager.pause()
     }
 ```
 
