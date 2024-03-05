@@ -150,6 +150,9 @@ class MainActivity : AppCompatActivity() {
 
         invalidateUiState()
 
+        val pathToCopy = cacheDir.absolutePath
+        assets.copyAssetFolder("effects", "$pathToCopy/effects")
+
         joinButton.setOnClickListener { joinChannel(AGORA_CHANNEL) }
 
         switchCameraButton.setOnClickListener {
@@ -165,7 +168,13 @@ class MainActivity : AppCompatActivity() {
                 // effectName is empty when effect is canceled
                 Log.d(TAG, "Prepare effect = $effectName")
                 // Consider executing method in background thread
-                BanubaExtensionManager.loadEffect(effectName)
+//                BanubaExtensionManager.loadEffect(effectName)
+                agoraRtc.setExtensionProperty(
+                    BANUBA_PROVIDER_NAME,
+                    BANUBA_EXTENSION_NAME,
+                    "load_effect",
+                    "$pathToCopy/effects/$effectName"
+                )
             }
         }
 
