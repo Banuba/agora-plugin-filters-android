@@ -208,7 +208,7 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         // Destroys Banuba Face AR surface
         BanubaExtensionManager.loadEffect("")
-        BanubaExtensionManager.destroy()
+        BanubaExtensionManager.release()
         enableBanubaExtension(false)
         RtcEngine.destroy()
     }
