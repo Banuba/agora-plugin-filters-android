@@ -14,10 +14,10 @@ import com.banuba.android.sdk.ext.agora.BanubaExtensionManager
 import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.BANUBA_EXTENSION_NAME
 import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.BANUBA_PLUGIN_NAME
 import com.banuba.android.sdk.ext.agora.BanubaExtensionManager.BANUBA_PROVIDER_NAME
+import com.banuba.sdk.agorapluginexample.databinding.ActivityMainBinding
 import io.agora.rtc2.*
 import io.agora.rtc2.video.VideoCanvas
 import io.agora.rtc2.video.VideoEncoderConfiguration
-import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -32,6 +32,8 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.RECORD_AUDIO
         )
     }
+
+    private lateinit var binding: ActivityMainBinding
 
     // Use list of Face AR effects available in assets/effects folder
     private val availableEffects = listOf(
@@ -146,19 +148,24 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
 
         invalidateUiState()
 
-        joinButton.setOnClickListener { joinChannel(AGORA_CHANNEL) }
+        binding.joinButton.setOnClickListener {
+            joinChannel(AGORA_CHANNEL)
+        }
 
-        switchCameraButton.setOnClickListener {
+        binding.switchCameraButton.setOnClickListener {
             agoraRtc.switchCamera()
             isFrontCamera = !isFrontCamera
             BanubaExtensionManager.enableMirroring(isFrontCamera)
         }
-        leaveButton.setOnClickListener { leaveChannel() }
-        applyEffectButton.setOnClickListener {
+        binding.leaveButton.setOnClickListener { leaveChannel() }
+        binding.applyEffectButton.setOnClickListener {
             toggleEffect()
 
             getCurrentEffect().let { effectName ->
@@ -296,18 +303,18 @@ class MainActivity : AppCompatActivity() {
             Constants.RENDER_MODE_HIDDEN,
             Constants.VIDEO_MIRROR_MODE_DISABLED
         )
-        localVideoContainer.removeAllViews()
-        localVideoContainer.addView(view)
+        binding.localVideoContainer.removeAllViews()
+        binding.localVideoContainer.addView(view)
     }
 
     private fun removeRemoteVideo() {
-        remoteVideoContainer.removeAllViews()
+        binding.remoteVideoContainer.removeAllViews()
     }
 
     private fun addRemoteVideo(uid: Int) {
         val view = SurfaceView(this)
         agoraRtc.setupRemoteVideo(VideoCanvas(view, VideoCanvas.RENDER_MODE_HIDDEN, uid))
-        remoteVideoContainer.addView(view)
+        binding.remoteVideoContainer.addView(view)
     }
 
     /**
@@ -327,18 +334,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun invalidateUiState() {
         val nextEffectIndex = effectIndex + 1
-        applyEffectButton.text = if (nextEffectIndex >= availableEffects.size) {
+        binding.applyEffectButton.text = if (nextEffectIndex >= availableEffects.size) {
             "Cancel effect"
         } else {
             "Apply ${availableEffects[nextEffectIndex]}"
         }
 
         if (isJoinedToChannel) {
-            joinButton.visibility = View.GONE
-            leaveButton.visibility = View.VISIBLE
+            binding.joinButton.visibility = View.GONE
+            binding.leaveButton.visibility = View.VISIBLE
         } else {
-            joinButton.visibility = View.VISIBLE
-            leaveButton.visibility = View.GONE
+            binding.joinButton.visibility = View.VISIBLE
+            binding.leaveButton.visibility = View.GONE
         }
     }
 

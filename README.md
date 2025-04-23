@@ -39,10 +39,10 @@ Add required dependencies to [app/build.gradle](app/build.gradle#L39).
 ```groovy
 dependencies {
     // Banuba Face AR dependency for playing AR effects
-    implementation "com.banuba.sdk:banuba_sdk:1.15.0"
+    implementation "com.banuba.sdk:banuba_sdk:1.17.1"
 
     // Banuba extension for Agora
-    implementation 'com.banuba.sdk.android:agora-extension:1.5.0'
+    implementation 'com.banuba.sdk.android:agora-extension:1.5.1'
     ...
 }
 ```
