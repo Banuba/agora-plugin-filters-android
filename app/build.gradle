@@ -5,7 +5,7 @@ plugins {
 
 android {
 
-    namespace "com.banuba.sdk.agorapluginexample"
+    namespace = "com.banuba.sdk.agorapluginexample"
 
     compileSdkVersion 34
 
