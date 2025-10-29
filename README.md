@@ -42,7 +42,7 @@ dependencies {
     implementation "com.banuba.sdk:banuba_sdk:1.17.1"
 
     // Banuba extension for Agora
-    implementation 'com.banuba.sdk.android:agora-extension:1.5.1'
+    implementation 'com.banuba.sdk.android:agora-extension:1.5.2'
     ...
 }
 ```
