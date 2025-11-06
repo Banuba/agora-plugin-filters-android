@@ -89,42 +89,34 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val agoraExtensionObserver = object : IMediaExtensionObserver {
-        override fun onEvent(
-            provider: String?,
-            extension: String?,
+        override fun onEventWithContext(
+            extContext: ExtensionContext?,
             key: String?,
             value: String?
         ) {
-            Log.d(TAG, "Extension event: $provider.$extension key:$key value:$value")
+            Log.d(TAG, "Extension event: ${extContext?.extensionName} key:$key value:$value")
         }
 
-        override fun onStarted(
-            provider: String?,
-            extension: String?
-        ) {
-            Log.d(TAG, "Extension started: $provider.$extension")
-            if (BANUBA_PROVIDER_NAME == provider && BANUBA_EXTENSION_NAME == extension) {
+        override fun onStartedWithContext(extContext: ExtensionContext?) {
+            Log.d(TAG, "Extension started: ${extContext?.extensionName}")
+            if (BANUBA_PROVIDER_NAME == extContext?.providerName && BANUBA_EXTENSION_NAME == extContext?.extensionName) {
                 runOnUiThread { showToast("Banuba extension started!") }
             }
         }
 
-        override fun onStopped(
-            provider: String?,
-            extension: String?
-        ) {
-            Log.d(TAG, "Extension stopped: $provider.$extension")
-            if (BANUBA_PROVIDER_NAME == provider && BANUBA_EXTENSION_NAME == extension) {
+        override fun onStoppedWithContext(extContext: ExtensionContext?) {
+            Log.d(TAG, "Extension stopped: ${extContext?.extensionName}n")
+            if (BANUBA_PROVIDER_NAME == extContext?.providerName && BANUBA_EXTENSION_NAME == extContext?.extensionName) {
                 runOnUiThread { showToast("Banuba extension stopped!") }
             }
         }
 
-        override fun onError(
-            provider: String?,
-            extension: String?,
-            errCode: Int,
-            errMsg: String?
+        override fun onErrorWithContext(
+            extContext: ExtensionContext?,
+            error: Int,
+            message: String?
         ) {
-            Log.e(TAG, "Extension error: $provider.$extension code:$errCode error:$errMsg")
+            Log.e(TAG, "Extension error: ${extContext?.extensionName} code:$error error:$message")
         }
     }
 
