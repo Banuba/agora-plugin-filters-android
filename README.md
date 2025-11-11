@@ -12,6 +12,8 @@ Check out examples for other platforms:
 * [iOS](https://github.com/Banuba/agora-plugin-filters-ios)
 * [Web](https://github.com/Banuba/agora-plugin-filters-web)
 
+![Banuba](banuba.gif)
+
 # Getting Started
 
 ## Prerequisites
