@@ -26,9 +26,9 @@ Check out examples for other platforms:
 
 |                        | Version |                    Description                    | 
 |------------------------|:-------:|:-------------------------------------------------:|
-| io.agora.rtc:full-sdk  |  4.3.2  |               Agora RTC dependency                |
-| Banuba SDK             | 1.15.0  | Banuba Face AR dependency for applying AR filters |
-| banuba-agora-extension |  1.5.0  |            Banuba Extension for Agora             |
+| io.agora.rtc:full-sdk  |  4.5.2  |               Agora RTC dependency                |
+| Banuba SDK             | 1.18.+  | Banuba Face AR dependency for applying AR filters |
+| banuba-agora-extension |  1.5.+  |            Banuba Extension for Agora             |
 
 
 ## Installation
@@ -49,10 +49,10 @@ Add required dependencies to [app/build.gradle](app/build.gradle#L39).
 ```groovy
 dependencies {
     // Banuba Face AR dependency for playing AR effects
-    implementation "com.banuba.sdk:banuba_sdk:1.17.1"
+    implementation "com.banuba.sdk:banuba_sdk:1.18.+"
 
     // Banuba extension for Agora
-    implementation 'com.banuba.sdk.android:agora-extension:1.5.2'
+    implementation 'com.banuba.sdk.android:agora-extension:1.5.+'
     ...
 }
 ```
