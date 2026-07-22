@@ -41,10 +41,10 @@ dependencies {
     implementation "com.banuba.sdk:banuba_sdk:1.17.6"
 
     // Banuba extension for Agora
-    implementation 'com.banuba.sdk.android:agora-extension:1.5.3'
+    implementation 'com.banuba.sdk.android:agora-extension:2.6.0'
 
     // Agora dependency
-    implementation 'io.agora.rtc:full-sdk:4.5.2'
+    implementation 'io.agora.rtc:full-sdk:4.6.2'
 
     implementation 'androidx.appcompat:appcompat:1.6.0'
 }

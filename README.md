@@ -12,9 +12,9 @@ Examples for [Banuba SDK on Android](https://docs.banuba.com/far-sdk/tutorials/d
 
 |                        | Version |                    Description                    | 
 |------------------------|:-------:|:-------------------------------------------------:|
-| io.agora.rtc:full-sdk  |  4.3.2  |               Agora RTC dependency                |
+| io.agora.rtc:full-sdk  |  4.6.2  |               Agora RTC dependency                |
 | Banuba SDK             | 1.15.0  | Banuba Face AR dependency for applying AR filters |
-| banuba-agora-extension |  1.5.0  |            Banuba Extension for Agora             |
+| banuba-agora-extension |  2.6.0  |            Banuba Extension for Agora             |
 
 
 ## Installation
@@ -42,7 +42,7 @@ dependencies {
     implementation "com.banuba.sdk:banuba_sdk:1.17.1"
 
     // Banuba extension for Agora
-    implementation 'com.banuba.sdk.android:agora-extension:1.5.2'
+    implementation 'com.banuba.sdk.android:agora-extension:2.6.0'
     ...
 }
 ```
