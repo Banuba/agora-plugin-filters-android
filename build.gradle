@@ -13,7 +13,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-
         maven {
             name = "BanubaMaven"
             url = uri("https://nexus.banuba.net/repository/maven-releases")
