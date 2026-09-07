@@ -167,7 +167,7 @@
                     "backfaces": true,
                     "blend": "alpha",
                     "colorwrite": true,
-                    "ztest": true,
+                    "ztest": false,
                     "zwrite": true
                 }
             },
@@ -509,10 +509,6 @@
                 "sub_geometries": [
                     "mat_eyelash"
                 ]
-            },
-            {
-                "layer": "internal_face_morph__",
-                "render_target": "EffectRT1"
             }
         ]
     },
@@ -520,10 +516,13 @@
         "ComposerRT": [
             "ComposerRT_color"
         ],
-        "EffectRT0": [
-            "EffectRT0_color",
-            "EffectRT0_depth"
-        ],
+        "EffectRT0": {
+            "attachments": [
+                "EffectRT0_color",
+                "EffectRT0_depth"
+            ],
+            "samples_count": 4
+        },
         "EffectRT1": [
             "EffectRT1_color",
             "EffectRT1_depth"

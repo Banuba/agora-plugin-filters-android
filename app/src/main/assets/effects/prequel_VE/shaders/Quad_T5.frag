@@ -35,16 +35,17 @@ vec3 blendMultiply(vec3 base, vec3 blend, float opacity) {
 void main()
 {
 	vec2 uv = var_uv;
-	
+
+	// uv.y = 1. - uv.y;
+	vec4 bg = BNB_TEXTURE_2D(BNB_SAMPLER_2D(glfx_BACKGROUND),uv);
+	#ifndef BNB_VK_1
+		uv.y = 1. - uv.y;
+	#endif	
 	vec4 overlayColor = BNB_TEXTURE_2D(BNB_SAMPLER_2D(tex_overlay),uv);
 	vec4 multiplyColor = BNB_TEXTURE_2D(BNB_SAMPLER_2D(tex_multiply),uv);
-		#ifndef BNB_VK_1
-		uv.y = 1. - uv.y;
-	#endif
-	vec4 bg = BNB_TEXTURE_2D(BNB_SAMPLER_2D(glfx_BACKGROUND),uv);
 
-	vec3 mix1 = blendOverlay(bg.rgb,overlayColor.rgb,overlayColor.a * 0.66);
+	vec3 mix1 = blendOverlay(bg.rgb,overlayColor.rgb,overlayColor.a);
 	vec4 mix2 = bg * multiplyColor;
-	bnb_FragColor = vec4(blendMultiply(mix1,multiplyColor.rgb,multiplyColor.a * 0.55),1.);
+	bnb_FragColor = vec4(blendMultiply(mix1,multiplyColor.rgb,multiplyColor.a),1.);
 	// bnb_FragColor = vec4(mix1,1.);
 }

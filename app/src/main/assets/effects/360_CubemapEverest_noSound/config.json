@@ -720,6 +720,10 @@
                 ]
             },
             {
+                "layer": "internal_face_morph__",
+                "render_target": "EffectRT0"
+            },
+            {
                 "layer": "cut",
                 "render_target": "EffectRT0",
                 "sub_geometries": [
@@ -741,10 +745,6 @@
                 ]
             },
             {
-                "layer": "internal_face_morph__",
-                "render_target": "EffectRT0"
-            },
-            {
                 "layer": "finalColorFilter",
                 "render_target": "finalColorFilterRT"
             }
@@ -754,10 +754,13 @@
         "ComposerRT": [
             "ComposerRT_color"
         ],
-        "EffectRT0": [
-            "EffectRT0_color",
-            "EffectRT0_depth"
-        ],
+        "EffectRT0": {
+            "attachments": [
+                "EffectRT0_color",
+                "EffectRT0_depth"
+            ],
+            "samples_count": 4
+        },
         "finalColorFilterRT": [
             "finalColorFilterRT_color"
         ]
@@ -769,5 +772,4 @@
     },
     "support360": true,
     "type": "mask"
-
 }

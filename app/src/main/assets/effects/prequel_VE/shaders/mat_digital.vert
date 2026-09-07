@@ -85,14 +85,14 @@ BNB_OUT(7) vec3 var_v;
 
 
 
-#include <bnb/anim_transform.glsl>
 #include <bnb/morph_transform.glsl>
 #include <bnb/get_bone.glsl>
+#include <bnb/anim_transform.glsl>
 void main()
 {   
     float screenRate = bnb_SCREEN.x/bnb_SCREEN.y;
 
-    float scale = js_pos_time.z * 0.0019;
+    float scale = js_pos_time.z * (0.0019/screenRate);
     float angle = js_pos_time.w;
 
     mat4 m = bnb_get_transform();
@@ -136,7 +136,7 @@ void main()
 #endif
 #endif
 
-    vpos = vec3(rot_z * vec4(vpos,1.)*m) - vec3(bnb_SCREEN.x/1.3,-bnb_SCREEN.y/10.,0.);
+    vpos = vec3(rot_z * vec4(vpos,1.)*m) - vec3(600,-100,0.);
 
 #ifdef BNB_USE_AUTOMORPH
 #ifndef BNB_AUTOMORPH_BONE
@@ -145,8 +145,14 @@ void main()
     vpos = bnb_auto_morph_bone( vpos, m );
 #endif
 #endif
+    #ifndef BNB_VK_1
+        vpos.y = 1. - vpos.y;
+        vpos.y += 400.;
+    #endif    
+        vpos.x = 650.+vpos.x- (70.*(screenRate*9.5)) ;
 
     vpos.xyz *= vec3(scale,scale*screenRate,0.); // resize
+
     gl_Position =  vec4(vpos+ vec3(js_pos_time.xy,0.),1.);
 
 #ifdef GLFX_LIGHTING

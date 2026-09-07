@@ -25,9 +25,8 @@ void main()
 
 	vec2 v = attrib_pos.xy;
 	vec2 uv = v*0.5 + 0.5;
-	#ifdef BNB_VK_1
-		uv.y = 1. - uv.y;
-	#endif	
+
 gl_Position = vec4( v, 0.0, 1.0 );
 	var_uv = uv;
+	var_uv.y = 1. - var_uv.y;
 }

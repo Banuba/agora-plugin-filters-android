@@ -11,7 +11,6 @@ BNB_DECLARE_SAMPLER_2D(0, 1, tex);
 void main()
 {
 	vec2 uv = var_uv;
-	
 	bnb_FragColor = BNB_TEXTURE_2D(BNB_SAMPLER_2D(tex),uv);
-	// bnb_FragColor = vec4(1.);
+
 }

@@ -575,10 +575,13 @@
         "ComposerRT": [
             "ComposerRT_color"
         ],
-        "EffectRT0": [
-            "EffectRT0_color",
-            "EffectRT0_depth"
-        ],
+        "EffectRT0": {
+            "attachments": [
+                "EffectRT0_color",
+                "EffectRT0_depth"
+            ],
+            "samples_count": 4
+        },
         "finalColorFilterRT": [
             "finalColorFilterRT_color"
         ]
